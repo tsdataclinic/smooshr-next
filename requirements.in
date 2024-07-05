@@ -1,2 +1,4 @@
-fastapi
+alembic
+fastapi[all]
 uvicorn
+sqlalchemy>=2.0
