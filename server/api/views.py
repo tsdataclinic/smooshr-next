@@ -1,10 +1,15 @@
 """Entry point for the API server"""
+import csv
+import json
+import shutil
 import logging
+import tempfile
 from contextlib import contextmanager
 from datetime import datetime
 from typing import Any, Generator
 
-from fastapi import Depends, FastAPI, HTTPException, Security
+from frictionless import Resource, Checklist, validate
+from fastapi import Depends, FastAPI, HTTPException, Security, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 from fastapi_azure_auth import B2CMultiTenantAuthorizationCodeBearer
@@ -22,6 +27,15 @@ from server.models.workflow.schemas import (
     FullWorkflow,
     WorkflowCreate,
     WorkflowUpdate,
+)
+
+from server.models.workflow.schemas import (Workflow, WorkflowCreate,
+                                            WorkflowUpdate)
+from server.schema.workflow import (
+    WorkflowCreationData,
+    WorkflowData,
+    WorkflowUpdateData,
+    WorkflowRunReport
 )
 
 LOG = logging.getLogger(__name__)
@@ -88,7 +102,6 @@ azure_scheme = B2CMultiTenantAuthorizationCodeBearer(
     validate_iss=False,
 )
 
-
 @contextmanager
 def _commit_or_rollback(session):
     # Helper function to commit or rollback a session
@@ -130,9 +143,35 @@ def get_current_user(
         given_name=token.get("given_name", ""),
     )
     session.add(new_db_user)
+
+def fetch_workflow_or_raise(workflow_id: int, session: Session) -> FullWorkflow:
+    """Fetches a workflow orm object with the given workflow_id from the
+    database, or raises an exception if the workflow cannot be found."""
+    workflow = session.query(Workflow).filter(
+        Workflow.id == workflow_id).first()
+
+    if not workflow:
+        raise HTTPException(
+            status_code=404, detail=f"Workflow with id {workflow_id} was not found.")
+
+    return workflow
+
+
+@app.get("/")
+def read_root():
+    """Stub root API function"""
+    return {"Hello": "World"}
+
+
+@app.post("/users", tags=["users"])
+def create_user(user_data: dict, session=Depends(get_session)):
+    """Create a user. This is a test function just to see if FastAPI and SQLAlchemy are working. This function should be deleted soon."""
+    user = User(**user_data, created_date=datetime.now()
+                )  # set a datetime obj in order to test locally
+    session.add(user)
     session.commit()
-    session.refresh(new_db_user)
-    return new_db_user
+    session.refresh(user)
+    return user 
 
 
 @app.get(
@@ -152,10 +191,7 @@ def get_workflow(
     """Get a workflow by ID"""
     # TODO - This should be updated to only return workflows for
     #        the current user once authentication is implemented.
-    db_workflow = session.query(DBWorkflow).filter(DBWorkflow.id == workflow_id).first()
-    if not db_workflow:
-        raise HTTPException(status_code=404, detail="Workflow not found")
-    return FullWorkflow.model_validate(db_workflow)
+    return FullWorkflow.model_validate(fetch_workflow_or_raise(workflow_id, session))
 
 
 @app.get("/api/workflows", tags=["workflows"])
@@ -195,14 +231,15 @@ def update_workflow(
     """Update a workflow by ID"""
     # TODO - This should be updated to only allow the owner of the workflow
     #        or admins to update it once authentication is implemented.
-    db_workflow = session.query(DBWorkflow).filter(DBWorkflow.id == workflow_id).first()
-    if not db_workflow:
-        raise HTTPException(status_code=404, detail="Workflow not found")
+    workflow = fetch_workflow_or_raise(workflow_id)
+
     for key, value in workflow_data.model_dump().items():
-        setattr(db_workflow, key, value)
+        setattr(workflow, key, value)
+
     session.commit()
-    session.refresh(db_workflow)
-    return FullWorkflow.model_validate(db_workflow)
+    session.refresh(workflow)
+
+    return FullWorkflow.model_validate(workflow)
 
 
 @app.delete("/api/workflows/{workflow_id}", tags=["workflows"])
@@ -210,9 +247,54 @@ def delete_workflow(workflow_id: int, session: Session = Depends(get_session)):
     """Delete a workflow by ID"""
     # TODO - This should be updated to only allow the owner of the workflow
     #        or admins to delete it once authentication is implemented.
-    db_workflow = session.query(DBWorkflow).filter(DBWorkflow.id == workflow_id).first()
-    if not db_workflow:
-        raise HTTPException(status_code=404, detail="Workflow not found")
+    workflow = fetch_workflow_or_raise(workflow_id, session)
     with _commit_or_rollback(session):
-        session.delete(db_workflow)
+        session.delete(workflow)
+
     return {"message": "Workflow deleted"}
+
+
+@app.post("/api/workflows/{workflow_id}/run", status_code=200, tags=["workflows"])
+def run_workflow(workflow_id: int, upload_csv: UploadFile, session=Depends(get_session)) -> WorkflowRunReport:
+    """Runs the workflow associated with id `workflow_id` on the passed in csv,
+    and returns any results or errors from the run. The workflow_id must be
+    associated with a workflow the calling user has access to."""
+
+    # TODO: Confirm that the workflow belongs to the calling user
+
+    # TODO: Actually run based on the workflow config
+    workflow = fetch_workflow_or_raise(workflow_id, session)
+
+    resource = Resource(upload_csv.file.read(), format='csv')
+    resource.infer(stats=True)
+
+    # POC of validating the input csv just for basic CSV formatting
+    # see https://framework.frictionlessdata.io/docs/checks/baseline.html#reference-checks.baseline
+    # for list of baseline checks
+    report = validate(resource)
+
+    if not report.valid:
+        raise HTTPException(
+            status_code=400, detail={
+                "errors": report.flatten(["message"])
+            }
+        )
+
+    return WorkflowRunReport(
+        row_count=len(resource.read_rows()),
+        filename=upload_csv.filename,
+        workflow_id=workflow_id
+    )
+
+
+@app.get("/api/workflows/{workflow_id}/run", tags=["workflows"], response_model=None)
+def return_workflow(workflow_id: int, session=Depends(get_session)) -> dict[str, any]:
+    """Returns a serialized json representation of the workflow that can be used
+    to run the workflow locally. The workflow_id must be associated with a
+    workflow the calling user has access to."""
+
+    # TODO: Confirm that the workflow belongs to the calling user
+
+    workflow = fetch_workflow_or_raise(workflow_id, session)
+
+    return json.loads(workflow.schema)
