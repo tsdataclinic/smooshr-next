@@ -1,20 +1,19 @@
-from pydantic import BaseModel 
+from pydantic import BaseModel, Field
+from datetime import datetime
 
 class WorkflowCreationData(BaseModel):
-    name: str
-    description: str
+    title: str
 
 class WorkflowUpdateData(BaseModel):
     # TODO: What do we want to allow to update?
     pass
 
-class Workflow(BaseModel):
+class WorkflowData(BaseModel):
     id: int
-    name: str
-    description: str
+    title: str
     owner: int
-    created_date: str
-    schema: dict | None = None
+    created_date: datetime
+    workflow_schema: dict | None = Field(None, alias='schema')
 
     class Config:
-        orm_mode = True
+        from_attributes = True

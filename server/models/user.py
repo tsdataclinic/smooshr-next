@@ -12,3 +12,5 @@ class User(Base):
     family_name = Column(String)
     given_name = Column(String)
     created_date = Column(DateTime, default=func.utcnow(), nullable=False)
+
+    
