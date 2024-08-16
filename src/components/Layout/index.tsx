@@ -2,18 +2,29 @@ import * as React from 'react';
 import { AppShell, Group, Stack, Burger, Button } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Link } from 'wouter';
+import { useDataClinicAuth } from '../../auth/useDataClinicAuth';
+import { useIsAuthenticated } from '../../auth/useIsAuthenticated';
+import { useCurrentUser } from '../../auth/useCurrentUser';
 
 type Props = {
   children: React.ReactNode;
 };
 
 export function Layout({ children }: Props): JSX.Element {
+  const { login, logout } = useDataClinicAuth();
+  const isAuthenticated = useIsAuthenticated();
   const [isOpen, { toggle }] = useDisclosure();
 
+  const { user } = useCurrentUser();
+  console.log('current user', user);
   return (
     <AppShell
       header={{ height: 60 }}
-      navbar={{ width: 300, breakpoint: 'sm', collapsed: { mobile: !isOpen } }}
+      navbar={{
+        width: 300,
+        breakpoint: 'sm',
+        collapsed: { mobile: !isOpen },
+      }}
       padding="md"
     >
       <AppShell.Header>
@@ -30,7 +41,18 @@ export function Layout({ children }: Props): JSX.Element {
         <Stack>
           <Link to="/projects">Projects</Link>
           <Link to="/about">About</Link>
-          <Link to="/sign-out">Sign Out</Link>
+          <Button
+            unstyled
+            onClick={async () => {
+              if (isAuthenticated) {
+                await logout();
+              } else {
+                await login();
+              }
+            }}
+          >
+            {isAuthenticated ? 'Sign out' : 'Sign in'}
+          </Button>
         </Stack>
       </AppShell.Navbar>
       <AppShell.Main>{children}</AppShell.Main>

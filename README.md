@@ -14,6 +14,7 @@ Smooshr 2.0 (new name TBD) is a no-code data pipeline builder and runner that al
 4. Start your virtual environment: `source venv/bin/activate`
 5. Install pip-tools: `pip install pip-tools`
 6. Install python dependencies: `yarn py-install`
+7. Set up your env files locally `cp .env.frontend.sample .env.frontend && cp .env.server.sample .env.server`
 
 **NOTE:** Python dependencies are managed in the `requirements.in` file. Think of `requirements.in` as your `package.json` equivalent. When you want to add a new Python library, add it to `requirements.in` and then run `yarn py-install`. This will update `requirements.txt` with the correct versions and install them. You should not use `pip install [lib]` directly because this does not update the `requirements.txt` file automatically.
 

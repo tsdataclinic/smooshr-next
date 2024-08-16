@@ -27,6 +27,11 @@ dist-ssr
 env/
 venv/
 .env
+.env.server
+.env.frontend
+
+# OpenAPI related files
+openapi.json
 
 # Python files
 *.pyc

@@ -1,15 +1,19 @@
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String 
-from sqlalchemy.sql import func 
+"""This file holds the Workflow model as represented in the database."""
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.sql import func
 
 from server.database import Base
-from .user import User
+from server.models import DBUser
 
-class Workflow(Base):
-    __tablename__ = 'workflows'
+
+class DBWorkflow(Base):
+    """Workflow table"""
+
+    __tablename__ = "workflows"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String, nullable=False)
-    owner = Column(Integer, ForeignKey(User.id), nullable=False)
+    owner = Column(Integer, ForeignKey(DBUser.id), nullable=False)
     created_date = Column(DateTime, default=func.utcnow())
     schema = Column(JSON, default={})
 
