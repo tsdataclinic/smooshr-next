@@ -8,21 +8,28 @@
     "db-new-migration": "./scripts/new_db_migration.sh",
     "db-upgrade": "python -m alembic upgrade head",
     "db-downgrade": "python -m alembic downgrade -1",
-    "dev": "vite",
+    "dev": "vite --mode frontend",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "py-install": "pip-compile requirements.in && pip install -r requirements.txt"
+    "py-install": "pip-compile requirements.in && pip install -r requirements.txt",
+    "sync-types": "curl http://localhost:8000/openapi.json > openapi.json && openapi-ts && rm -f openapi.json"
   },
   "dependencies": {
+    "@azure/msal-browser": "^3.20.0",
+    "@azure/msal-react": "^2.0.22",
+    "@hey-api/client-fetch": "^0.2.4",
     "@mantine/core": "^7.10.1",
     "@mantine/form": "^7.10.1",
     "@mantine/hooks": "^7.10.1",
+    "@tanstack/react-query": "^5.51.23",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "wouter": "^3.3.0"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "^0.52.8",
+    "@types/node": "^22.2.0",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.11.0",

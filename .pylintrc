@@ -1,0 +1,8 @@
+[MASTER]
+extension-pkg-allow-list=pydantic
+disable=
+  R0902, # too-many-instance-attributes
+  R0912, # too-many-branches
+  R0914, # too-many-locals
+  R0915, # too-many-statements
+  R0903 # too-few-public-methods

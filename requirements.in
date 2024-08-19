@@ -1,4 +1,7 @@
 alembic
 fastapi[all]
+fastapi-azure-auth
 uvicorn
 sqlalchemy>=2.0
+pydantic
+pydantic-settings
