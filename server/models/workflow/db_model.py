@@ -1,6 +1,7 @@
 """This file holds the Workflow model as represented in the database."""
+from datetime import datetime
+
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.sql import func
 
 from server.database import Base
 from server.models import DBUser
@@ -9,12 +10,12 @@ from server.models import DBUser
 class DBWorkflow(Base):
     """Workflow table"""
 
-    __tablename__ = "workflows"
+    __tablename__ = "workflow"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String, nullable=False)
     owner = Column(Integer, ForeignKey(DBUser.id), nullable=False)
-    created_date = Column(DateTime, default=func.utcnow())
+    created_date = Column(DateTime, default=datetime.now, nullable=False)
     schema = Column(JSON, default={})
 
     def __init__(self, title, owner, created_date=None):

@@ -38,7 +38,7 @@ export const $User = {
     },
     created_date: {
       type: 'string',
-      format: 'date',
+      format: 'date-time',
       title: 'Created Date',
     },
   },

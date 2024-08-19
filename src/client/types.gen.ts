@@ -63,17 +63,6 @@ export type GetWorkflowResponse = Workflow;
 
 export type GetWorkflowError = HTTPValidationError;
 
-export type UpdateWorkflowData = {
-  body: WorkflowUpdate;
-  path: {
-    workflow_id: number;
-  };
-};
-
-export type UpdateWorkflowResponse = Workflow;
-
-export type UpdateWorkflowError = HTTPValidationError;
-
 export type DeleteWorkflowData = {
   path: {
     workflow_id: number;
@@ -95,3 +84,14 @@ export type CreateWorkflowData = {
 export type CreateWorkflowResponse = Workflow;
 
 export type CreateWorkflowError = HTTPValidationError;
+
+export type UpdateWorkflowData = {
+  body: WorkflowUpdate;
+  path: {
+    workflow_id: number;
+  };
+};
+
+export type UpdateWorkflowResponse = Workflow;
+
+export type UpdateWorkflowError = HTTPValidationError;

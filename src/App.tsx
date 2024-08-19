@@ -5,6 +5,19 @@ import { MantineProvider } from '@mantine/core';
 import { Layout } from './components/Layout';
 import { Redirect, Route, Switch } from 'wouter';
 import { AuthProvider } from './auth/AuthProvider';
+import { client as APIClient } from './client';
+import { getAuthToken } from './auth/getAuthToken';
+
+APIClient.setConfig({
+  baseUrl: import.meta.env.VITE_SERVER_URI || '',
+  throwOnError: true,
+});
+
+APIClient.interceptors.request.use(async (request) => {
+  const token = (await getAuthToken()) ?? 'not_found';
+  request.headers.set('Authorization', `Bearer ${token}`);
+  return request;
+});
 
 const QUERY_CLIENT = new QueryClient();
 

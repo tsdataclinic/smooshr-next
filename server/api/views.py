@@ -16,7 +16,6 @@ from sqlalchemy.orm import Session
 from server.database import SessionLocal
 from server.models.user.db_model import DBUser
 from server.models.user.schemas import User
-from server.models.workflow.db_model import DBWorkflow
 from server.models.workflow.schemas import (Workflow, WorkflowCreate,
                                             WorkflowUpdate)
 
@@ -132,7 +131,7 @@ def get_current_user(
 
 
 @app.get(
-    "/api/user/self",
+    "/api/users/self",
     dependencies=[Security(azure_scheme)],
     tags=["users"],
 )
@@ -141,7 +140,7 @@ def get_self_user(user: DBUser = Depends(get_current_user)) -> User:
     return User.model_validate(user)
 
 
-@app.get("/workflows/{workflow_id}", tags=["workflows"])
+@app.get("/api/workflows/{workflow_id}", tags=["workflows"])
 def get_workflow(workflow_id: int, session=Depends(get_session)) -> Workflow:
     """Get a workflow by ID"""
     # TODO - This should be updated to only return workflows for
@@ -152,7 +151,7 @@ def get_workflow(workflow_id: int, session=Depends(get_session)) -> Workflow:
     return workflow
 
 
-@app.get("/workflows", tags=["workflows"])
+@app.get("/api/workflows", tags=["workflows"])
 def get_workflows(session=Depends(get_session)) -> list[Workflow]:
     """Get all workflows for the current user."""
     # TODO - This should be updated to only return workflows for
@@ -163,7 +162,7 @@ def get_workflows(session=Depends(get_session)) -> list[Workflow]:
     return workflows
 
 
-@app.post("/workflows", tags=["workflows"])
+@app.post("/api/workflows", tags=["workflows"])
 def create_workflow(
     workflow_data: WorkflowCreate, session=Depends(get_session)
 ) -> Workflow:
@@ -171,7 +170,6 @@ def create_workflow(
     workflow = Workflow(
         **workflow_data.model_dump(),
         owner=42,
-        # TODO sqlite doesn't have a func.utcnow(), so figure out what to do here for local testing
         created_date=datetime.now(),
     )  # TODO replace with user ID
     with _commit_or_rollback(session):
@@ -196,7 +194,7 @@ def update_workflow(
     return workflow
 
 
-@app.delete("/workflows/{workflow_id}", tags=["workflows"])
+@app.delete("/api/workflows/{workflow_id}", tags=["workflows"])
 def delete_workflow(workflow_id: int, session=Depends(get_session)):
     """Delete a workflow by ID"""
     # TODO - This should be updated to only allow the owner of the workflow

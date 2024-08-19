@@ -11,9 +11,6 @@ import type {
   GetWorkflowData,
   GetWorkflowError,
   GetWorkflowResponse,
-  UpdateWorkflowData,
-  UpdateWorkflowError,
-  UpdateWorkflowResponse,
   DeleteWorkflowData,
   DeleteWorkflowError,
   DeleteWorkflowResponse,
@@ -22,6 +19,9 @@ import type {
   CreateWorkflowData,
   CreateWorkflowError,
   CreateWorkflowResponse,
+  UpdateWorkflowData,
+  UpdateWorkflowError,
+  UpdateWorkflowResponse,
 } from './types.gen';
 
 export const client = createClient(createConfig());
@@ -40,7 +40,7 @@ export class UsersService {
       ThrowOnError
     >({
       ...options,
-      url: '/api/user/self',
+      url: '/api/users/self',
     });
   }
 }
@@ -59,7 +59,58 @@ export class WorkflowsService {
       ThrowOnError
     >({
       ...options,
-      url: '/workflows/{workflow_id}',
+      url: '/api/workflows/{workflow_id}',
+    });
+  }
+
+  /**
+   * Delete Workflow
+   * Delete a workflow by ID
+   */
+  public static deleteWorkflow<ThrowOnError extends boolean = false>(
+    options: Options<DeleteWorkflowData, ThrowOnError>,
+  ) {
+    return (options?.client ?? client).delete<
+      DeleteWorkflowResponse,
+      DeleteWorkflowError,
+      ThrowOnError
+    >({
+      ...options,
+      url: '/api/workflows/{workflow_id}',
+    });
+  }
+
+  /**
+   * Get Workflows
+   * Get all workflows for the current user.
+   */
+  public static getWorkflows<ThrowOnError extends boolean = false>(
+    options?: Options<unknown, ThrowOnError>,
+  ) {
+    return (options?.client ?? client).get<
+      GetWorkflowsResponse,
+      GetWorkflowsError,
+      ThrowOnError
+    >({
+      ...options,
+      url: '/api/workflows',
+    });
+  }
+
+  /**
+   * Create Workflow
+   * Create a new workflow
+   */
+  public static createWorkflow<ThrowOnError extends boolean = false>(
+    options: Options<CreateWorkflowData, ThrowOnError>,
+  ) {
+    return (options?.client ?? client).post<
+      CreateWorkflowResponse,
+      CreateWorkflowError,
+      ThrowOnError
+    >({
+      ...options,
+      url: '/api/workflows',
     });
   }
 
@@ -77,57 +128,6 @@ export class WorkflowsService {
     >({
       ...options,
       url: '/workflows/{workflow_id}',
-    });
-  }
-
-  /**
-   * Delete Workflow
-   * Delete a workflow by ID
-   */
-  public static deleteWorkflow<ThrowOnError extends boolean = false>(
-    options: Options<DeleteWorkflowData, ThrowOnError>,
-  ) {
-    return (options?.client ?? client).delete<
-      DeleteWorkflowResponse,
-      DeleteWorkflowError,
-      ThrowOnError
-    >({
-      ...options,
-      url: '/workflows/{workflow_id}',
-    });
-  }
-
-  /**
-   * Get Workflows
-   * Get all workflows for the current user.
-   */
-  public static getWorkflows<ThrowOnError extends boolean = false>(
-    options?: Options<unknown, ThrowOnError>,
-  ) {
-    return (options?.client ?? client).get<
-      GetWorkflowsResponse,
-      GetWorkflowsError,
-      ThrowOnError
-    >({
-      ...options,
-      url: '/workflows',
-    });
-  }
-
-  /**
-   * Create Workflow
-   * Create a new workflow
-   */
-  public static createWorkflow<ThrowOnError extends boolean = false>(
-    options: Options<CreateWorkflowData, ThrowOnError>,
-  ) {
-    return (options?.client ?? client).post<
-      CreateWorkflowResponse,
-      CreateWorkflowError,
-      ThrowOnError
-    >({
-      ...options,
-      url: '/workflows',
     });
   }
 }

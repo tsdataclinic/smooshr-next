@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { UsersService } from '../client/services.gen.ts';
 import { apiWrapper } from '../util/apiHelpers.ts';
+import type { User } from '../client/types.gen.ts';
 
 /**
  * A hook which returns information about the current user.
@@ -8,7 +9,7 @@ import { apiWrapper } from '../util/apiHelpers.ts';
 export function useCurrentUser(): {
   error: unknown;
   isLoading: boolean;
-  user: { id: string } | undefined;
+  user: User | undefined;
 } {
   const {
     data: user,

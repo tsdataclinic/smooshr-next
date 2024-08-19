@@ -27,4 +27,3 @@ class Workflow(BaseModel):
     workflow_schema: dict | None = Field(None, alias="schema")
 
     model_config = ConfigDict(from_attributes=True)
-

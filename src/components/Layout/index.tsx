@@ -4,7 +4,6 @@ import { useDisclosure } from '@mantine/hooks';
 import { Link } from 'wouter';
 import { useDataClinicAuth } from '../../auth/useDataClinicAuth';
 import { useIsAuthenticated } from '../../auth/useIsAuthenticated';
-import { useCurrentUser } from '../../auth/useCurrentUser';
 
 type Props = {
   children: React.ReactNode;
@@ -14,9 +13,6 @@ export function Layout({ children }: Props): JSX.Element {
   const { login, logout } = useDataClinicAuth();
   const isAuthenticated = useIsAuthenticated();
   const [isOpen, { toggle }] = useDisclosure();
-
-  const { user } = useCurrentUser();
-  console.log('current user', user);
   return (
     <AppShell
       header={{ height: 60 }}

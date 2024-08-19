@@ -16,10 +16,8 @@ const INTERACTION_STATE = {
  * @returns token string or undefined if the user is not authenticated
  */
 export async function getAzureAuthToken(): Promise<string | undefined> {
-  const allAuthenticatedAccounts = MSAL_INSTANCE.getAllAccounts();
-  const account = MSAL_INSTANCE.getAccountByHomeId(
-    (allAuthenticatedAccounts[0] || {}).homeAccountId ?? '',
-  );
+  const account = MSAL_INSTANCE.getActiveAccount() ?? '';
+  console.log('active account', account);
 
   if (account) {
     let tokenResponse: AuthenticationResult | undefined;
