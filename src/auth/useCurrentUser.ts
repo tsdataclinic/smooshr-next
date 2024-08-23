@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { UsersService } from '../client/services.gen.ts';
-import { apiWrapper } from '../util/apiHelpers.ts';
+import { processAPIData } from '../util/apiHelpers.ts';
 import type { User } from '../client/types.gen.ts';
 
 /**
@@ -17,7 +17,7 @@ export function useCurrentUser(): {
     isLoading,
   } = useQuery({
     queryKey: ['user'],
-    queryFn: apiWrapper(() => UsersService.getSelfUser()),
+    queryFn: () => processAPIData(UsersService.getSelfUser()),
   });
 
   return {

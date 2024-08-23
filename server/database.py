@@ -5,7 +5,7 @@ import os
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import DeclarativeMeta, sessionmaker
 
 SQLITE_DB_PATH = "./db.sqlite"
 LOG = logging.getLogger(__name__)
@@ -28,4 +28,4 @@ def create_fk_constraint_engine(file_path: str = SQLITE_DB_PATH):
 
 engine = create_fk_constraint_engine(SQLITE_DB_PATH)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+Base: DeclarativeMeta = declarative_base()

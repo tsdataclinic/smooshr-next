@@ -16,8 +16,13 @@ from sqlalchemy.orm import Session
 from server.database import SessionLocal
 from server.models.user.db_model import DBUser
 from server.models.user.schemas import User
-from server.models.workflow.schemas import (Workflow, WorkflowCreate,
-                                            WorkflowUpdate)
+from server.models.workflow.db_model import DBWorkflow
+from server.models.workflow.schemas import (
+    BaseWorkflow,
+    FullWorkflow,
+    WorkflowCreate,
+    WorkflowUpdate,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -137,71 +142,77 @@ def get_current_user(
 )
 def get_self_user(user: DBUser = Depends(get_current_user)) -> User:
     """Get the currently signed in user"""
-    return User.model_validate(user)
+    return user
 
 
 @app.get("/api/workflows/{workflow_id}", tags=["workflows"])
-def get_workflow(workflow_id: int, session=Depends(get_session)) -> Workflow:
+def get_workflow(
+    workflow_id: int, session: Session = Depends(get_session)
+) -> FullWorkflow:
     """Get a workflow by ID"""
     # TODO - This should be updated to only return workflows for
     #        the current user once authentication is implemented.
-    workflow = session.query(Workflow).filter(Workflow.id == workflow_id).first()
-    if not workflow:
+    db_workflow = session.query(DBWorkflow).filter(DBWorkflow.id == workflow_id).first()
+    if not db_workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
-    return workflow
+    return FullWorkflow.model_validate(db_workflow)
 
 
 @app.get("/api/workflows", tags=["workflows"])
-def get_workflows(session=Depends(get_session)) -> list[Workflow]:
+def get_workflows(session: Session = Depends(get_session)) -> list[BaseWorkflow]:
     """Get all workflows for the current user."""
     # TODO - This should be updated to only return workflows for
     #        the current user once authentication is implemented.
-    workflows = session.query(
-        Workflow.id, Workflow.title, Workflow.owner, Workflow.created_date
-    ).all()
-    return workflows
+    db_workflows = session.query(DBWorkflow).all()
+    return [BaseWorkflow.model_validate(db_workflow) for db_workflow in db_workflows]
 
 
 @app.post("/api/workflows", tags=["workflows"])
 def create_workflow(
-    workflow_data: WorkflowCreate, session=Depends(get_session)
-) -> Workflow:
+    workflow_data: WorkflowCreate,
+    user: DBUser = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> FullWorkflow:
     """Create a new workflow"""
-    workflow = Workflow(
+    db_workflow = DBWorkflow(
         **workflow_data.model_dump(),
-        owner=42,
+        owner=user.id,
         created_date=datetime.now(),
-    )  # TODO replace with user ID
+    )
     with _commit_or_rollback(session):
-        session.add(workflow)
-    return workflow
+        session.add(db_workflow)
+    session.refresh(db_workflow)
+
+    return FullWorkflow.model_validate(db_workflow)
 
 
 @app.put("/workflows/{workflow_id}", tags=["workflows"])
 def update_workflow(
-    workflow_id: int, workflow_data: WorkflowUpdate, session=Depends(get_session)
-) -> Workflow:
+    workflow_id: int,
+    workflow_data: WorkflowUpdate,
+    session: Session = Depends(get_session),
+) -> FullWorkflow:
     """Update a workflow by ID"""
     # TODO - This should be updated to only allow the owner of the workflow
     #        or admins to update it once authentication is implemented.
-    workflow = session.query(Workflow).filter(Workflow.id == workflow_id).first()
-    if not workflow:
+    db_workflow = session.query(DBWorkflow).filter(DBWorkflow.id == workflow_id).first()
+    if not db_workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
     for key, value in workflow_data.model_dump().items():
-        setattr(workflow, key, value)
+        setattr(db_workflow, key, value)
     session.commit()
-    session.refresh(workflow)
-    return workflow
+    session.refresh(db_workflow)
+    return FullWorkflow.model_validate(db_workflow)
 
 
 @app.delete("/api/workflows/{workflow_id}", tags=["workflows"])
-def delete_workflow(workflow_id: int, session=Depends(get_session)):
+def delete_workflow(workflow_id: int, session: Session = Depends(get_session)):
     """Delete a workflow by ID"""
     # TODO - This should be updated to only allow the owner of the workflow
     #        or admins to delete it once authentication is implemented.
-    workflow = session.query(Workflow).filter(Workflow.id == workflow_id).first()
-    if not workflow:
+    db_workflow = session.query(DBWorkflow).filter(DBWorkflow.id == workflow_id).first()
+    if not db_workflow:
         raise HTTPException(status_code=404, detail="Workflow not found")
     with _commit_or_rollback(session):
-        session.delete(workflow)
+        session.delete(db_workflow)
     return {"message": "Workflow deleted"}

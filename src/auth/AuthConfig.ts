@@ -21,6 +21,7 @@ export const AuthConfig: {
 
     loginRequest: {
       scopes: ['openid', 'offline_access'],
+      prompt: 'select_account',
     },
   },
 };

@@ -7,6 +7,8 @@ import { Redirect, Route, Switch } from 'wouter';
 import { AuthProvider } from './auth/AuthProvider';
 import { client as APIClient } from './client';
 import { getAuthToken } from './auth/getAuthToken';
+import { getAboutURI, getWorkflowsURI } from './util/uriHelpers';
+import { WorkflowsView } from './components/WorkflowsView';
 
 APIClient.setConfig({
   baseUrl: import.meta.env.VITE_SERVER_URI || '',
@@ -28,12 +30,12 @@ function App() {
         <MantineProvider>
           <Switch>
             <Route path="/">
-              <Redirect to="/projects" />
+              <Redirect to={getWorkflowsURI()} />
             </Route>
-            <Route path="/projects">
-              <Layout>Projects page</Layout>
+            <Route path={getWorkflowsURI()}>
+              <WorkflowsView />
             </Route>
-            <Route path="/about">
+            <Route path={getAboutURI()}>
               <Layout>About page</Layout>
             </Route>
             <Route>404: No such page!</Route>

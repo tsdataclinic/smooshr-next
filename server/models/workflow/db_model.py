@@ -1,7 +1,8 @@
 """This file holds the Workflow model as represented in the database."""
+import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Uuid
 
 from server.database import Base
 from server.models import DBUser
@@ -12,9 +13,11 @@ class DBWorkflow(Base):
 
     __tablename__ = "workflow"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(
+        Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
     title = Column(String, nullable=False)
-    owner = Column(Integer, ForeignKey(DBUser.id), nullable=False)
+    owner = Column(Uuid(as_uuid=False), ForeignKey(DBUser.id), nullable=False)
     created_date = Column(DateTime, default=datetime.now, nullable=False)
     schema = Column(JSON, default={})
 

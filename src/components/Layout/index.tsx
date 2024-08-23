@@ -4,6 +4,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { Link } from 'wouter';
 import { useDataClinicAuth } from '../../auth/useDataClinicAuth';
 import { useIsAuthenticated } from '../../auth/useIsAuthenticated';
+import { getAboutURI, getWorkflowsURI } from '../../util/uriHelpers';
 
 type Props = {
   children: React.ReactNode;
@@ -35,8 +36,8 @@ export function Layout({ children }: Props): JSX.Element {
 
       <AppShell.Navbar p="md">
         <Stack>
-          <Link to="/projects">Projects</Link>
-          <Link to="/about">About</Link>
+          <Link to={getWorkflowsURI()}>Workflows</Link>
+          <Link to={getAboutURI()}>About</Link>
           <Button
             unstyled
             onClick={async () => {
