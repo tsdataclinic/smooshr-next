@@ -27,6 +27,14 @@ MSAL_INSTANCE.initialize().then(() => {
       MSAL_INSTANCE.setActiveAccount(account);
     }
   });
+
+  MSAL_INSTANCE.handleRedirectPromise().then(
+    (response: AuthenticationResult | null) => {
+      if (response && response.account) {
+        MSAL_INSTANCE.setActiveAccount(response.account);
+      }
+    },
+  );
 });
 
 type Props = {

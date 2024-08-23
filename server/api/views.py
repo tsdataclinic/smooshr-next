@@ -159,11 +159,11 @@ def get_workflow(
 
 
 @app.get("/api/workflows", tags=["workflows"])
-def get_workflows(session: Session = Depends(get_session)) -> list[BaseWorkflow]:
+def get_workflows(
+    user: DBUser = Depends(get_current_user), session: Session = Depends(get_session)
+) -> list[BaseWorkflow]:
     """Get all workflows for the current user."""
-    # TODO - This should be updated to only return workflows for
-    #        the current user once authentication is implemented.
-    db_workflows = session.query(DBWorkflow).all()
+    db_workflows = session.query(DBWorkflow).filter(DBWorkflow.owner == user.id).all()
     return [BaseWorkflow.model_validate(db_workflow) for db_workflow in db_workflows]
 
 

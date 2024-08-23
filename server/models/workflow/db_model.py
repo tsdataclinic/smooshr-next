@@ -17,7 +17,9 @@ class DBWorkflow(Base):
         Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
     )
     title = Column(String, nullable=False)
-    owner = Column(Uuid(as_uuid=False), ForeignKey(DBUser.id), nullable=False)
+    owner: Column[str] = Column(
+        Uuid(as_uuid=False), ForeignKey(DBUser.id), nullable=False
+    )
     created_date = Column(DateTime, default=datetime.now, nullable=False)
     schema = Column(JSON, default={})
 
