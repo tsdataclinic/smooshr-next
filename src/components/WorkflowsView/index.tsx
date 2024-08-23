@@ -53,8 +53,10 @@ export function WorkflowsView(): JSX.Element {
       return <Button onClick={onCreateClick}>Create</Button>;
     }
 
-    return workflows.map((workflow) => (
-      <p key={workflow.id}>{workflow.title}</p>
+    return workflows.map((workflow, i) => (
+      <p key={workflow.id}>
+        {i + 1}. {workflow.title} | {workflow.created_date}
+      </p>
     ));
   };
 
