@@ -36,3 +36,6 @@ openapi.json
 # Python files
 *.pyc
 __pycache__
+
+# Database file
+*.sqlite
