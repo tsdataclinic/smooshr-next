@@ -7,7 +7,7 @@ import { Redirect, Route, Switch } from 'wouter';
 import { AuthProvider } from './auth/AuthProvider';
 import { client as APIClient } from './client';
 import { getAuthToken } from './auth/getAuthToken';
-import { getAboutURI, getWorkflowsURI } from './util/uriHelpers';
+import { getAboutURI, getWorkflowsURI } from './util/uriUtil';
 import { WorkflowsView } from './components/WorkflowsView';
 
 APIClient.setConfig({

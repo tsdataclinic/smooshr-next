@@ -1,24 +1,24 @@
+import { Button } from '@mantine/core';
 import { WorkflowsService } from '../../client';
 import { Layout } from '../Layout';
-import { processAPIData } from '../../util/apiHelpers';
+import { processAPIData } from '../../util/apiUtil';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@mantine/core';
-import { useCurrentUser } from '../../auth/useCurrentUser';
+import { WorkflowUtil } from '../../util/WorkflowUtil';
 
 export function WorkflowsView(): JSX.Element {
-  const { data: workflows, isLoading } = useQuery({
-    queryKey: ['workflows'],
+  const {
+    data: workflows,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: WorkflowUtil.QUERY_KEYS.all,
     queryFn: () => processAPIData(WorkflowsService.getWorkflows()),
   });
-
-  const user = useCurrentUser();
-  console.log('current user', user);
 
   const queryClient = useQueryClient();
 
   const createWorkflowMutation = useMutation({
     mutationFn: () => {
-      console.log('calling create workflow mutation');
       return processAPIData(
         WorkflowsService.createWorkflow({
           body: {
@@ -28,11 +28,9 @@ export function WorkflowsView(): JSX.Element {
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      queryClient.invalidateQueries({ queryKey: WorkflowUtil.QUERY_KEYS.all });
     },
   });
-
-  console.log('workflows', workflows);
 
   const onCreateClick = async () => {
     createWorkflowMutation.mutate(undefined, {
@@ -42,16 +40,24 @@ export function WorkflowsView(): JSX.Element {
     });
   };
 
-  return (
-    <Layout>
-      <p>
-        <strong>Add create new workflow button here</strong>
-      </p>
-      List of all existing projects goes here
-      {isLoading ? 'Loading...' : <p>{workflows?.length}</p>}
-      {workflows?.length === 0 ? (
-        <Button onClick={onCreateClick}>Create</Button>
-      ) : null}
-    </Layout>
-  );
+  const renderWorkflows = () => {
+    if (isLoading) {
+      return 'Loading...';
+    }
+
+    if (isError || workflows === undefined) {
+      return 'Error loading workflows';
+    }
+
+    if (workflows.length === 0) {
+      return <Button onClick={onCreateClick}>Create</Button>;
+    }
+
+    return workflows.map((workflow) => (
+      <p key={workflow.id}>{workflow.title}</p>
+    ));
+  };
+
+  // TODO: add a loading spinner for loading state
+  return <Layout>{renderWorkflows()}</Layout>;
 }

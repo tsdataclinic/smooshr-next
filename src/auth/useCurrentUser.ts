@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { UsersService } from '../client/services.gen.ts';
-import { processAPIData } from '../util/apiHelpers.ts';
+import { processAPIData } from '../util/apiUtil';
 import type { User } from '../client/types.gen.ts';
 
 /**

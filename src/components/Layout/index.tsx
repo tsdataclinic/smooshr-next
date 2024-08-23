@@ -4,7 +4,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { Link } from 'wouter';
 import { useDataClinicAuth } from '../../auth/useDataClinicAuth';
 import { useIsAuthenticated } from '../../auth/useIsAuthenticated';
-import { getAboutURI, getWorkflowsURI } from '../../util/uriHelpers';
+import { getAboutURI, getWorkflowsURI } from '../../util/uriUtil';
 
 type Props = {
   children: React.ReactNode;
