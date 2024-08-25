@@ -6,3 +6,5 @@ sqlalchemy>=2.0
 pydantic
 pydantic-settings
 frictionless
+pytest
+pytest-asyncio
