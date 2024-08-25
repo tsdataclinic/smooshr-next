@@ -240,7 +240,7 @@ def test_delete_workflow_with_incorrect_user(db_with_user):
     response = client.delete(f"/api/workflows/{workflow.id}")
 
     # Check that the response status code is 403 Forbidden
-    assert response.status_code == 404
+    assert response.status_code == 403
 
     # Clean up the dependency override
     del app.dependency_overrides[azure_scheme]
