@@ -9,6 +9,7 @@ import { client as APIClient } from './client';
 import { getAuthToken } from './auth/getAuthToken';
 import { getAboutURI, getWorkflowsURI } from './util/uriUtil';
 import { WorkflowsView } from './components/WorkflowsView';
+import { Notifications } from '@mantine/notifications';
 
 APIClient.setConfig({
   baseUrl: import.meta.env.VITE_SERVER_URI || '',
@@ -28,6 +29,7 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={QUERY_CLIENT}>
         <MantineProvider>
+          <Notifications />
           <Switch>
             <Route path="/">
               <Redirect to={getWorkflowsURI()} />
