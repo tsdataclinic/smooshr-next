@@ -1,8 +1,10 @@
 """This file holds the Workflow model as represented in the database."""
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Uuid
+from sqlalchemy.orm import Mapped, mapped_column
 
 from server.database import Base
 from server.models import DBUser
@@ -13,15 +15,17 @@ class DBWorkflow(Base):
 
     __tablename__ = "workflow"
 
-    id = Column(
+    id: Mapped[str] = mapped_column(
         Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
     )
-    title = Column(String, nullable=False)
-    owner: Column[str] = Column(
+    title: Mapped[str]
+    owner: Mapped[str] = mapped_column(
         Uuid(as_uuid=False), ForeignKey(DBUser.id), nullable=False
     )
-    created_date = Column(DateTime, default=datetime.now, nullable=False)
-    schema = Column(JSON, default={})
+    created_date: Mapped[DateTime] = mapped_column(
+        DateTime, default=datetime.now, nullable=False
+    )
+    schema: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
 
     def __init__(self, title, owner, created_date=None):
         # TODO sqlite doesn't have a func.utcnow(), so figure out what to do here for local testing

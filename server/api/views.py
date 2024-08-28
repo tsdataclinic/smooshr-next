@@ -140,6 +140,7 @@ def get_current_user(
     )
     session.add(new_db_user)
     session.commit()
+    session.refresh(new_db_user)
     return new_db_user
 
 
@@ -305,8 +306,5 @@ def return_workflow(
     to run the workflow locally. The workflow_id must be associated with a
     workflow the calling user has access to."""
 
-    workflow = FullWorkflow.model_validate(
-        fetch_workflow_or_raise(workflow_id, session, user)
-    )
-
-    return workflow.workflow_schema
+    workflow = fetch_workflow_or_raise(workflow_id, session, user)
+    return workflow.schema
