@@ -1,5 +1,6 @@
 """Workflow schemas that are used in the API."""
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,7 +19,7 @@ class BaseWorkflow(BaseModel):
 class FullWorkflow(BaseWorkflow):
     """A full workflow object, including the JSON schema"""
 
-    workflow_schema: dict | None = Field(None, alias="schema")
+    workflow_schema: dict[str, Any] = Field(default_factory=dict, alias="schema")
 
 
 class WorkflowCreate(BaseModel):
@@ -33,8 +34,11 @@ class WorkflowUpdate(BaseModel):
     # TODO: What do we want to allow to update?
     pass
 
+
 class WorkflowRunReport(BaseModel):
     """Run report schema for a server-side run of a workflow."""
+
     row_count: int
     filename: str
-    workflow_id: str 
+    workflow_id: str
+

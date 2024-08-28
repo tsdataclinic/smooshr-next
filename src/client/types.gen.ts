@@ -65,7 +65,7 @@ export type GetSelfUserError = unknown;
 
 export type GetWorkflowData = {
   path: {
-    workflow_id: number;
+    workflow_id: string;
   };
 };
 

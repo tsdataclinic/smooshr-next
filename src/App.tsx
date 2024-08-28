@@ -7,8 +7,14 @@ import { Redirect, Route, Switch } from 'wouter';
 import { AuthProvider } from './auth/AuthProvider';
 import { client as APIClient } from './client';
 import { getAuthToken } from './auth/getAuthToken';
-import { getAboutURI, getWorkflowsURI } from './util/uriUtil';
+import {
+  getAboutURI,
+  getWorkflowsURI,
+  getSingleWorkflowBaseURI,
+} from './util/uriUtil';
 import { WorkflowsView } from './components/WorkflowsView';
+import { Notifications } from '@mantine/notifications';
+import { SingleWorkflowView } from './components/SingleWorkflowView';
 
 APIClient.setConfig({
   baseUrl: import.meta.env.VITE_SERVER_URI || '',
@@ -28,18 +34,24 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={QUERY_CLIENT}>
         <MantineProvider>
-          <Switch>
-            <Route path="/">
-              <Redirect to={getWorkflowsURI()} />
-            </Route>
-            <Route path={getWorkflowsURI()}>
-              <WorkflowsView />
-            </Route>
-            <Route path={getAboutURI()}>
-              <Layout>About page</Layout>
-            </Route>
-            <Route>404: No such page!</Route>
-          </Switch>
+          <Notifications />
+          <Layout>
+            <Switch>
+              <Route path="/">
+                <Redirect to={getWorkflowsURI()} />
+              </Route>
+              <Route path={getWorkflowsURI()}>
+                <WorkflowsView />
+              </Route>
+              <Route path={`${getSingleWorkflowBaseURI()}/:workflowId`}>
+                <SingleWorkflowView />
+              </Route>
+              <Route path={getAboutURI()}>
+                <Layout>About page</Layout>
+              </Route>
+              <Route>404: No such page!</Route>
+            </Switch>
+          </Layout>
         </MantineProvider>
       </QueryClientProvider>
     </AuthProvider>
