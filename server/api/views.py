@@ -147,7 +147,7 @@ def get_self_user(user: DBUser = Depends(get_current_user)) -> User:
 
 @app.get("/api/workflows/{workflow_id}", tags=["workflows"])
 def get_workflow(
-    workflow_id: int, session: Session = Depends(get_session)
+    workflow_id: str, session: Session = Depends(get_session)
 ) -> FullWorkflow:
     """Get a workflow by ID"""
     # TODO - This should be updated to only return workflows for

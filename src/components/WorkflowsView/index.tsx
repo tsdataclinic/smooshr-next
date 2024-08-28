@@ -1,6 +1,5 @@
 import { Button, Divider } from '@mantine/core';
 import { WorkflowsService } from '../../client';
-import { Layout } from '../Layout';
 import { processAPIData } from '../../util/apiUtil';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { WorkflowUtil } from '../../util/WorkflowUtil';
@@ -10,6 +9,7 @@ import { useForm } from '@mantine/form';
 import { TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import day from 'dayjs';
+import { Link } from 'wouter';
 
 export function WorkflowsView(): JSX.Element {
   const [isCreateModalOpened, createModalActions] = useDisclosure(false);
@@ -67,15 +67,17 @@ export function WorkflowsView(): JSX.Element {
                 itemLabel: 'w-full',
               }}
               key={workflow.id}
-              className="w-full px-3 hover:bg-gray-100 transition-colors"
+              className="w-full hover:bg-gray-100 transition-colors"
             >
-              <div className="flex w-full hover:bg-gray-100 py-3">
-                <div className="pr-2 border-r border-gray-400">{i + 1}</div>
-                <div className="pl-2">{workflow.title}</div>
-                <div className="pl-2 flex-1 text-right text-sm">
-                  Created {day(workflow.created_date).format('MMM DD, YYYY')}
+              <Link to={WorkflowUtil.getWorkflowURI(workflow.id)}>
+                <div className="flex w-full hover:bg-gray-100 py-3 px-3">
+                  <div className="pr-2 border-r border-gray-400">{i + 1}</div>
+                  <div className="pl-2">{workflow.title}</div>
+                  <div className="pl-2 flex-1 text-right text-sm">
+                    Created {day(workflow.created_date).format('MMM DD, YYYY')}
+                  </div>
                 </div>
-              </div>
+              </Link>
               {i !== workflows.length - 1 ? <Divider /> : null}
             </List.Item>
           ))}
@@ -86,7 +88,7 @@ export function WorkflowsView(): JSX.Element {
 
   // TODO: add a loading spinner for loading state
   return (
-    <Layout>
+    <>
       {renderWorkflows()}
       <Modal
         opened={isCreateModalOpened}
@@ -116,6 +118,6 @@ export function WorkflowsView(): JSX.Element {
           <Button type="submit">Create</Button>
         </form>
       </Modal>
-    </Layout>
+    </>
   );
 }
