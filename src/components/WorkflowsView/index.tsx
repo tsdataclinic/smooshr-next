@@ -9,9 +9,10 @@ import { useForm } from '@mantine/form';
 import { TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import day from 'dayjs';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 
 export function WorkflowsView(): JSX.Element {
+  const [, navigate] = useLocation();
   const [isCreateModalOpened, createModalActions] = useDisclosure(false);
   const form = useForm({
     mode: 'uncontrolled',
@@ -99,12 +100,13 @@ export function WorkflowsView(): JSX.Element {
           className="space-y-2"
           onSubmit={form.onSubmit((values) => {
             createWorkflowMutation.mutate(values.title, {
-              onSuccess: () => {
+              onSuccess: (newWorkflow) => {
                 notifications.show({
                   title: 'Success',
                   message: 'Your new workflow is ready',
                 });
                 createModalActions.close();
+                navigate(WorkflowUtil.getWorkflowURI(newWorkflow.id));
               },
             });
           })}
