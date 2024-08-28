@@ -1,10 +1,16 @@
 """Entry point for the API server"""
+import csv
+import json
+import shutil
 import logging
+import tempfile
 from contextlib import contextmanager
 from datetime import datetime
 from typing import Any, Generator
 
-from fastapi import Depends, FastAPI, HTTPException, Security
+from frictionless import Resource, Checklist, validate
+import frictionless.exception
+from fastapi import Depends, FastAPI, HTTPException, Security, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 from fastapi_azure_auth import B2CMultiTenantAuthorizationCodeBearer
@@ -22,6 +28,7 @@ from server.models.workflow.schemas import (
     FullWorkflow,
     WorkflowCreate,
     WorkflowUpdate,
+    WorkflowRunReport
 )
 
 LOG = logging.getLogger(__name__)
@@ -88,7 +95,6 @@ azure_scheme = B2CMultiTenantAuthorizationCodeBearer(
     validate_iss=False,
 )
 
-
 @contextmanager
 def _commit_or_rollback(session):
     # Helper function to commit or rollback a session
@@ -116,7 +122,9 @@ def get_current_user(
     """This function returns the currently authenticated user."""
     # check if the azure user exists in our database already
     user_id: str = azure_user.claims.get("oid", "")
+
     db_user = session.get(DBUser, user_id)
+
     if db_user:
         return db_user
 
@@ -131,8 +139,27 @@ def get_current_user(
     )
     session.add(new_db_user)
     session.commit()
-    session.refresh(new_db_user)
-    return new_db_user
+
+def fetch_workflow_or_raise(workflow_id: str, session: Session, user: DBUser) -> DBWorkflow:
+    """Fetches a workflow orm object with the given workflow_id from the
+    database, or raises an exception if the workflow cannot be found, or
+    if the user does not own the workflow."""
+
+    workflow = session.query(DBWorkflow).filter(
+        DBWorkflow.id == workflow_id).first()
+
+    if not workflow:
+        raise HTTPException(
+            status_code=404, detail=f"Workflow with id {workflow_id} was not found.")
+    
+    # currently we just check if the user owns the workflow, but in the future
+    # there may be other ways of sharing workflows with non-owner users
+    if workflow.owner != user.id:
+        raise HTTPException(
+            status_code=403, detail=f"User does not own workflow {workflow_id}."
+        )
+
+    return workflow
 
 
 @app.get(
@@ -147,15 +174,12 @@ def get_self_user(user: DBUser = Depends(get_current_user)) -> User:
 
 @app.get("/api/workflows/{workflow_id}", tags=["workflows"])
 def get_workflow(
-    workflow_id: int, session: Session = Depends(get_session)
+    workflow_id: str, session: Session = Depends(get_session), user: DBUser = Depends(get_current_user)
 ) -> FullWorkflow:
     """Get a workflow by ID"""
     # TODO - This should be updated to only return workflows for
     #        the current user once authentication is implemented.
-    db_workflow = session.query(DBWorkflow).filter(DBWorkflow.id == workflow_id).first()
-    if not db_workflow:
-        raise HTTPException(status_code=404, detail="Workflow not found")
-    return FullWorkflow.model_validate(db_workflow)
+    return FullWorkflow.model_validate(fetch_workflow_or_raise(workflow_id, session, user))
 
 
 @app.get("/api/workflows", tags=["workflows"])
@@ -188,31 +212,80 @@ def create_workflow(
 
 @app.put("/workflows/{workflow_id}", tags=["workflows"])
 def update_workflow(
-    workflow_id: int,
+    workflow_id: str,
     workflow_data: WorkflowUpdate,
     session: Session = Depends(get_session),
+    user: DBUser = Depends(get_current_user)
 ) -> FullWorkflow:
     """Update a workflow by ID"""
     # TODO - This should be updated to only allow the owner of the workflow
     #        or admins to update it once authentication is implemented.
-    db_workflow = session.query(DBWorkflow).filter(DBWorkflow.id == workflow_id).first()
-    if not db_workflow:
-        raise HTTPException(status_code=404, detail="Workflow not found")
+    workflow = fetch_workflow_or_raise(workflow_id, session, user)
+
     for key, value in workflow_data.model_dump().items():
-        setattr(db_workflow, key, value)
+        setattr(workflow, key, value)
+
     session.commit()
-    session.refresh(db_workflow)
-    return FullWorkflow.model_validate(db_workflow)
+    session.refresh(workflow)
+
+    return FullWorkflow.model_validate(workflow)
 
 
 @app.delete("/api/workflows/{workflow_id}", tags=["workflows"])
-def delete_workflow(workflow_id: int, session: Session = Depends(get_session)):
+def delete_workflow(workflow_id: str, session: Session = Depends(get_session), user: DBUser = Depends(get_current_user)):
     """Delete a workflow by ID"""
     # TODO - This should be updated to only allow the owner of the workflow
     #        or admins to delete it once authentication is implemented.
-    db_workflow = session.query(DBWorkflow).filter(DBWorkflow.id == workflow_id).first()
-    if not db_workflow:
-        raise HTTPException(status_code=404, detail="Workflow not found")
+    workflow = fetch_workflow_or_raise(workflow_id, session, user)
     with _commit_or_rollback(session):
-        session.delete(db_workflow)
+        session.delete(workflow)
+
     return {"message": "Workflow deleted"}
+
+
+@app.post("/api/workflows/{workflow_id}/run", status_code=200, tags=["workflows"])
+def run_workflow(workflow_id: str, upload_csv: UploadFile, session=Depends(get_session), user=Depends(get_current_user)) -> WorkflowRunReport:
+    """Runs the workflow associated with id `workflow_id` on the passed in csv,
+    and returns any results or errors from the run. The workflow_id must be
+    associated with a workflow the calling user has access to."""
+
+    # TODO: Actually run based on the workflow config
+    workflow = fetch_workflow_or_raise(workflow_id, session, user)
+
+    resource = Resource(upload_csv.file.read(), format='csv')
+
+    try:
+        resource.infer(stats=True)
+    except frictionless.exception.FrictionlessException:
+        raise HTTPException(
+            status_code=400, detail="Could not parse the input file. Please check that it is a valid .csv file!"
+        )
+
+    # POC of validating the input csv just for basic CSV formatting
+    # see https://framework.frictionlessdata.io/docs/checks/baseline.html#reference-checks.baseline
+    # for list of baseline checks
+    report = validate(resource)
+
+    if not report.valid:
+        raise HTTPException(
+            status_code=400, detail={
+                "errors": report.flatten(["message"])
+            }
+        )
+
+    return WorkflowRunReport(
+        row_count=len(resource.read_rows()),
+        filename=upload_csv.filename,
+        workflow_id=workflow_id
+    )
+
+
+@app.get("/api/workflows/{workflow_id}/run", tags=["workflows"], response_model=None)
+def return_workflow(workflow_id: str, session=Depends(get_session), user=Depends(get_current_user)) -> dict[str, any]:
+    """Returns a serialized json representation of the workflow that can be used
+    to run the workflow locally. The workflow_id must be associated with a
+    workflow the calling user has access to."""
+
+    workflow = fetch_workflow_or_raise(workflow_id, session, user)
+
+    return workflow.schema

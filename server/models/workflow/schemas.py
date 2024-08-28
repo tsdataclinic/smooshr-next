@@ -32,3 +32,9 @@ class WorkflowUpdate(BaseModel):
 
     # TODO: What do we want to allow to update?
     pass
+
+class WorkflowRunReport(BaseModel):
+    """Run report schema for a server-side run of a workflow."""
+    row_count: int
+    filename: str
+    workflow_id: str 
