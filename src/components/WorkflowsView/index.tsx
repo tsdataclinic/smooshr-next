@@ -71,7 +71,7 @@ export function WorkflowsView(): JSX.Element {
               className="w-full hover:bg-gray-100 transition-colors"
             >
               <Link to={WorkflowUtil.getWorkflowURI(workflow.id)}>
-                <div className="flex w-full hover:bg-gray-100 py-3 px-3">
+                <div className="flex items-center w-full hover:bg-gray-100 py-3 px-3">
                   <div className="pr-2 border-r border-gray-400">{i + 1}</div>
                   <div className="pl-2">{workflow.title}</div>
                   <div className="pl-2 flex-1 text-right text-sm">
