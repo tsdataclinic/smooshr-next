@@ -40,6 +40,7 @@ export function Layout({ children }: Props): JSX.Element {
           <Link to={getAboutURI()}>About</Link>
           <Button
             unstyled
+            style={{ textAlign: 'left' }}
             onClick={async () => {
               if (isAuthenticated) {
                 await logout();
