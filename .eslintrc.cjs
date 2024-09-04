@@ -1,7 +1,6 @@
 module.exports = {
   root: true,
   env: { browser: true, es2020: true },
-  project: 'tsconfig.json',
   extends: [
     'eslint:recommended',
     'plugin:react/recommended',
@@ -64,6 +63,7 @@ module.exports = {
         tsx: 'never',
       },
     ],
+    'import/no-duplicates': 'error',
     'import/prefer-default-export': 'off',
     'jsx-a11y/anchor-is-valid': [
       'error',
@@ -85,6 +85,9 @@ module.exports = {
     'no-shadow': 'off',
   },
   settings: {
+    react: {
+      version: 'detect',
+    },
     'import/parsers': {
       '@typescript-eslint/parser': ['.ts', '.tsx'],
     },
