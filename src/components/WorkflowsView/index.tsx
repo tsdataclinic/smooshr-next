@@ -97,7 +97,6 @@ export function WorkflowsView(): JSX.Element {
         title="Create New Workflow"
       >
         <form
-          className="space-y-2"
           onSubmit={form.onSubmit((values) => {
             createWorkflowMutation.mutate(values.title, {
               onSuccess: (newWorkflow) => {
@@ -117,7 +116,12 @@ export function WorkflowsView(): JSX.Element {
             label="Workflow Title"
             {...form.getInputProps('title')}
           />
-          <Button type="submit">Create</Button>
+          <div className="space-x-2 mt-4 text-right">
+            <Button variant="outline" onClick={createModalActions.close}>
+              Cancel
+            </Button>
+            <Button type="submit">Create</Button>
+          </div>
         </form>
       </Modal>
     </>
