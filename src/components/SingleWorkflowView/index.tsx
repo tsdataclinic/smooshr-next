@@ -11,8 +11,13 @@ import {
   ActionIcon,
   Affix,
   Menu,
+  Drawer,
+  TextInput,
+  MultiSelect,
 } from '@mantine/core';
 import { IconDots, IconPlus } from '@tabler/icons-react';
+import { useDisclosure } from '@mantine/hooks';
+import { useForm } from '@mantine/form';
 
 export function SingleWorkflowView(): JSX.Element {
   const params = useParams<{ workflowId: string }>();
@@ -26,6 +31,14 @@ export function SingleWorkflowView(): JSX.Element {
           },
         }),
       ),
+  });
+  const [isDrawerOpen, drawerActions] = useDisclosure(false);
+  const form = useForm({
+    mode: 'uncontrolled',
+    initialValues: {
+      title: 'Has column headers',
+      headers: [],
+    },
   });
 
   return (
@@ -51,35 +64,67 @@ export function SingleWorkflowView(): JSX.Element {
           </Group>
 
           <p>This page is still a work in progress.</p>
-          <Affix position={{ bottom: 40, right: 40 }}>
-            <ActionIcon color="blue" radius="xl" size={60}>
-              <Menu withArrow shadow="md" width={150} position="left">
-                <Menu.Target>
+          <Affix position={{ bottom: 40, left: 40 }}>
+            <Menu withArrow shadow="md" width={150} position="left">
+              <Menu.Target>
+                <ActionIcon color="blue" radius="xl" size={60}>
                   <IconPlus stroke={1.5} size={30} />
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu
-                    width={250}
-                    shadow="md"
-                    position="left"
-                    trigger="hover"
-                    openDelay={100}
-                    closeDelay={200}
-                  >
-                    <Menu.Target>
-                      <Menu.Item>Data Validation</Menu.Item>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Item>Has column headers</Menu.Item>
-                      <Menu.Item disabled>Are column values equal to</Menu.Item>
-                    </Menu.Dropdown>
-                  </Menu>
-
-                  <Menu.Item disabled>Flow Control</Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
-            </ActionIcon>
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu
+                  closeOnItemClick={false}
+                  width={250}
+                  shadow="md"
+                  position="left"
+                  trigger="hover"
+                  openDelay={100}
+                  closeDelay={200}
+                >
+                  <Menu.Target>
+                    <Menu.Item>Data Validation</Menu.Item>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Item onClick={drawerActions.open}>
+                      Has column headers
+                    </Menu.Item>
+                    <Menu.Item disabled>Are column values equal to</Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+                <Menu.Item disabled>Flow Control</Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
           </Affix>
+          <Drawer
+            offset={8}
+            radius="md"
+            opened={isDrawerOpen}
+            onClose={drawerActions.close}
+            title="Configuring validation step: checking column headers"
+            withOverlay={false}
+            position="bottom"
+          >
+            <form
+              onSubmit={form.onSubmit((values) => {
+                console.log(values);
+              })}
+              className="space-y-2"
+            >
+              <TextInput
+                key={form.key('title')}
+                required
+                label="Action Title"
+                {...form.getInputProps('title')}
+              />
+              <MultiSelect
+                key={form.key('headers')}
+                label="Headers"
+                data={['Header 1', 'Header 2', 'Header 3']}
+                {...form.getInputProps('headers')}
+              />
+              <Button type="submit">Save</Button>
+            </form>
+          </Drawer>
         </>
       ) : null}
     </>

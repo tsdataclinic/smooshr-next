@@ -27,32 +27,31 @@ export function Layout({ children }: Props): JSX.Element {
       <AppShell.Header>
         <Group h="100%" px="md">
           <Burger opened={isOpen} onClick={toggle} hiddenFrom="sm" size="sm" />
-          <span>
-            Smooshr 2.0
-            <span className="text-xs"> by Data Clinic</span>
-          </span>
+          <Group className="flex-1" justify="space-between">
+            <span>
+              Smooshr 2.0
+              <span className="text-xs"> by Data Clinic</span>
+            </span>
+            <Group ml="xl" gap="sm" visibleFrom="sm">
+              <Link to={getWorkflowsURI()}>Workflows</Link>
+              <Link to={getAboutURI()}>About</Link>
+              <Button
+                unstyled
+                style={{ textAlign: 'left' }}
+                onClick={async () => {
+                  if (isAuthenticated) {
+                    await logout();
+                  } else {
+                    await login();
+                  }
+                }}
+              >
+                {isAuthenticated ? 'Sign out' : 'Sign in'}
+              </Button>
+            </Group>
+          </Group>
         </Group>
       </AppShell.Header>
-
-      <AppShell.Navbar p="md">
-        <Stack>
-          <Link to={getWorkflowsURI()}>Workflows</Link>
-          <Link to={getAboutURI()}>About</Link>
-          <Button
-            unstyled
-            style={{ textAlign: 'left' }}
-            onClick={async () => {
-              if (isAuthenticated) {
-                await logout();
-              } else {
-                await login();
-              }
-            }}
-          >
-            {isAuthenticated ? 'Sign out' : 'Sign in'}
-          </Button>
-        </Stack>
-      </AppShell.Navbar>
       <AppShell.Main>{children}</AppShell.Main>
     </AppShell>
   );

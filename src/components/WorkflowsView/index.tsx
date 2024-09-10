@@ -1,12 +1,10 @@
-import { Button, Divider } from '@mantine/core';
+import { Button, Divider, List, Modal, TextInput } from '@mantine/core';
 import { WorkflowsService } from '../../client';
 import { processAPIData } from '../../util/apiUtil';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { WorkflowUtil } from '../../util/WorkflowUtil';
-import { List, Modal } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
-import { TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import day from 'dayjs';
 import { Link, useLocation } from 'wouter';
@@ -17,7 +15,7 @@ export function WorkflowsView(): JSX.Element {
   const form = useForm({
     mode: 'uncontrolled',
     initialValues: {
-      title: '',
+      title: 'Check column headers',
     },
   });
 
@@ -60,7 +58,7 @@ export function WorkflowsView(): JSX.Element {
     return (
       <div className="space-y-4">
         <Button onClick={onCreateClick}>New Workflow</Button>
-        <List size="lg" className="text-left border border-gray-200 rounded">
+        <List size="lg" className="rounded border border-gray-200 text-left">
           {workflows.map((workflow, i) => (
             <List.Item
               classNames={{
@@ -68,13 +66,13 @@ export function WorkflowsView(): JSX.Element {
                 itemLabel: 'w-full',
               }}
               key={workflow.id}
-              className="w-full hover:bg-gray-100 transition-colors"
+              className="w-full transition-colors hover:bg-gray-100"
             >
               <Link to={WorkflowUtil.getWorkflowURI(workflow.id)}>
-                <div className="flex items-center w-full hover:bg-gray-100 py-3 px-3">
-                  <div className="pr-2 border-r border-gray-400">{i + 1}</div>
+                <div className="flex w-full items-center p-3 hover:bg-gray-100">
+                  <div className="border-r border-gray-400 pr-2">{i + 1}</div>
                   <div className="pl-2">{workflow.title}</div>
-                  <div className="pl-2 flex-1 text-right text-sm">
+                  <div className="flex-1 pl-2 text-right text-sm">
                     Created {day(workflow.created_date).format('MMM DD, YYYY')}
                   </div>
                 </div>
@@ -116,7 +114,7 @@ export function WorkflowsView(): JSX.Element {
             label="Workflow Title"
             {...form.getInputProps('title')}
           />
-          <div className="space-x-2 mt-4 text-right">
+          <div className="mt-4 space-x-2 text-right">
             <Button variant="outline" onClick={createModalActions.close}>
               Cancel
             </Button>
