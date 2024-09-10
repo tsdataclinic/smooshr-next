@@ -35,14 +35,19 @@ export function SingleWorkflowView(): JSX.Element {
         <>
           <Group>
             <Title order={1}>{workflow?.title}</Title>
-            <Button
-              unstyled
-              onClick={() => {
-                console.log('clicked menu');
-              }}
-            >
-              <IconDots />
-            </Button>
+            <Menu withArrow shadow="md" width={200}>
+              <Menu.Target>
+                <Button unstyled>
+                  <IconDots />
+                </Button>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item>Add reference schemas</Menu.Item>
+                <Menu.Item>Edit inputs</Menu.Item>
+                <Menu.Item>Publish workflow</Menu.Item>
+                <Menu.Item>Test workflow</Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
           </Group>
 
           <p>This page is still a work in progress.</p>
