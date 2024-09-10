@@ -42,10 +42,10 @@ export function SingleWorkflowView(): JSX.Element {
                 </Button>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item>Add reference schemas</Menu.Item>
-                <Menu.Item>Edit inputs</Menu.Item>
-                <Menu.Item>Publish workflow</Menu.Item>
-                <Menu.Item>Test workflow</Menu.Item>
+                <Menu.Item disabled>Add reference schemas</Menu.Item>
+                <Menu.Item disabled>Edit inputs</Menu.Item>
+                <Menu.Item disabled>Publish workflow</Menu.Item>
+                <Menu.Item disabled>Test workflow</Menu.Item>
               </Menu.Dropdown>
             </Menu>
           </Group>
@@ -58,8 +58,24 @@ export function SingleWorkflowView(): JSX.Element {
                   <IconPlus stroke={1.5} size={30} />
                 </Menu.Target>
                 <Menu.Dropdown>
-                  <Menu.Item>Data Validation</Menu.Item>
-                  <Menu.Item>Flow Control</Menu.Item>
+                  <Menu
+                    width={250}
+                    shadow="md"
+                    position="left"
+                    trigger="hover"
+                    openDelay={100}
+                    closeDelay={200}
+                  >
+                    <Menu.Target>
+                      <Menu.Item>Data Validation</Menu.Item>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item>Has column headers</Menu.Item>
+                      <Menu.Item disabled>Are column values equal to</Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+
+                  <Menu.Item disabled>Flow Control</Menu.Item>
                 </Menu.Dropdown>
               </Menu>
             </ActionIcon>
