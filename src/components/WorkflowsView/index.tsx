@@ -87,7 +87,7 @@ export function WorkflowsView(): JSX.Element {
 
   // TODO: add a loading spinner for loading state
   return (
-    <>
+    <div className="container mx-auto">
       {renderWorkflows()}
       <Modal
         opened={isCreateModalOpened}
@@ -122,6 +122,6 @@ export function WorkflowsView(): JSX.Element {
           </div>
         </form>
       </Modal>
-    </>
+    </div>
   );
 }
