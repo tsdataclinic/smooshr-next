@@ -14,10 +14,12 @@ import {
   Drawer,
   TextInput,
   MultiSelect,
+  Modal,
 } from '@mantine/core';
 import { IconDots, IconPlus } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
+import { ReferenceSchemasEditor } from './ReferenceSchemasEditor';
 
 export function SingleWorkflowView(): JSX.Element {
   const params = useParams<{ workflowId: string }>();
@@ -32,7 +34,8 @@ export function SingleWorkflowView(): JSX.Element {
         }),
       ),
   });
-  const [isDrawerOpen, drawerActions] = useDisclosure(false);
+  const [isBottomDrawerOpen, bottomDrawerActions] = useDisclosure(false);
+  const [isModalOpen, modalActions] = useDisclosure(false);
   const form = useForm({
     mode: 'uncontrolled',
     initialValues: {
@@ -55,7 +58,9 @@ export function SingleWorkflowView(): JSX.Element {
                 </Button>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item disabled>Add reference schemas</Menu.Item>
+                <Menu.Item onClick={modalActions.open}>
+                  Add reference schemas
+                </Menu.Item>
                 <Menu.Item disabled>Edit inputs</Menu.Item>
                 <Menu.Item disabled>Publish workflow</Menu.Item>
                 <Menu.Item disabled>Test workflow</Menu.Item>
@@ -85,7 +90,7 @@ export function SingleWorkflowView(): JSX.Element {
                     <Menu.Item>Data Validation</Menu.Item>
                   </Menu.Target>
                   <Menu.Dropdown>
-                    <Menu.Item onClick={drawerActions.open}>
+                    <Menu.Item onClick={bottomDrawerActions.open}>
                       Has column headers
                     </Menu.Item>
                     <Menu.Item disabled>Are column values equal to</Menu.Item>
@@ -95,11 +100,20 @@ export function SingleWorkflowView(): JSX.Element {
               </Menu.Dropdown>
             </Menu>
           </Affix>
+
+          <Modal
+            opened={isModalOpen}
+            onClose={modalActions.close}
+            title="Configuring reference schemas"
+          >
+            <ReferenceSchemasEditor />
+          </Modal>
+
           <Drawer
             offset={8}
             radius="md"
-            opened={isDrawerOpen}
-            onClose={drawerActions.close}
+            opened={isBottomDrawerOpen}
+            onClose={bottomDrawerActions.close}
             title="Configuring validation step: checking column headers"
             withOverlay={false}
             position="bottom"
