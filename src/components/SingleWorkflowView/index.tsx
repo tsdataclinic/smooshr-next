@@ -19,7 +19,7 @@ import {
 import { IconDots, IconPlus } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
-import { ReferenceSchemasEditor } from './ReferenceSchemasEditor';
+import { FieldsetSchemasEditor } from './FieldsetSchemasEditor';
 
 export function SingleWorkflowView(): JSX.Element {
   const params = useParams<{ workflowId: string }>();
@@ -59,7 +59,7 @@ export function SingleWorkflowView(): JSX.Element {
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Item onClick={modalActions.open}>
-                  Add reference schemas
+                  Add column schemas
                 </Menu.Item>
                 <Menu.Item disabled>Edit inputs</Menu.Item>
                 <Menu.Item disabled>Publish workflow</Menu.Item>
@@ -104,9 +104,9 @@ export function SingleWorkflowView(): JSX.Element {
           <Modal
             opened={isModalOpen}
             onClose={modalActions.close}
-            title="Configuring reference schemas"
+            title="Configuring column schemas"
           >
-            <ReferenceSchemasEditor />
+            <FieldsetSchemasEditor />
           </Modal>
 
           <Drawer
