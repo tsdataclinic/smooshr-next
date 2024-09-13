@@ -14,6 +14,7 @@ import {
 import { WorkflowsView } from './components/WorkflowsView';
 import { Notifications } from '@mantine/notifications';
 import { SingleWorkflowView } from './components/SingleWorkflowView';
+import { ModalsProvider } from '@mantine/modals';
 
 APIClient.setConfig({
   baseUrl: import.meta.env.VITE_SERVER_URI || '',
@@ -28,29 +29,31 @@ APIClient.interceptors.request.use(async (request) => {
 
 const QUERY_CLIENT = new QueryClient();
 
-function App() {
+function App(): JSX.Element {
   return (
     <AuthProvider>
       <QueryClientProvider client={QUERY_CLIENT}>
         <MantineProvider>
-          <Notifications />
-          <Layout>
-            <Switch>
-              <Route path="/">
-                <Redirect to={getWorkflowsURI()} />
-              </Route>
-              <Route path={getWorkflowsURI()}>
-                <WorkflowsView />
-              </Route>
-              <Route path={`${getSingleWorkflowBaseURI()}/:workflowId`}>
-                <SingleWorkflowView />
-              </Route>
-              <Route path={getAboutURI()}>
-                <Layout>About page</Layout>
-              </Route>
-              <Route>404: No such page!</Route>
-            </Switch>
-          </Layout>
+          <ModalsProvider>
+            <Notifications />
+            <Layout>
+              <Switch>
+                <Route path="/">
+                  <Redirect to={getWorkflowsURI()} />
+                </Route>
+                <Route path={getWorkflowsURI()}>
+                  <WorkflowsView />
+                </Route>
+                <Route path={`${getSingleWorkflowBaseURI()}/:workflowId`}>
+                  <SingleWorkflowView />
+                </Route>
+                <Route path={getAboutURI()}>
+                  <Layout>About page</Layout>
+                </Route>
+                <Route>404: No such page!</Route>
+              </Switch>
+            </Layout>
+          </ModalsProvider>
         </MantineProvider>
       </QueryClientProvider>
     </AuthProvider>
