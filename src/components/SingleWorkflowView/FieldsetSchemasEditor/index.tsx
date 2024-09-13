@@ -1,5 +1,7 @@
 import * as React from 'react';
 import {
+  Text,
+  Menu,
   TextInput,
   Checkbox,
   Fieldset,
@@ -11,6 +13,7 @@ import {
 import * as Papa from 'papaparse';
 import type { Brand } from '../../../util/types';
 import { v4 as uuid } from 'uuid';
+import { IconDots } from '@tabler/icons-react';
 
 type FieldsetId = Brand<string, 'FieldsetId'>;
 type FieldsetSchema = {
@@ -85,10 +88,24 @@ function FieldsetSchemaBlock({
 
   return (
     <form>
-      <Fieldset className="space-y-2" legend={fieldsetSchema.name}>
-        <p>
-          add 3 dots to top right with menu option to create schema from CSV
-        </p>
+      <Fieldset
+        className="relative space-y-2"
+        legend={
+          <div className="flex items-center space-x-2">
+            <Text size="sm">{fieldsetSchema.name}</Text>
+            <Menu withArrow shadow="md" width={250} position="bottom-start">
+              <Menu.Target>
+                <Button unstyled onClick={() => console.log('clicked')}>
+                  <IconDots />
+                </Button>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item disabled>Generate schema from CSV</Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          </div>
+        }
+      >
         <TextInput defaultValue={fieldsetSchema.name} />
         <Checkbox defaultChecked label="Order matters" />
         <Title order={6}>Headers</Title>
