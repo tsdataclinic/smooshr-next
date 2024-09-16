@@ -163,7 +163,7 @@ def fetch_workflow_or_raise(
     # there may be other ways of sharing workflows with non-owner users
     if workflow.owner != user.id:
         raise HTTPException(
-            status_code=403, detail=f"User does not own workflow {workflow_id}."
+            status_code=404, detail=f"Workflow {workflow_id} not found."
         )
 
     return workflow
