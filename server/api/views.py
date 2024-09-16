@@ -196,7 +196,6 @@ def get_workflows(
     user: DBUser = Depends(get_current_user), session: Session = Depends(get_session)
 ) -> list[BaseWorkflow]:
     """Get all workflows for the current user."""
-    print(user)
     db_workflows = session.query(DBWorkflow).filter(DBWorkflow.owner == user.id).all()
     return [BaseWorkflow.model_validate(db_workflow) for db_workflow in db_workflows]
 
