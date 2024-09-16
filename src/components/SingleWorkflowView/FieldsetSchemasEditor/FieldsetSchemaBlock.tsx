@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 import {
+  Modal,
   Menu,
   Text,
   TextInput,
@@ -16,6 +17,7 @@ import * as Papa from 'papaparse';
 import { IconSettingsFilled } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { modals } from '@mantine/modals';
+import { useDisclosure } from '@mantine/hooks';
 
 // TODO: eventually this should come from backend
 export type FieldsetSchema = {
@@ -29,7 +31,7 @@ export type FieldsetSchema = {
 
 type Props = {
   fieldsetSchema: FieldsetSchema;
-  onFieldsetSchemaDelete: (FieldsetSchema) => void;
+  onFieldsetSchemaDelete: (fieldsetSchema: FieldsetSchema) => void;
 };
 
 function useCSVFieldsetParser(): [
@@ -69,6 +71,7 @@ export function FieldsetSchemaBlock({
   fieldsetSchema,
   onFieldsetSchemaDelete,
 }: Props): JSX.Element {
+  const [isCSVParseModalOpen, csvParseModalActions] = useDisclosure(false);
   const [, setParsedFieldsetSchema] = useCSVFieldsetParser();
   const form = useForm({
     mode: 'controlled',
@@ -85,54 +88,58 @@ export function FieldsetSchemaBlock({
       onConfirm: () => onFieldsetSchemaDelete(fieldsetSchema),
     });
 
-  // TODO: YOU ARE HERE. We should say "Either create manually or upload CSV to extract reference"
-  if (fieldsetSchema === undefined) {
-    return (
-      <div>
-        Create manually or add CSV
-        <FileButton onChange={setParsedFieldsetSchema} accept=".csv">
-          {(props) => <Button {...props}>Create new schema from CSV</Button>}
-        </FileButton>
-      </div>
-    );
-  }
-
   return (
-    <form>
-      <Fieldset className="relative" legend={form.getValues().name}>
-        <Menu withArrow shadow="md" width={250} position="bottom-start">
-          <Menu.Target>
-            <UnstyledButton
-              className="absolute -top-1 right-1"
-              onClick={() => console.log('clicked')}
-            >
-              <IconSettingsFilled size={16} />
-            </UnstyledButton>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Item disabled>Generate schema from CSV</Menu.Item>
-            <Menu.Item onClick={openDeleteModal}>Delete schema</Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
+    <>
+      <form>
+        <Fieldset className="relative" legend={form.getValues().name}>
+          <Menu withArrow shadow="md" width={250} position="bottom-start">
+            <Menu.Target>
+              <UnstyledButton
+                className="absolute -top-1 right-1"
+                onClick={() => console.log('clicked')}
+              >
+                <IconSettingsFilled size={16} />
+              </UnstyledButton>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item onClick={csvParseModalActions.open}>
+                Generate schema from CSV
+              </Menu.Item>
+              <Menu.Item onClick={openDeleteModal}>Delete schema</Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
 
-        <div className="space-y-2">
-          <TextInput {...form.getInputProps('name')} label="Schema Name" />
-          <Checkbox
-            {...form.getInputProps('orderMatters', { type: 'checkbox' })}
-            label="Order of columns matters"
-          />
-          <Title order={6}>Headers</Title>
-          <List>
-            {fieldsetSchema.fields.map((field) => {
-              return (
-                <List.Item key={field.name}>
-                  {field.name}: datatype [add validators]
-                </List.Item>
-              );
-            })}
-          </List>
+          <div className="space-y-2">
+            <TextInput {...form.getInputProps('name')} label="Schema Name" />
+            <Checkbox
+              {...form.getInputProps('orderMatters', { type: 'checkbox' })}
+              label="Order of columns matters"
+            />
+            <Title order={6}>Headers</Title>
+            <List>
+              {fieldsetSchema.fields.map((field) => {
+                return (
+                  <List.Item key={field.name}>
+                    {field.name}: datatype [add validators]
+                  </List.Item>
+                );
+              })}
+            </List>
+          </div>
+        </Fieldset>
+      </form>
+
+      <Modal
+        opened={isCSVParseModalOpen}
+        onClose={csvParseModalActions.close}
+        title="Get Schema from CSV"
+      >
+        <div>
+          <FileButton onChange={setParsedFieldsetSchema} accept=".csv">
+            {(props) => <Button {...props}>Create new schema from CSV</Button>}
+          </FileButton>
         </div>
-      </Fieldset>
-    </form>
+      </Modal>
+    </>
   );
 }
