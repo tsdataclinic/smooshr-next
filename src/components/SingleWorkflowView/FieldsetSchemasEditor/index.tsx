@@ -19,8 +19,11 @@ export function FieldsetSchemasEditor(): JSX.Element {
   >([]);
 
   const onFieldsetSchemaDelete = React.useCallback(
-    (schema: FieldsetSchema) =>
-      alert(`Delete needs implementation: ${schema.name}`),
+    (schemaToDelete: FieldsetSchema) => {
+      setFieldsetSchemas((prevSchemas) => {
+        return prevSchemas.filter((schema) => schema.id !== schemaToDelete.id);
+      });
+    },
     [],
   );
 
