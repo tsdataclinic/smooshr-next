@@ -20,16 +20,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.orm import Session
 
 from server.database import SessionLocal
+from server.models.user.api_schemas import User
 from server.models.user.db_model import DBUser
-from server.models.user.schemas import User
+from server.models.workflow.api_schemas import (BaseWorkflow, FullWorkflow,
+                                                WorkflowCreate,
+                                                WorkflowRunReport,
+                                                WorkflowUpdate)
 from server.models.workflow.db_model import DBWorkflow
-from server.models.workflow.schemas import (
-    BaseWorkflow,
-    FullWorkflow,
-    WorkflowCreate,
-    WorkflowRunReport,
-    WorkflowUpdate,
-)
 
 LOG = logging.getLogger(__name__)
 

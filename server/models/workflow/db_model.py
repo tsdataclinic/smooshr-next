@@ -26,10 +26,3 @@ class DBWorkflow(Base):
         DateTime, default=datetime.now, nullable=False
     )
     schema: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
-
-    def __init__(self, title, owner, created_date=None):
-        # TODO sqlite doesn't have a func.utcnow(), so figure out what to do here for local testing
-        self.title = title
-        self.owner = owner
-        if created_date:
-            self.created_date = created_date

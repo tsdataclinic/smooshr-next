@@ -4,6 +4,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .workflow_schema import WorkflowSchema
+
 
 class BaseWorkflow(BaseModel):
     """The base Workflow model"""
@@ -19,7 +21,7 @@ class BaseWorkflow(BaseModel):
 class FullWorkflow(BaseWorkflow):
     """A full workflow object, including the JSON schema"""
 
-    workflow_schema: dict[str, Any] = Field(default_factory=dict, alias="schema")
+    workflow_schema: WorkflowSchema = Field(default_factory=dict, alias="schema")
 
 
 class WorkflowCreate(BaseModel):
@@ -41,4 +43,3 @@ class WorkflowRunReport(BaseModel):
     row_count: int
     filename: str
     workflow_id: str
-
