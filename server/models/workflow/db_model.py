@@ -3,11 +3,14 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Uuid
+from sqlalchemy import Column, DateTime, ForeignKey, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from server.database import Base
 from server.models import DBUser
+from server.pydantic_type import PydanticType
+
+from .workflow_schema import WorkflowSchema, create_empty_workflow_schema
 
 
 class DBWorkflow(Base):
@@ -25,4 +28,7 @@ class DBWorkflow(Base):
     created_date: Mapped[DateTime] = mapped_column(
         DateTime, default=datetime.now, nullable=False
     )
-    schema: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+
+    schema: Mapped[dict[str, Any]] = mapped_column(
+        PydanticType(WorkflowSchema), default=create_empty_workflow_schema
+    )

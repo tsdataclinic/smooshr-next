@@ -1,4 +1,4 @@
-import { Button, Divider, List, Modal, TextInput } from '@mantine/core';
+import { Text, Button, Divider, List, Modal, TextInput } from '@mantine/core';
 import { WorkflowsService } from '../../client';
 import { processAPIData } from '../../util/apiUtil';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -15,7 +15,7 @@ export function WorkflowsView(): JSX.Element {
   const form = useForm({
     mode: 'uncontrolled',
     initialValues: {
-      title: 'Check column headers',
+      title: 'New workflow',
     },
   });
 
@@ -58,29 +58,37 @@ export function WorkflowsView(): JSX.Element {
     return (
       <div className="space-y-4">
         <Button onClick={onCreateClick}>New Workflow</Button>
-        <List size="lg" className="rounded border border-gray-200 text-left">
-          {workflows.map((workflow, i) => (
-            <List.Item
-              classNames={{
-                itemWrapper: 'w-full',
-                itemLabel: 'w-full',
-              }}
-              key={workflow.id}
-              className="w-full transition-colors hover:bg-gray-100"
-            >
-              <Link to={WorkflowUtil.getWorkflowURI(workflow.id)}>
-                <div className="flex w-full items-center p-3 hover:bg-gray-100">
-                  <div className="border-r border-gray-400 pr-2">{i + 1}</div>
-                  <div className="pl-2">{workflow.title}</div>
-                  <div className="flex-1 pl-2 text-right text-sm">
-                    Created {day(workflow.created_date).format('MMM DD, YYYY')}
+        {workflows.length === 0 ? (
+          <Text>
+            You currently have no workflows. Click on the button above to create
+            one!
+          </Text>
+        ) : (
+          <List size="lg" className="rounded border border-gray-200 text-left">
+            {workflows.map((workflow, i) => (
+              <List.Item
+                classNames={{
+                  itemWrapper: 'w-full',
+                  itemLabel: 'w-full',
+                }}
+                key={workflow.id}
+                className="w-full transition-colors hover:bg-gray-100"
+              >
+                <Link to={WorkflowUtil.getWorkflowURI(workflow.id)}>
+                  <div className="flex w-full items-center p-3 hover:bg-gray-100">
+                    <div className="border-r border-gray-400 pr-2">{i + 1}</div>
+                    <div className="pl-2">{workflow.title}</div>
+                    <div className="flex-1 pl-2 text-right text-sm">
+                      Created{' '}
+                      {day(workflow.created_date).format('MMM DD, YYYY')}
+                    </div>
                   </div>
-                </div>
-              </Link>
-              {i !== workflows.length - 1 ? <Divider /> : null}
-            </List.Item>
-          ))}
-        </List>
+                </Link>
+                {i !== workflows.length - 1 ? <Divider /> : null}
+              </List.Item>
+            ))}
+          </List>
+        )}
       </div>
     );
   };
@@ -104,6 +112,13 @@ export function WorkflowsView(): JSX.Element {
                 });
                 createModalActions.close();
                 navigate(WorkflowUtil.getWorkflowURI(newWorkflow.id));
+              },
+              onError: () => {
+                notifications.show({
+                  title: 'Error',
+                  message: 'There was an error creating the workflow',
+                  color: 'red',
+                });
               },
             });
           })}

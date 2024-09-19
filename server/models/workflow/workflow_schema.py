@@ -92,8 +92,8 @@ class WorkflowParam(BaseModel):
 class WorkflowSchema(BaseModel):
     """A schema represents the sequence of operations a Workflow should apply."""
 
-    # The display title of this Workflow
-    title: str
+    # The schema version
+    version: Literal["0.1"]
 
     # the list of operations that this Workflow executes
     operations: list[WorkflowOperation]
@@ -104,5 +104,12 @@ class WorkflowSchema(BaseModel):
     # the list of params that are input at time a Workflow is executed
     params: list[WorkflowParam]
 
-    # The schema version
-    version: Literal["0.1"]
+
+def create_empty_workflow_schema() -> WorkflowSchema:
+    """Create an empty Workflow Schema"""
+    return WorkflowSchema(
+        version="0.1",
+        operations=[],
+        fieldset_schemas=[],
+        params=[],
+    )

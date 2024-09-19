@@ -1,7 +1,7 @@
+import json
 import logging
-import os
 
-# import all models so that the classes get registered with SQLAlchemy
+from pydantic.json import pydantic_encoder
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -10,6 +10,11 @@ from sqlalchemy.orm import DeclarativeMeta, sessionmaker
 SQLITE_DB_PATH = "./db.sqlite"
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
+
+def json_serializer(*args, **kwargs) -> str:
+    return json.dumps(*args, default=pydantic_encoder, **kwargs)
+
 
 # By default sqlite doesn't enforce foreign key constraints
 # ths code ensures that it is enforced for all connections
@@ -21,8 +26,11 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 
 def create_fk_constraint_engine(file_path: str = SQLITE_DB_PATH):
+    """Create SQLite engine that supports foreign key constraints"""
     return create_engine(
-        f"sqlite:///{file_path}", connect_args={"check_same_thread": False}
+        f"sqlite:///{file_path}",
+        connect_args={"check_same_thread": False},
+        json_serializer=json_serializer,
     )
 
 

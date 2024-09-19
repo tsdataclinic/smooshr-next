@@ -22,10 +22,13 @@ from sqlalchemy.orm import Session
 from server.database import SessionLocal
 from server.models.user.api_schemas import User
 from server.models.user.db_model import DBUser
-from server.models.workflow.api_schemas import (BaseWorkflow, FullWorkflow,
-                                                WorkflowCreate,
-                                                WorkflowRunReport,
-                                                WorkflowUpdate)
+from server.models.workflow.api_schemas import (
+    BaseWorkflow,
+    FullWorkflow,
+    WorkflowCreate,
+    WorkflowRunReport,
+    WorkflowUpdate,
+)
 from server.models.workflow.db_model import DBWorkflow
 
 LOG = logging.getLogger(__name__)
@@ -184,9 +187,10 @@ def get_workflow(
     """Get a workflow by ID"""
     # TODO - This should be updated to only return workflows for
     #        the current user once authentication is implemented.
-    return FullWorkflow.model_validate(
-        fetch_workflow_or_raise(workflow_id, session, user)
-    )
+    db_workflow = fetch_workflow_or_raise(workflow_id, session, user)
+    print("db workflow")
+    print(db_workflow.__dict__)
+    return FullWorkflow.model_validate(db_workflow)
 
 
 @app.get("/api/workflows", tags=["workflows"])
