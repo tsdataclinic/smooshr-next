@@ -4,6 +4,7 @@ import {
   createClient,
   createConfig,
   type Options,
+  formDataBodySerializer,
 } from '@hey-api/client-fetch';
 import type {
   GetSelfUserError,
@@ -22,6 +23,12 @@ import type {
   UpdateWorkflowData,
   UpdateWorkflowError,
   UpdateWorkflowResponse,
+  RunWorkflowData,
+  RunWorkflowError,
+  RunWorkflowResponse,
+  ReturnWorkflowData,
+  ReturnWorkflowError,
+  ReturnWorkflowResponse,
 } from './types.gen';
 
 export const client = createClient(createConfig());
@@ -128,6 +135,48 @@ export class WorkflowsService {
     >({
       ...options,
       url: '/workflows/{workflow_id}',
+    });
+  }
+
+  /**
+   * Run Workflow
+   * Runs the workflow associated with id `workflow_id` on the passed in csv,
+   * and returns any results or errors from the run. The workflow_id must be
+   * associated with a workflow the calling user has access to.
+   */
+  public static runWorkflow<ThrowOnError extends boolean = false>(
+    options: Options<RunWorkflowData, ThrowOnError>,
+  ) {
+    return (options?.client ?? client).post<
+      RunWorkflowResponse,
+      RunWorkflowError,
+      ThrowOnError
+    >({
+      ...options,
+      ...formDataBodySerializer,
+      headers: {
+        'Content-Type': null,
+      },
+      url: '/api/workflows/{workflow_id}/run',
+    });
+  }
+
+  /**
+   * Return Workflow
+   * Returns a serialized json representation of the workflow that can be used
+   * to run the workflow locally. The workflow_id must be associated with a
+   * workflow the calling user has access to.
+   */
+  public static returnWorkflow<ThrowOnError extends boolean = false>(
+    options: Options<ReturnWorkflowData, ThrowOnError>,
+  ) {
+    return (options?.client ?? client).get<
+      ReturnWorkflowResponse,
+      ReturnWorkflowError,
+      ThrowOnError
+    >({
+      ...options,
+      url: '/api/workflows/{workflow_id}/run',
     });
   }
 }

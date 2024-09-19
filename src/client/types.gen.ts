@@ -11,6 +11,69 @@ export type BaseWorkflow = {
 };
 
 /**
+ * Represents a data type with no additional configuration other
+ * than its literal type
+ */
+export type BasicFieldDataTypeSchema = {
+  data_type: 'any' | 'string' | 'number';
+};
+
+export type data_type = 'any' | 'string' | 'number';
+
+export type Body_run_workflow = {
+  upload_csv: Blob | File;
+};
+
+/**
+ * The validation schema for a dataset column
+ */
+export type FieldSchema = {
+  id: string;
+  name: string;
+  case_sensitive: boolean;
+  required: boolean;
+  data_type_validation: BasicFieldDataTypeSchema | TimestampDataTypeSchema;
+  allow_empty_values: boolean;
+  allowed_values: string[] | ParamReference | null;
+};
+
+/**
+ * The validation schema for a dataset's fieldset. Or, in other words,
+ * the column schemas. E.g. the column names, order, data types, allowable values.
+ */
+export type FieldsetSchema = {
+  id: string;
+  name: string;
+  order_matters: boolean;
+  fields: FieldSchema[];
+  allow_extra_columns: 'no' | 'anywhere' | 'onlyAfterSchemaFields';
+};
+
+export type allow_extra_columns = 'no' | 'anywhere' | 'onlyAfterSchemaFields';
+
+/**
+ * A validation operation to validate the dataset columns and their values
+ */
+export type FieldsetSchemaValidation = {
+  type: 'fieldsetSchemaValidation';
+  id: string;
+  fieldset_schema: string | ParamReference;
+};
+
+export type type = 'fieldsetSchemaValidation';
+
+/**
+ * A validation operation to check file type
+ */
+export type FileTypeValidation = {
+  type: 'fileTypeValidation';
+  id: string;
+  expected_file_type: string;
+};
+
+export type type2 = 'fileTypeValidation';
+
+/**
  * A full workflow object, including the JSON schema
  */
 export type FullWorkflow = {
@@ -18,14 +81,42 @@ export type FullWorkflow = {
   title: string;
   owner: string;
   created_date: string;
-  schema?: {
-    [key: string]: unknown;
-  } | null;
+  schema?: WorkflowSchema;
 };
 
 export type HTTPValidationError = {
-  detail?: Array<ValidationError>;
+  detail?: ValidationError[];
 };
+
+/**
+ * A simple object that references a param name
+ */
+export type ParamReference = {
+  param_name: string;
+};
+
+/**
+ * A validation operation to check row counts
+ */
+export type RowCountValidation = {
+  type: 'rowCountValidation';
+  id: string;
+  min_row_count: number | null;
+  max_row_count: number | null;
+};
+
+export type type3 = 'rowCountValidation';
+
+/**
+ * Represents a Timestamp data type. It requires a `date_time_format` to
+ * represent how a timestamp should be represented.
+ */
+export type TimestampDataTypeSchema = {
+  data_type: 'timestamp';
+  date_time_format: string;
+};
+
+export type data_type2 = 'timestamp';
 
 /**
  * The base User schema to use in the API.
@@ -53,6 +144,43 @@ export type WorkflowCreate = {
 };
 
 /**
+ * The schema representing an argument (an input) for the Workflow that
+ * is passed in when a Workflow is kicked off.
+ */
+export type WorkflowParam = {
+  name: string;
+  display_name: string;
+  description: string;
+  required: boolean;
+  type: 'string' | 'number' | 'string list';
+};
+
+export type type4 = 'string' | 'number' | 'string list';
+
+/**
+ * Run report schema for a server-side run of a workflow.
+ */
+export type WorkflowRunReport = {
+  row_count: number;
+  filename: string;
+  workflow_id: string;
+};
+
+/**
+ * A schema represents the sequence of operations a Workflow should apply.
+ */
+export type WorkflowSchema = {
+  version: '0.1';
+  operations: Array<
+    FieldsetSchemaValidation | FileTypeValidation | RowCountValidation
+  >;
+  fieldset_schemas: FieldsetSchema[];
+  params: WorkflowParam[];
+};
+
+export type version = '0.1';
+
+/**
  * Data model to update a Workflow
  */
 export type WorkflowUpdate = {
@@ -75,7 +203,7 @@ export type GetWorkflowError = HTTPValidationError;
 
 export type DeleteWorkflowData = {
   path: {
-    workflow_id: number;
+    workflow_id: string;
   };
 };
 
@@ -83,7 +211,7 @@ export type DeleteWorkflowResponse = unknown;
 
 export type DeleteWorkflowError = HTTPValidationError;
 
-export type GetWorkflowsResponse = Array<BaseWorkflow>;
+export type GetWorkflowsResponse = BaseWorkflow[];
 
 export type GetWorkflowsError = unknown;
 
@@ -98,10 +226,31 @@ export type CreateWorkflowError = HTTPValidationError;
 export type UpdateWorkflowData = {
   body: WorkflowUpdate;
   path: {
-    workflow_id: number;
+    workflow_id: string;
   };
 };
 
 export type UpdateWorkflowResponse = FullWorkflow;
 
 export type UpdateWorkflowError = HTTPValidationError;
+
+export type RunWorkflowData = {
+  body: Body_run_workflow;
+  path: {
+    workflow_id: string;
+  };
+};
+
+export type RunWorkflowResponse = WorkflowRunReport;
+
+export type RunWorkflowError = HTTPValidationError;
+
+export type ReturnWorkflowData = {
+  path: {
+    workflow_id: string;
+  };
+};
+
+export type ReturnWorkflowResponse = unknown;
+
+export type ReturnWorkflowError = HTTPValidationError;
