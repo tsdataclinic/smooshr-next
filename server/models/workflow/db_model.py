@@ -29,6 +29,6 @@ class DBWorkflow(Base):
         DateTime, default=datetime.now, nullable=False
     )
 
-    schema: Mapped[WorkflowSchema] = mapped_column(
+    schema: Mapped[dict[str, Any]] = mapped_column(
         PydanticType(WorkflowSchema), default=create_empty_workflow_schema
     )
