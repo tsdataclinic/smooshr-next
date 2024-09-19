@@ -1,3 +1,4 @@
+"""This file initializes the SQLAlchemy database engine"""
 import json
 import logging
 
@@ -13,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 def json_serializer(*args, **kwargs) -> str:
+    """JSON serializer to use in the SQLAlchemy engine"""
     return json.dumps(*args, default=pydantic_encoder, **kwargs)
 
 

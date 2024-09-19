@@ -188,8 +188,6 @@ def get_workflow(
     # TODO - This should be updated to only return workflows for
     #        the current user once authentication is implemented.
     db_workflow = fetch_workflow_or_raise(workflow_id, session, user)
-    print("db workflow")
-    print(db_workflow.__dict__)
     return FullWorkflow.model_validate(db_workflow)
 
 
