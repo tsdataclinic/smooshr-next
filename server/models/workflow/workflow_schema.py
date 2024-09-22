@@ -4,6 +4,13 @@ from typing import Literal
 from pydantic import BaseModel
 
 
+class CsvData(BaseModel):
+    """The Data in a CSV file"""
+
+    column_names: list[str]
+    data: list[dict[str, str]]
+
+
 class ParamReference(BaseModel):
     """A simple object that references a param name"""
 
