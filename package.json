@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "api": "PYTHONPATH=. uvicorn views:app --log-config ./api-log-config.json --reload --reload-dir server --app-dir server/api",
-    "api-test": "PYTHONPATH=. pytest server/api",
+    "api-test": "PYTHONPATH=. pytest -vv server/",
     "db-new-migration": "./scripts/new_db_migration.sh",
     "db-upgrade": "python -m alembic upgrade head",
     "db-downgrade": "python -m alembic downgrade -1",

@@ -6,8 +6,8 @@ from server.models.workflow.workflow_schema import BasicFieldDataTypeSchema, Fie
 @dataclass
 class ValidationFailure:
     """A validation failure with a message."""
-    row_number: int | None
     message: str
+    row_number: int | None = None
 
 
 def validate_file_type(file_name: str, validation: FileTypeValidation) -> list[ValidationFailure]:
@@ -27,7 +27,7 @@ def validate_row_count(file_contents: list[dict], validation: RowCountValidation
     if not (min_row_count <= len(file_contents) <= max_row_count):
         return [
             ValidationFailure(
-                message=f"File does not have the expected row count ({min_row_count = }, {max_row_count = })"
+                message=f"File does not have the expected row count (min: {validation.min_row_count}, max: {validation.max_row_count})"
             )
         ]
     return []
@@ -43,6 +43,14 @@ def _check_csv_columns(csv_columns: list[str], fieldset_schema: FieldsetSchema) 
     """
     validations = []
     columnns_in_schema = [field.name for field in fieldset_schema.fields]
+
+    # check that all columns in the schema are present in the file
+    if not set(columnns_in_schema) <= set(csv_columns):
+        validations.append(
+            ValidationFailure(
+                message=f"File is missing columns required by the schema: {set(columnns_in_schema) - set(csv_columns)}" 
+            )
+        )
 
     if fieldset_schema.order_matters:
         # check that csv_columns is a subsequence of columns_in_schema
@@ -84,20 +92,20 @@ def _validate_field(row_num: int, row: dict, field: FieldSchema, params: dict[st
         value = case_insensitive_values.get(field.name.lower())
 
     # If the field is required and the value is missing, add a validation failure.
-    if field.required and not value:
+    if field.required and value == None:
         validations.append(
             ValidationFailure(
                 row_number=row_num,
-                message=f"Missing a value for the required field {field.name}"
+                message=f"Missing a value for the required field '{field.name}'"
             )
         )
 
     # If the field does not allow empty values and the value is empty, add a validation failure.
-    if not field.allow_empty_values and not value:
+    if not field.allow_empty_values and value == "":
         validations.append(
             ValidationFailure(
                 row_number=row_num,
-                message=f"Empty value for the field {field.name}"
+                message=f"Empty value for the field '{field.name}'"
             )
         )
 
@@ -112,7 +120,7 @@ def _validate_field(row_num: int, row: dict, field: FieldSchema, params: dict[st
                 validations.append(
                     ValidationFailure(
                         row_number=row_num,
-                        message=f"Value for field {field.name} is not a valid number"
+                        message=f"Value '{value}' for field '{field.name}' is not a valid number"
                     )
                 )
         case TimestampDataTypeSchema(data_type="timestamp", date_time_format=date_time_format):
@@ -122,7 +130,7 @@ def _validate_field(row_num: int, row: dict, field: FieldSchema, params: dict[st
                 validations.append(
                     ValidationFailure(
                         row_number=row_num,
-                        message=f"Value for field {field.name} does not match the expected timestamp format {date_time_format}"
+                        message=f"Value '{value}' for field '{field.name}' does not match the expected timestamp format {date_time_format}"
                     )
                 )
 
@@ -136,21 +144,21 @@ def _validate_field(row_num: int, row: dict, field: FieldSchema, params: dict[st
             validations.append(
                 ValidationFailure(
                     row_number=row_num,
-                    message=f"Value for field {field.name} is not in the list of allowed values ({allowed_values})"
+                    message=f"Value '{value}' is not allowed for field '{field.name}'"
                 )
             )
 
     return validations
 
 
-def validate_fieldset(csv_columns, csv_data: list[dict], fieldset_schema: FieldsetSchema) -> list[ValidationFailure]:
+def validate_fieldset(csv_columns, csv_data: list[dict], fieldset_schema: FieldsetSchema, params: dict[str, any]) -> list[ValidationFailure]:
     """Validate the fieldset schema of a file."""
     validations = []
 
-    validations.append(_check_csv_columns(csv_columns, fieldset_schema))
+    validations.extend(_check_csv_columns(csv_columns, fieldset_schema))
     for row_num, row in enumerate(csv_data):
         for field in fieldset_schema.fields:
-            validations.extend(_validate_field(row_num + 1, row, field))
+            validations.extend(_validate_field(row_num + 1, row, field, params))
 
     return validations
 

@@ -1,10 +1,12 @@
 import csv
+import io
+
 from server.models.workflow.workflow_schema import CsvData, FieldsetSchema, FieldsetSchemaValidation, FileTypeValidation, ParamReference, RowCountValidation, WorkflowParam, WorkflowSchema
 from .exceptions import FieldsetSchemaNotFoundException, ParameterDefinitionNotFoundException
 from .validators import ValidationFailure, validate_fieldset, validate_file_type, validate_row_count
 
 def run_workflow(
-        file_name, str,
+        file_name: str,
         file_contents: str, 
         param_values: dict[str, any], 
         schema: WorkflowSchema
@@ -21,12 +23,12 @@ def _validate_param_values(param_values: dict[str, any], schema: WorkflowSchema)
     a parameter definition in the workflo schema.
     """
     for param_name in param_values:
-        if param_name not in schema.parameters:
+        if not any(param.name == param_name for param in schema.params):
             raise ParameterDefinitionNotFoundException(f"Parameter definition for {param_name} not found in schema.")
 
 def _get_csv_contents(contents: str) -> CsvData:
     """Get the CSV data from the contents of a file."""
-    reader = csv.DictReader(contents)
+    reader = csv.DictReader(io.StringIO(contents))
     return CsvData(column_names=reader.fieldnames, data=list(reader))
 
 
@@ -55,11 +57,11 @@ def _validate_csv(
                         param_name = operation.fieldset_schema.param_name
                         fieldset_schema_name = param_values[param_name]
 
-                fieldset_schema = _get_fieldset_schema(fieldset_schema_name, schema.fieldsets)
-                validations.append(validate_fieldset(csv_data.data, fieldset_schema))
+                fieldset_schema = _get_fieldset_schema(fieldset_schema_name, schema.fieldset_schemas)
+                validations.extend(validate_fieldset(csv_data.column_names, csv_data.data, fieldset_schema, param_values))
             case FileTypeValidation():
-                validations.append(validate_file_type(file_name, operation))
+                validations.extend(validate_file_type(file_name, operation))
             case RowCountValidation():
-                validations.append(validate_row_count(csv_data.data, operation))
+                validations.extend(validate_row_count(csv_data.data, operation))
 
     return validations
