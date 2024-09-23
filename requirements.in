@@ -8,3 +8,4 @@ pydantic-settings
 frictionless
 pytest
 pytest-asyncio
+coverage
