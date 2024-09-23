@@ -64,6 +64,7 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 
 settings = Settings()
+print(settings)
 
 app = FastAPI(
     title="Smooshr2 API",
@@ -162,7 +163,7 @@ def fetch_workflow_or_raise(
     # there may be other ways of sharing workflows with non-owner users
     if workflow.owner != user.id:
         raise HTTPException(
-            status_code=403, detail=f"User does not own workflow {workflow_id}."
+            status_code=404, detail=f"Workflow {workflow_id} not found."
         )
 
     return workflow
@@ -180,9 +181,9 @@ def get_self_user(user: DBUser = Depends(get_current_user)) -> User:
 
 @app.get("/api/workflows/{workflow_id}", tags=["workflows"])
 def get_workflow(
-    workflow_id: str,
+    workflow_id: str, 
     session: Session = Depends(get_session),
-    user: DBUser = Depends(get_current_user),
+    user: DBUser = Depends(get_current_user),  
 ) -> FullWorkflow:
     """Get a workflow by ID"""
     # TODO - This should be updated to only return workflows for
@@ -196,6 +197,7 @@ def get_workflows(
     user: DBUser = Depends(get_current_user), session: Session = Depends(get_session)
 ) -> list[BaseWorkflow]:
     """Get all workflows for the current user."""
+    print(user)
     db_workflows = session.query(DBWorkflow).filter(DBWorkflow.owner == user.id).all()
     return [BaseWorkflow.model_validate(db_workflow) for db_workflow in db_workflows]
 
@@ -223,8 +225,8 @@ def create_workflow(
 def update_workflow(
     workflow_id: str,
     workflow_data: WorkflowUpdate,
-    session: Session = Depends(get_session),
     user: DBUser = Depends(get_current_user),
+    session: Session = Depends(get_session),
 ) -> FullWorkflow:
     """Update a workflow by ID"""
     # TODO - This should be updated to only allow the owner of the workflow

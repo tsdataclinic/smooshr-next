@@ -37,6 +37,8 @@ The API server is build with FastAPI.
 
 The auto-generated API docs (using Swagger) can be found at `localhost:8000/docs`
 
+Unit tests for the server can be run by running `yarn api-test`.
+
 ### Updating models
 
 If you made any changes to `server/models` ask yourself the following questions:
