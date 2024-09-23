@@ -51,6 +51,8 @@ fastapi-cli[standard]==0.0.5
     # via fastapi
 frictionless==5.17.1
     # via -r requirements.in
+greenlet==3.1.1
+    # via sqlalchemy
 h11==0.14.0
     # via
     #   httpcore
