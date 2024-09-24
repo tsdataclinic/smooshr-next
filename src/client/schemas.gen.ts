@@ -28,14 +28,14 @@ export const $BaseWorkflow = {
 
 export const $BasicFieldDataTypeSchema = {
   properties: {
-    data_type: {
+    dataType: {
       type: 'string',
       enum: ['any', 'string', 'number'],
-      title: 'Data Type',
+      title: 'Datatype',
     },
   },
   type: 'object',
-  required: ['data_type'],
+  required: ['dataType'],
   title: 'BasicFieldDataTypeSchema',
   description: `Represents a data type with no additional configuration other
 than its literal type`,
@@ -64,15 +64,15 @@ export const $FieldSchema = {
       type: 'string',
       title: 'Name',
     },
-    case_sensitive: {
+    caseSensitive: {
       type: 'boolean',
-      title: 'Case Sensitive',
+      title: 'Casesensitive',
     },
     required: {
       type: 'boolean',
       title: 'Required',
     },
-    data_type_validation: {
+    dataTypeValidation: {
       anyOf: [
         {
           $ref: '#/components/schemas/BasicFieldDataTypeSchema',
@@ -81,13 +81,13 @@ export const $FieldSchema = {
           $ref: '#/components/schemas/TimestampDataTypeSchema',
         },
       ],
-      title: 'Data Type Validation',
+      title: 'Datatypevalidation',
     },
-    allow_empty_values: {
+    allowEmptyValues: {
       type: 'boolean',
-      title: 'Allow Empty Values',
+      title: 'Allowemptyvalues',
     },
-    allowed_values: {
+    allowedValues: {
       anyOf: [
         {
           items: {
@@ -102,18 +102,18 @@ export const $FieldSchema = {
           type: 'null',
         },
       ],
-      title: 'Allowed Values',
+      title: 'Allowedvalues',
     },
   },
   type: 'object',
   required: [
     'id',
     'name',
-    'case_sensitive',
+    'caseSensitive',
     'required',
-    'data_type_validation',
-    'allow_empty_values',
-    'allowed_values',
+    'dataTypeValidation',
+    'allowEmptyValues',
+    'allowedValues',
   ],
   title: 'FieldSchema',
   description: 'The validation schema for a dataset column',
@@ -129,9 +129,9 @@ export const $FieldsetSchema = {
       type: 'string',
       title: 'Name',
     },
-    order_matters: {
+    orderMatters: {
       type: 'boolean',
-      title: 'Order Matters',
+      title: 'Ordermatters',
     },
     fields: {
       items: {
@@ -140,14 +140,14 @@ export const $FieldsetSchema = {
       type: 'array',
       title: 'Fields',
     },
-    allow_extra_columns: {
+    allowExtraColumns: {
       type: 'string',
       enum: ['no', 'anywhere', 'onlyAfterSchemaFields'],
-      title: 'Allow Extra Columns',
+      title: 'Allowextracolumns',
     },
   },
   type: 'object',
-  required: ['id', 'name', 'order_matters', 'fields', 'allow_extra_columns'],
+  required: ['id', 'name', 'orderMatters', 'fields', 'allowExtraColumns'],
   title: 'FieldsetSchema',
   description: `The validation schema for a dataset's fieldset. Or, in other words,
 the column schemas. E.g. the column names, order, data types, allowable values.`,
@@ -165,7 +165,7 @@ export const $FieldsetSchemaValidation = {
       type: 'string',
       title: 'Id',
     },
-    fieldset_schema: {
+    fieldsetSchema: {
       anyOf: [
         {
           type: 'string',
@@ -174,11 +174,11 @@ export const $FieldsetSchemaValidation = {
           $ref: '#/components/schemas/ParamReference',
         },
       ],
-      title: 'Fieldset Schema',
+      title: 'Fieldsetschema',
     },
   },
   type: 'object',
-  required: ['type', 'id', 'fieldset_schema'],
+  required: ['type', 'id', 'fieldsetSchema'],
   title: 'FieldsetSchemaValidation',
   description:
     'A validation operation to validate the dataset columns and their values',
@@ -196,13 +196,13 @@ export const $FileTypeValidation = {
       type: 'string',
       title: 'Id',
     },
-    expected_file_type: {
+    expectedFileType: {
       type: 'string',
-      title: 'Expected File Type',
+      title: 'Expectedfiletype',
     },
   },
   type: 'object',
-  required: ['type', 'id', 'expected_file_type'],
+  required: ['type', 'id', 'expectedFileType'],
   title: 'FileTypeValidation',
   description: 'A validation operation to check file type',
 } as const;
@@ -252,13 +252,13 @@ export const $HTTPValidationError = {
 
 export const $ParamReference = {
   properties: {
-    param_name: {
+    paramName: {
       type: 'string',
-      title: 'Param Name',
+      title: 'Paramname',
     },
   },
   type: 'object',
-  required: ['param_name'],
+  required: ['paramName'],
   title: 'ParamReference',
   description: 'A simple object that references a param name',
 } as const;
@@ -275,7 +275,7 @@ export const $RowCountValidation = {
       type: 'string',
       title: 'Id',
     },
-    min_row_count: {
+    minRowCount: {
       anyOf: [
         {
           type: 'integer',
@@ -284,9 +284,9 @@ export const $RowCountValidation = {
           type: 'null',
         },
       ],
-      title: 'Min Row Count',
+      title: 'Minrowcount',
     },
-    max_row_count: {
+    maxRowCount: {
       anyOf: [
         {
           type: 'integer',
@@ -295,30 +295,30 @@ export const $RowCountValidation = {
           type: 'null',
         },
       ],
-      title: 'Max Row Count',
+      title: 'Maxrowcount',
     },
   },
   type: 'object',
-  required: ['type', 'id', 'min_row_count', 'max_row_count'],
+  required: ['type', 'id', 'minRowCount', 'maxRowCount'],
   title: 'RowCountValidation',
   description: 'A validation operation to check row counts',
 } as const;
 
 export const $TimestampDataTypeSchema = {
   properties: {
-    data_type: {
+    dataType: {
       type: 'string',
       enum: ['timestamp'],
       const: 'timestamp',
-      title: 'Data Type',
+      title: 'Datatype',
     },
-    date_time_format: {
+    dateTimeFormat: {
       type: 'string',
-      title: 'Date Time Format',
+      title: 'Datetimeformat',
     },
   },
   type: 'object',
-  required: ['data_type', 'date_time_format'],
+  required: ['dataType', 'dateTimeFormat'],
   title: 'TimestampDataTypeSchema',
   description: `Represents a Timestamp data type. It requires a \`date_time_format\` to
 represent how a timestamp should be represented.`,
@@ -414,9 +414,9 @@ export const $WorkflowParam = {
       type: 'string',
       title: 'Name',
     },
-    display_name: {
+    displayName: {
       type: 'string',
-      title: 'Display Name',
+      title: 'Displayname',
     },
     description: {
       type: 'string',
@@ -433,7 +433,7 @@ export const $WorkflowParam = {
     },
   },
   type: 'object',
-  required: ['name', 'display_name', 'description', 'required', 'type'],
+  required: ['name', 'displayName', 'description', 'required', 'type'],
   title: 'WorkflowParam',
   description: `The schema representing an argument (an input) for the Workflow that
 is passed in when a Workflow is kicked off.`,
@@ -467,6 +467,7 @@ export const $WorkflowSchema = {
       enum: ['0.1'],
       const: '0.1',
       title: 'Version',
+      default: '0.1',
     },
     operations: {
       items: {
@@ -485,12 +486,12 @@ export const $WorkflowSchema = {
       type: 'array',
       title: 'Operations',
     },
-    fieldset_schemas: {
+    fieldsetSchemas: {
       items: {
         $ref: '#/components/schemas/FieldsetSchema',
       },
       type: 'array',
-      title: 'Fieldset Schemas',
+      title: 'Fieldsetschemas',
     },
     params: {
       items: {
@@ -501,7 +502,6 @@ export const $WorkflowSchema = {
     },
   },
   type: 'object',
-  required: ['version', 'operations', 'fieldset_schemas', 'params'],
   title: 'WorkflowSchema',
   description:
     'A schema represents the sequence of operations a Workflow should apply.',

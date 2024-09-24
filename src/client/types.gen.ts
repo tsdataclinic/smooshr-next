@@ -15,10 +15,10 @@ export type BaseWorkflow = {
  * than its literal type
  */
 export type BasicFieldDataTypeSchema = {
-  data_type: 'any' | 'string' | 'number';
+  dataType: 'any' | 'string' | 'number';
 };
 
-export type data_type = 'any' | 'string' | 'number';
+export type dataType = 'any' | 'string' | 'number';
 
 export type Body_run_workflow = {
   upload_csv: Blob | File;
@@ -30,11 +30,11 @@ export type Body_run_workflow = {
 export type FieldSchema = {
   id: string;
   name: string;
-  case_sensitive: boolean;
+  caseSensitive: boolean;
   required: boolean;
-  data_type_validation: BasicFieldDataTypeSchema | TimestampDataTypeSchema;
-  allow_empty_values: boolean;
-  allowed_values: string[] | ParamReference | null;
+  dataTypeValidation: BasicFieldDataTypeSchema | TimestampDataTypeSchema;
+  allowEmptyValues: boolean;
+  allowedValues: string[] | ParamReference | null;
 };
 
 /**
@@ -44,12 +44,12 @@ export type FieldSchema = {
 export type FieldsetSchema = {
   id: string;
   name: string;
-  order_matters: boolean;
+  orderMatters: boolean;
   fields: FieldSchema[];
-  allow_extra_columns: 'no' | 'anywhere' | 'onlyAfterSchemaFields';
+  allowExtraColumns: 'no' | 'anywhere' | 'onlyAfterSchemaFields';
 };
 
-export type allow_extra_columns = 'no' | 'anywhere' | 'onlyAfterSchemaFields';
+export type allowExtraColumns = 'no' | 'anywhere' | 'onlyAfterSchemaFields';
 
 /**
  * A validation operation to validate the dataset columns and their values
@@ -57,7 +57,7 @@ export type allow_extra_columns = 'no' | 'anywhere' | 'onlyAfterSchemaFields';
 export type FieldsetSchemaValidation = {
   type: 'fieldsetSchemaValidation';
   id: string;
-  fieldset_schema: string | ParamReference;
+  fieldsetSchema: string | ParamReference;
 };
 
 export type type = 'fieldsetSchemaValidation';
@@ -68,7 +68,7 @@ export type type = 'fieldsetSchemaValidation';
 export type FileTypeValidation = {
   type: 'fileTypeValidation';
   id: string;
-  expected_file_type: string;
+  expectedFileType: string;
 };
 
 export type type2 = 'fileTypeValidation';
@@ -92,7 +92,7 @@ export type HTTPValidationError = {
  * A simple object that references a param name
  */
 export type ParamReference = {
-  param_name: string;
+  paramName: string;
 };
 
 /**
@@ -101,8 +101,8 @@ export type ParamReference = {
 export type RowCountValidation = {
   type: 'rowCountValidation';
   id: string;
-  min_row_count: number | null;
-  max_row_count: number | null;
+  minRowCount: number | null;
+  maxRowCount: number | null;
 };
 
 export type type3 = 'rowCountValidation';
@@ -112,11 +112,11 @@ export type type3 = 'rowCountValidation';
  * represent how a timestamp should be represented.
  */
 export type TimestampDataTypeSchema = {
-  data_type: 'timestamp';
-  date_time_format: string;
+  dataType: 'timestamp';
+  dateTimeFormat: string;
 };
 
-export type data_type2 = 'timestamp';
+export type dataType2 = 'timestamp';
 
 /**
  * The base User schema to use in the API.
@@ -149,7 +149,7 @@ export type WorkflowCreate = {
  */
 export type WorkflowParam = {
   name: string;
-  display_name: string;
+  displayName: string;
   description: string;
   required: boolean;
   type: 'string' | 'number' | 'string list';
@@ -170,12 +170,12 @@ export type WorkflowRunReport = {
  * A schema represents the sequence of operations a Workflow should apply.
  */
 export type WorkflowSchema = {
-  version: '0.1';
-  operations: Array<
+  version?: '0.1';
+  operations?: Array<
     FieldsetSchemaValidation | FileTypeValidation | RowCountValidation
   >;
-  fieldset_schemas: FieldsetSchema[];
-  params: WorkflowParam[];
+  fieldsetSchemas?: FieldsetSchema[];
+  params?: WorkflowParam[];
 };
 
 export type version = '0.1';

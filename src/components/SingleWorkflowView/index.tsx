@@ -13,8 +13,8 @@ import {
   Menu,
   Drawer,
   TextInput,
-  MultiSelect,
   Modal,
+  Text,
 } from '@mantine/core';
 import { IconDots, IconPlus } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
@@ -34,15 +34,18 @@ export function SingleWorkflowView(): JSX.Element {
         }),
       ),
   });
+
   const [isBottomDrawerOpen, bottomDrawerActions] = useDisclosure(false);
   const [isModalOpen, modalActions] = useDisclosure(false);
-  const form = useForm({
+  const schemaForm = useForm({
     mode: 'uncontrolled',
     initialValues: {
-      title: 'Has column headers',
+      title: 'Validate column schemas',
       headers: [],
     },
   });
+
+  const fieldsetSchemas = workflow?.schema?.fieldsetSchemas ?? [];
 
   return (
     <>
@@ -91,12 +94,10 @@ export function SingleWorkflowView(): JSX.Element {
                   </Menu.Target>
                   <Menu.Dropdown>
                     <Menu.Item onClick={bottomDrawerActions.open}>
-                      Has column headers
+                      Validate column schemas
                     </Menu.Item>
-                    <Menu.Item disabled>Are column values equal to</Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
-                <Menu.Item disabled>Flow Control</Menu.Item>
               </Menu.Dropdown>
             </Menu>
           </Affix>
@@ -106,7 +107,7 @@ export function SingleWorkflowView(): JSX.Element {
             onClose={modalActions.close}
             title="Configuring column schemas"
           >
-            <FieldsetSchemasEditor />
+            <FieldsetSchemasEditor defaultFieldsetSchemas={fieldsetSchemas} />
           </Modal>
 
           <Drawer
@@ -119,23 +120,18 @@ export function SingleWorkflowView(): JSX.Element {
             position="bottom"
           >
             <form
-              onSubmit={form.onSubmit((values) => {
+              onSubmit={schemaForm.onSubmit((values) => {
                 console.log(values);
               })}
               className="space-y-2"
             >
               <TextInput
-                key={form.key('title')}
+                key={schemaForm.key('title')}
                 required
                 label="Action Title"
-                {...form.getInputProps('title')}
+                {...schemaForm.getInputProps('title')}
               />
-              <MultiSelect
-                key={form.key('headers')}
-                label="Headers"
-                data={['Header 1', 'Header 2', 'Header 3']}
-                {...form.getInputProps('headers')}
-              />
+              <Text>TODO: Select which fieldset to use</Text>
               <Button type="submit">Save</Button>
             </form>
           </Drawer>

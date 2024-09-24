@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 import {
   Modal,
@@ -18,65 +17,25 @@ import { IconSettingsFilled } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { modals } from '@mantine/modals';
 import { useDisclosure } from '@mantine/hooks';
-
-// TODO: eventually this should come from backend
-export type FieldsetSchema = {
-  id: string;
-  name: string;
-  orderMatters: boolean;
-  fields: ReadonlyArray<{
-    name: string;
-  }>;
-};
+import { type FieldsetSchema } from '../../../client';
 
 type Props = {
   fieldsetSchema: FieldsetSchema;
   onFieldsetSchemaDelete: (fieldsetSchema: FieldsetSchema) => void;
+  onFieldsetSchemaChange: (newFieldsetSchema: FieldsetSchema) => void;
 };
-
-function useCSVFieldsetParser(): [
-  FieldsetSchema | undefined,
-  (file: File | null) => void,
-] {
-  const [fieldsetSchema, setFieldsetSchema] = React.useState<
-    FieldsetSchema | undefined
-  >(undefined);
-
-  const setCSVInfo = React.useCallback((file: File | null) => {
-    if (file) {
-      Papa.parse(file, {
-        complete: (parsedResult): void => {
-          setFieldsetSchema({
-            id: uuid(),
-            name: file.name,
-            orderMatters: true,
-            fields:
-              parsedResult.meta.fields?.map((header) => {
-                return {
-                  name: header,
-                };
-              }) ?? [],
-          });
-        },
-        header: true,
-        skipEmptyLines: true,
-      });
-    }
-  }, []);
-
-  return [fieldsetSchema, setCSVInfo];
-}
 
 export function FieldsetSchemaBlock({
   fieldsetSchema,
   onFieldsetSchemaDelete,
+  onFieldsetSchemaChange,
 }: Props): JSX.Element {
   const [isCSVParseModalOpen, csvParseModalActions] = useDisclosure(false);
-  const [, setParsedFieldsetSchema] = useCSVFieldsetParser();
   const form = useForm({
     mode: 'controlled',
     initialValues: fieldsetSchema,
   });
+
   const openDeleteModal = () =>
     modals.openConfirmModal({
       title: 'Delete schema',
@@ -87,6 +46,35 @@ export function FieldsetSchemaBlock({
       confirmProps: { color: 'red' },
       onConfirm: () => onFieldsetSchemaDelete(fieldsetSchema),
     });
+
+  const onCSVUpload = (file: File | null) => {
+    if (file) {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (parsedResult): void => {
+          onFieldsetSchemaChange({
+            ...fieldsetSchema,
+            name: file.name,
+            fields:
+              parsedResult.meta.fields?.map((header) => {
+                return {
+                  id: uuid(),
+                  name: header,
+                  caseSensitive: true,
+                  required: true,
+                  dataTypeValidation: {
+                    dataType: 'any',
+                  },
+                  allowEmptyValues: false,
+                  allowedValues: [],
+                };
+              }) ?? [],
+          });
+        },
+      });
+    }
+  };
 
   return (
     <>
@@ -135,7 +123,7 @@ export function FieldsetSchemaBlock({
         title="Get Schema from CSV"
       >
         <div>
-          <FileButton onChange={setParsedFieldsetSchema} accept=".csv">
+          <FileButton onChange={onCSVUpload} accept=".csv">
             {(props) => <Button {...props}>Create new schema from CSV</Button>}
           </FileButton>
         </div>
