@@ -25,6 +25,7 @@ type Props = {
   onFieldsetSchemaChange: (newFieldsetSchema: FieldsetSchema_Output) => void;
 };
 
+// TODO: add "allow extra columns" Select
 export function FieldsetSchemaBlock({
   fieldsetSchema,
   onFieldsetSchemaDelete,
@@ -71,9 +72,30 @@ export function FieldsetSchemaBlock({
                 };
               }) ?? [],
           });
+
+          csvParseModalActions.close();
         },
       });
     }
+  };
+
+  const renderHeadersList = () => {
+    const { fields } = fieldsetSchema;
+    if (fields.length > 0) {
+      return (
+        <List>
+          {fieldsetSchema.fields.map((field) => {
+            return (
+              <List.Item key={field.name}>
+                {field.name}: datatype [add validators]
+              </List.Item>
+            );
+          })}
+        </List>
+      );
+    }
+
+    return <Text>This schema contains no columns yet.</Text>;
   };
 
   return (
@@ -104,15 +126,7 @@ export function FieldsetSchemaBlock({
               label="Order of columns matters"
             />
             <Title order={6}>Headers</Title>
-            <List>
-              {fieldsetSchema.fields.map((field) => {
-                return (
-                  <List.Item key={field.name}>
-                    {field.name}: datatype [add validators]
-                  </List.Item>
-                );
-              })}
-            </List>
+            {renderHeadersList()}
           </div>
         </Fieldset>
       </form>
@@ -124,7 +138,7 @@ export function FieldsetSchemaBlock({
       >
         <div>
           <FileButton onChange={onCSVUpload} accept=".csv">
-            {(props) => <Button {...props}>Create new schema from CSV</Button>}
+            {(props) => <Button {...props}>Get column schema from CSV</Button>}
           </FileButton>
         </div>
       </Modal>
