@@ -1,5 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import {
+  Table,
   Modal,
   Menu,
   Text,
@@ -9,7 +10,6 @@ import {
   Title,
   FileButton,
   UnstyledButton,
-  List,
   Button,
 } from '@mantine/core';
 import * as Papa from 'papaparse';
@@ -24,6 +24,10 @@ type Props = {
   onFieldsetSchemaDelete: (fieldsetSchema: FieldsetSchema_Output) => void;
   onFieldsetSchemaChange: (newFieldsetSchema: FieldsetSchema_Output) => void;
 };
+
+function booleanToString(val: boolean): string {
+  return val ? 'Yes' : 'No';
+}
 
 // TODO: add "allow extra columns" Select
 export function FieldsetSchemaBlock({
@@ -79,19 +83,35 @@ export function FieldsetSchemaBlock({
     }
   };
 
-  const renderHeadersList = () => {
+  const renderHeadersInfoTable = () => {
     const { fields } = fieldsetSchema;
     if (fields.length > 0) {
       return (
-        <List>
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Column name</Table.Th>
+              <Table.Th>Required</Table.Th>
+              <Table.Th>Data type</Table.Th>
+              <Table.Th>Case sensitive</Table.Th>
+              <Table.Th>Allows empty values</Table.Th>
+              <Table.Th>Allowed values</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+
           {fieldsetSchema.fields.map((field) => {
             return (
-              <List.Item key={field.name}>
-                {field.name}: datatype [add validators]
-              </List.Item>
+              <Table.Tr key={field.name}>
+                <Table.Td>{field.name}</Table.Td>
+                <Table.Td>{booleanToString(field.required)}</Table.Td>
+                <Table.Td>{field.dataTypeValidation.dataType}</Table.Td>
+                <Table.Td>{booleanToString(field.caseSensitive)}</Table.Td>
+                <Table.Td>{booleanToString(field.allowEmptyValues)}</Table.Td>
+                <Table.Td>{field.allowedValues ? '--' : 'woah'}</Table.Td>
+              </Table.Tr>
             );
           })}
-        </List>
+        </Table>
       );
     }
 
@@ -102,7 +122,7 @@ export function FieldsetSchemaBlock({
     <>
       <form>
         <Fieldset className="relative" legend={form.getValues().name}>
-          <Menu withArrow shadow="md" width={250} position="bottom-start">
+          <Menu withArrow shadow="md" width={250} position="left">
             <Menu.Target>
               <UnstyledButton
                 className="absolute -top-1 right-1"
@@ -126,7 +146,7 @@ export function FieldsetSchemaBlock({
               label="Order of columns matters"
             />
             <Title order={6}>Headers</Title>
-            {renderHeadersList()}
+            {renderHeadersInfoTable()}
           </div>
         </Fieldset>
       </form>

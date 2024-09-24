@@ -20,19 +20,13 @@ class BaseWorkflow(BaseModel):
 class FullWorkflow(BaseWorkflow):
     """A full workflow object, including the JSON schema"""
 
-    workflow_schema: WorkflowSchema = Field(default_factory=dict, alias="schema")
+    schema: WorkflowSchema = Field(default_factory=dict)
 
 
 class WorkflowCreate(BaseModel):
     """Data model to create a new Workflow"""
 
     title: str
-
-
-class WorkflowUpdate(FullWorkflow):
-    """Data model to update a Workflow"""
-
-    pass
 
 
 class WorkflowRunReport(BaseModel):

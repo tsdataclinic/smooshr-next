@@ -106,6 +106,7 @@ export function SingleWorkflowView(): JSX.Element {
             opened={isModalOpen}
             onClose={modalActions.close}
             title="Configuring column schemas"
+            size="80vw"
           >
             <FieldsetSchemasEditor
               workflow={workflow}

@@ -27,7 +27,6 @@ from server.models.workflow.api_schemas import (
     FullWorkflow,
     WorkflowCreate,
     WorkflowRunReport,
-    WorkflowUpdate,
 )
 from server.models.workflow.db_model import DBWorkflow
 
@@ -64,7 +63,6 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 
 settings = Settings()
-print(settings)
 
 app = FastAPI(
     title="Smooshr2 API",
@@ -197,7 +195,6 @@ def get_workflows(
     user: DBUser = Depends(get_current_user), session: Session = Depends(get_session)
 ) -> list[BaseWorkflow]:
     """Get all workflows for the current user."""
-    print(user)
     db_workflows = session.query(DBWorkflow).filter(DBWorkflow.owner == user.id).all()
     return [BaseWorkflow.model_validate(db_workflow) for db_workflow in db_workflows]
 
@@ -224,7 +221,7 @@ def create_workflow(
 @app.put("/workflows/{workflow_id}", tags=["workflows"])
 def update_workflow(
     workflow_id: str,
-    workflow_data: WorkflowUpdate,
+    workflow_data: FullWorkflow,
     user: DBUser = Depends(get_current_user),
     session: Session = Depends(get_session),
 ) -> FullWorkflow:
