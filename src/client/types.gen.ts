@@ -88,18 +88,7 @@ export type type2 = 'fileTypeValidation';
 /**
  * A full workflow object, including the JSON schema
  */
-export type FullWorkflow_Input = {
-  id: string;
-  title: string;
-  owner: string;
-  created_date: string;
-  schema?: WorkflowSchema_Input;
-};
-
-/**
- * A full workflow object, including the JSON schema
- */
-export type FullWorkflow_Output = {
+export type FullWorkflow = {
   id: string;
   title: string;
   owner: string;
@@ -215,6 +204,17 @@ export type WorkflowSchema_Output = {
   params?: WorkflowParam[];
 };
 
+/**
+ * Data model to update a Workflow
+ */
+export type WorkflowUpdate = {
+  id: string;
+  title: string;
+  owner: string;
+  created_date: string;
+  schema?: WorkflowSchema_Input;
+};
+
 export type GetSelfUserResponse = User;
 
 export type GetSelfUserError = unknown;
@@ -225,7 +225,7 @@ export type GetWorkflowData = {
   };
 };
 
-export type GetWorkflowResponse = FullWorkflow_Output;
+export type GetWorkflowResponse = FullWorkflow;
 
 export type GetWorkflowError = HTTPValidationError;
 
@@ -247,18 +247,18 @@ export type CreateWorkflowData = {
   body: WorkflowCreate;
 };
 
-export type CreateWorkflowResponse = FullWorkflow_Output;
+export type CreateWorkflowResponse = FullWorkflow;
 
 export type CreateWorkflowError = HTTPValidationError;
 
 export type UpdateWorkflowData = {
-  body: FullWorkflow_Input;
+  body: WorkflowUpdate;
   path: {
     workflow_id: string;
   };
 };
 
-export type UpdateWorkflowResponse = FullWorkflow_Output;
+export type UpdateWorkflowResponse = FullWorkflow;
 
 export type UpdateWorkflowError = HTTPValidationError;
 

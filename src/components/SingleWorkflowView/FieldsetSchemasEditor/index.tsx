@@ -8,6 +8,10 @@ import { WorkflowUtil } from '../../../util/WorkflowUtil';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { processAPIData } from '../../../util/apiUtil';
 import { notifications } from '@mantine/notifications';
+import {
+  useFieldsetSchemasForm,
+  FieldsetSchemasFormProvider,
+} from './FieldsetSchemasContext';
 
 function makeEmptyFieldsetSchema(idx: number): FieldsetSchema_Output {
   return {
@@ -28,6 +32,13 @@ export function FieldsetSchemasEditor({
   workflow,
   defaultFieldsetSchemas,
 }: Props): JSX.Element {
+  const form = useFieldsetSchemasForm({
+    mode: 'controlled',
+    initialValues: {
+      fieldsetSchemas: defaultFieldsetSchemas as FieldsetSchema_Output[],
+    },
+  });
+
   const queryClient = useQueryClient();
   const saveFieldsetMutation = useMutation({
     mutationFn: async (fieldsetSchemas: readonly FieldsetSchema_Output[]) => {
@@ -35,7 +46,6 @@ export function FieldsetSchemasEditor({
         workflow,
         fieldsetSchemas,
       );
-      console.log('workflow to save', workflowToSave);
       const savedWorkflow = await processAPIData(
         WorkflowsService.updateWorkflow({
           path: {
@@ -53,75 +63,73 @@ export function FieldsetSchemasEditor({
     },
   });
 
-  const [fieldsetSchemas, setFieldsetSchemas] = React.useState<
-    readonly FieldsetSchema_Output[]
-  >(defaultFieldsetSchemas);
-
-  const onFieldsetSchemaDelete = React.useCallback(
-    (schemaToDelete: FieldsetSchema_Output) => {
-      setFieldsetSchemas((prevSchemas) => {
-        return prevSchemas.filter((schema) => schema.id !== schemaToDelete.id);
-      });
-    },
-    [],
-  );
-
-  const onFieldsetSchemaChange = React.useCallback(
+  const onLoadFieldsetFromCSV = React.useCallback(
     (newSchema: FieldsetSchema_Output) => {
+      console.log('new schema', newSchema);
+      alert('Needs implementation');
+      /*
       setFieldsetSchemas((prevSchemas) => {
         return prevSchemas.map((schema) =>
           schema.id === newSchema.id ? newSchema : schema,
         );
       });
+      */
     },
     [],
   );
 
+  const { fieldsetSchemas } = form.getValues();
+
   return (
     <div className="space-y-2">
-      <Button
-        onClick={() =>
-          setFieldsetSchemas((prevSchemas) =>
-            prevSchemas.concat(makeEmptyFieldsetSchema(prevSchemas.length + 1)),
-          )
-        }
-      >
-        Create new schema
-      </Button>
+      <FieldsetSchemasFormProvider form={form}>
+        <form>
+          <Button
+            onClick={() => {
+              form.insertListItem(
+                'fieldsetSchemas',
+                makeEmptyFieldsetSchema(fieldsetSchemas.length + 1),
+              );
+            }}
+          >
+            Create new schema
+          </Button>
 
-      <div className="space-y-2">
-        {fieldsetSchemas.length === 0 ? (
-          <Text>No schemas created yet</Text>
-        ) : (
-          fieldsetSchemas.map((schema, i) => {
-            return (
-              <FieldsetSchemaBlock
-                key={schema.id}
-                fieldsetSchema={fieldsetSchemas[i]}
-                onFieldsetSchemaDelete={onFieldsetSchemaDelete}
-                onFieldsetSchemaChange={onFieldsetSchemaChange}
-              />
-            );
-          })
-        )}
-      </div>
+          <div className="space-y-2">
+            {fieldsetSchemas.length === 0 ? (
+              <Text>No schemas created yet</Text>
+            ) : (
+              fieldsetSchemas.map((schema, i) => {
+                return (
+                  <FieldsetSchemaBlock
+                    key={schema.id}
+                    index={i}
+                    fieldsetSchema={fieldsetSchemas[i]}
+                    onLoadFieldsetFromCSV={onLoadFieldsetFromCSV}
+                  />
+                );
+              })
+            )}
+          </div>
 
-      <Button
-        disabled={fieldsetSchemas.length === 0}
-        onClick={() => {
-          saveFieldsetMutation.mutate(fieldsetSchemas, {
-            onSuccess: () => {
-              console.log('success!');
-              notifications.show({
-                title: 'Saved',
-                message: 'Updated column schemas',
+          <Button
+            disabled={fieldsetSchemas.length === 0}
+            onClick={() => {
+              saveFieldsetMutation.mutate(fieldsetSchemas, {
+                onSuccess: () => {
+                  console.log('success!');
+                  notifications.show({
+                    title: 'Saved',
+                    message: 'Updated column schemas',
+                  });
+                },
               });
-            },
-          });
-        }}
-      >
-        Save
-      </Button>
+            }}
+          >
+            Save
+          </Button>
+        </form>
+      </FieldsetSchemasFormProvider>
     </div>
   );
 }

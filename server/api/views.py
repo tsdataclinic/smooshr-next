@@ -25,6 +25,7 @@ from server.models.user.db_model import DBUser
 from server.models.workflow.api_schemas import (
     BaseWorkflow,
     FullWorkflow,
+    WorkflowUpdate,
     WorkflowCreate,
     WorkflowRunReport,
 )
@@ -221,7 +222,7 @@ def create_workflow(
 @app.put("/workflows/{workflow_id}", tags=["workflows"])
 def update_workflow(
     workflow_id: str,
-    workflow_data: FullWorkflow,
+    workflow_data: WorkflowUpdate,
     user: DBUser = Depends(get_current_user),
     session: Session = Depends(get_session),
 ) -> FullWorkflow:

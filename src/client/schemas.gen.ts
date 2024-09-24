@@ -241,36 +241,7 @@ export const $FileTypeValidation = {
   description: 'A validation operation to check file type',
 } as const;
 
-export const $FullWorkflow_Input = {
-  properties: {
-    id: {
-      type: 'string',
-      title: 'Id',
-    },
-    title: {
-      type: 'string',
-      title: 'Title',
-    },
-    owner: {
-      type: 'string',
-      title: 'Owner',
-    },
-    created_date: {
-      type: 'string',
-      format: 'date-time',
-      title: 'Created Date',
-    },
-    schema: {
-      $ref: '#/components/schemas/WorkflowSchema-Input',
-    },
-  },
-  type: 'object',
-  required: ['id', 'title', 'owner', 'created_date'],
-  title: 'FullWorkflow',
-  description: 'A full workflow object, including the JSON schema',
-} as const;
-
-export const $FullWorkflow_Output = {
+export const $FullWorkflow = {
   properties: {
     id: {
       type: 'string',
@@ -615,4 +586,33 @@ export const $WorkflowSchema_Output = {
   title: 'WorkflowSchema',
   description:
     'A schema represents the sequence of operations a Workflow should apply.',
+} as const;
+
+export const $WorkflowUpdate = {
+  properties: {
+    id: {
+      type: 'string',
+      title: 'Id',
+    },
+    title: {
+      type: 'string',
+      title: 'Title',
+    },
+    owner: {
+      type: 'string',
+      title: 'Owner',
+    },
+    created_date: {
+      type: 'string',
+      format: 'date-time',
+      title: 'Created Date',
+    },
+    schema: {
+      $ref: '#/components/schemas/WorkflowSchema-Input',
+    },
+  },
+  type: 'object',
+  required: ['id', 'title', 'owner', 'created_date'],
+  title: 'WorkflowUpdate',
+  description: 'Data model to update a Workflow',
 } as const;

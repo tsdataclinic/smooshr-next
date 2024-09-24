@@ -29,6 +29,12 @@ class WorkflowCreate(BaseModel):
     title: str
 
 
+class WorkflowUpdate(FullWorkflow):
+    """Data model to update a Workflow"""
+
+    pass
+
+
 class WorkflowRunReport(BaseModel):
     """Run report schema for a server-side run of a workflow."""
 
