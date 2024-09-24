@@ -1,3 +1,4 @@
+from typing import Any
 import csv
 import io
 
@@ -7,8 +8,8 @@ from .validators import ValidationFailure, validate_fieldset, validate_file_type
 
 def run_workflow(
         file_name: str,
-        file_contents: str, 
-        param_values: dict[str, any], 
+        file_contents: str,
+        param_values: dict[str, Any],
         schema: WorkflowSchema
     ) -> list[ValidationFailure]:
     """Validate and execute a workflow based on the configured schema and user-provided parameters."""
@@ -17,9 +18,9 @@ def run_workflow(
     return _validate_csv(file_name, csv_data, param_values, schema)
 
 
-def _validate_param_values(param_values: dict[str, any], schema: WorkflowSchema):
+def _validate_param_values(param_values: dict[str, Any], schema: WorkflowSchema):
     """
-    Validate the user-provided parameter values each correspond to 
+    Validate the user-provided parameter values each correspond to
     a parameter definition in the workflo schema.
     """
     for param_name in param_values:
@@ -29,7 +30,11 @@ def _validate_param_values(param_values: dict[str, any], schema: WorkflowSchema)
 def _get_csv_contents(contents: str) -> CsvData:
     """Get the CSV data from the contents of a file."""
     reader = csv.DictReader(io.StringIO(contents))
-    return CsvData(column_names=reader.fieldnames, data=list(reader))
+    if reader.fieldnames:
+        fieldnames = list(reader.fieldnames)
+    else:
+        fieldnames = []
+    return CsvData(column_names=fieldnames, data=list(reader))
 
 
 def _get_fieldset_schema(fieldset_name: str, fieldsets: list[FieldsetSchema]) -> FieldsetSchema:
@@ -40,14 +45,14 @@ def _get_fieldset_schema(fieldset_name: str, fieldsets: list[FieldsetSchema]) ->
     raise FieldsetSchemaNotFoundException(f"Fieldset schema {fieldset_name} not found in schema.")
 
 def _validate_csv(
-        file_name: str, 
-        csv_data: str, 
-        param_values: dict[str, any], 
+        file_name: str,
+        csv_data: CsvData,
+        param_values: dict[str, Any],
         schema: WorkflowSchema
     ) -> list[ValidationFailure]:
     """Validate the CSV data based on the configured schema and user-provided parameters."""
     validations = []
-    for operation in schema.operations: 
+    for operation in schema.operations:
         match operation:
             case FieldsetSchemaValidation():
                 match operation.fieldset_schema:

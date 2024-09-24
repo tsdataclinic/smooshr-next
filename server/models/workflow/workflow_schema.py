@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 class CsvData(BaseModel):
     """The Data in a CSV file"""
 
-    column_names: list[str] = Field(alias="columnNames")
+    column_names: list[str]
     data: list[dict[str, str]]
 
 

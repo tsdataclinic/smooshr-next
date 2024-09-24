@@ -14,7 +14,7 @@ class TestValidateFile(unittest.TestCase):
         validation = FileTypeValidation(
             type="fileTypeValidation",
             id="123",
-            expected_file_type="csv"
+            expectedFileType="csv"
         )
         self.assertEqual(
             validate_file_type("file.csv", validation),
@@ -36,8 +36,8 @@ class TestValidateRowCount(unittest.TestCase):
         validation = RowCountValidation(
             type="rowCountValidation",
             id="123",
-            min_row_count=2,
-            max_row_count=4
+            minRowCount=2,
+            maxRowCount=4
         )
         self.assertEqual(
             validate_row_count([{}] * 2, validation), []
@@ -71,8 +71,8 @@ class TestValidateRowCount(unittest.TestCase):
         validation = RowCountValidation(
             type="rowCountValidation",
             id="123",
-            min_row_count=None,
-            max_row_count=4
+            minRowCount=None,
+            maxRowCount=4
         )
         self.assertEqual(
             validate_row_count([], validation),
@@ -105,8 +105,8 @@ class TestValidateRowCount(unittest.TestCase):
         validation = RowCountValidation(
             type="rowCountValidation",
             id="123",
-            min_row_count=2,
-            max_row_count=None
+            minRowCount=2,
+            maxRowCount=None
         )
         self.assertEqual(
             validate_row_count([{}], validation),
@@ -134,7 +134,7 @@ def mock_field_schema(name: str, **kwargs):
     mock = MagicMock(FieldSchema, **kwargs)
     mock.configure_mock(name=name)
     if 'data_type_validation' not in kwargs:
-         mock.configure_mock(data_type_validation={"data_type": "any"})
+         mock.configure_mock(data_type_validation={"dataType": "any"})
     return mock
 
 
@@ -148,8 +148,8 @@ class TestCheckCsvColumns(unittest.TestCase):
                 mock_field_schema("age"),
                 mock_field_schema("city")
             ],
-            order_matters=True,
-            allow_extra_columns="anywhere"
+            orderMatters=True,
+            allowExtraColumns="anywhere"
         )
 
         self.assertEqual(
@@ -184,8 +184,8 @@ class TestCheckCsvColumns(unittest.TestCase):
                 mock_field_schema("age"),
                 mock_field_schema("city")
             ],
-            order_matters=False,
-            allow_extra_columns="no"
+            orderMatters=False,
+            allowExtraColumns="no"
         )
 
         self.assertEqual(
@@ -211,8 +211,8 @@ class TestCheckCsvColumns(unittest.TestCase):
                 mock_field_schema("age"),
                 mock_field_schema("city")
             ],
-            order_matters=False,
-            allow_extra_columns="onlyAfterSchemaFields"
+            orderMatters=False,
+            allowExtraColumns="onlyAfterSchemaFields"
         )
 
         self.assertEqual(
@@ -235,7 +235,7 @@ class TestCheckCsvColumns(unittest.TestCase):
 
 class TestValidateField(unittest.TestCase):
     def test_validate_field(self):
-        field = mock_field_schema("name", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=None)
+        field = mock_field_schema("name", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=None)
         self.assertEqual(
             _validate_field(1, {"name": "John"}, field, {}),
             []
@@ -251,7 +251,7 @@ class TestValidateField(unittest.TestCase):
         )
 
     def test_validate_field_case_insensitive(self):
-        field = mock_field_schema("name", required=True, case_sensitive=False, allow_empty_values=False, allowed_values=None)
+        field = mock_field_schema("name", required=True, caseSensitive=False, allowEmptyValues=False, allowedValues=None)
         self.assertEqual(
             _validate_field(1, {"Name": "John"}, field, {}),
             []
@@ -267,7 +267,7 @@ class TestValidateField(unittest.TestCase):
         )
 
     def test_validate_field_allow_empty(self):
-        field = mock_field_schema("name", required=True, case_sensitive=True, allow_empty_values=True, allowed_values=None)
+        field = mock_field_schema("name", required=True, caseSensitive=True, allowEmptyValues=True, allowedValues=None)
         self.assertEqual(
             _validate_field(1, {"name": ""}, field, {}),
             []
@@ -287,7 +287,7 @@ class TestValidateField(unittest.TestCase):
         )
 
     def test_validate_field_allowed_values(self):
-        field = mock_field_schema("name", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=["John", "Jane"])
+        field = mock_field_schema("name", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=["John", "Jane"])
         self.assertEqual(
             _validate_field(1, {"name": "John"}, field, {}),
             []
@@ -307,7 +307,7 @@ class TestValidateField(unittest.TestCase):
         )
 
     def test_validate_field_allowed_values_from_param(self):
-        field = mock_field_schema("name", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=ParamReference(param_name="allowed_names"))
+        field = mock_field_schema("name", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=ParamReference(paramName="allowed_names"))
         params = {"allowed_names": ["John", "Jane"]}
         self.assertEqual(
             _validate_field(1, {"name": "John"}, field, params),
@@ -328,7 +328,7 @@ class TestValidateField(unittest.TestCase):
         )
 
     def test_validate_field_number_type(self):
-        field = mock_field_schema("age", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=None, data_type_validation=BasicFieldDataTypeSchema(data_type="number"))
+        field = mock_field_schema("age", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=None, data_type_validation=BasicFieldDataTypeSchema(dataType="number"))
         self.assertEqual(
             _validate_field(1, {"age": "42"}, field, {}),
             []
@@ -348,7 +348,7 @@ class TestValidateField(unittest.TestCase):
         )
 
     def test_validate_field_timestamp_type(self):
-        field = mock_field_schema("date", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=None, data_type_validation=TimestampDataTypeSchema(data_type="timestamp", date_time_format="%Y-%m-%d"))
+        field = mock_field_schema("date", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=None, data_type_validation=TimestampDataTypeSchema(dataType="timestamp", dateTimeFormat="%Y-%m-%d"))
         self.assertEqual(
             _validate_field(1, {"date": "2021-01-01"}, field, {}),
             []
@@ -369,12 +369,12 @@ class TestValidateFieldSet(unittest.TestCase):
             id="123",
             name="schema",
             fields=[
-                mock_field_schema("name", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=None),
-                mock_field_schema("age", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=None),
-                mock_field_schema("city", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=None)
+                mock_field_schema("name", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=None),
+                mock_field_schema("age", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=None),
+                mock_field_schema("city", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=None)
             ],
-            order_matters=True,
-            allow_extra_columns="anywhere"
+            orderMatters=True,
+            allowExtraColumns="anywhere"
         )
 
         self.assertEqual(
