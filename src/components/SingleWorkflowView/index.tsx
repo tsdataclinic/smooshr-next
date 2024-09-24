@@ -107,7 +107,10 @@ export function SingleWorkflowView(): JSX.Element {
             onClose={modalActions.close}
             title="Configuring column schemas"
           >
-            <FieldsetSchemasEditor defaultFieldsetSchemas={fieldsetSchemas} />
+            <FieldsetSchemasEditor
+              workflow={workflow}
+              defaultFieldsetSchemas={fieldsetSchemas}
+            />
           </Modal>
 
           <Drawer

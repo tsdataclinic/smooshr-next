@@ -41,7 +41,7 @@ export type FieldSchema = {
  * The validation schema for a dataset's fieldset. Or, in other words,
  * the column schemas. E.g. the column names, order, data types, allowable values.
  */
-export type FieldsetSchema = {
+export type FieldsetSchema_Input = {
   id: string;
   name: string;
   orderMatters: boolean;
@@ -50,6 +50,18 @@ export type FieldsetSchema = {
 };
 
 export type allowExtraColumns = 'no' | 'anywhere' | 'onlyAfterSchemaFields';
+
+/**
+ * The validation schema for a dataset's fieldset. Or, in other words,
+ * the column schemas. E.g. the column names, order, data types, allowable values.
+ */
+export type FieldsetSchema_Output = {
+  id: string;
+  name: string;
+  orderMatters: boolean;
+  fields: FieldSchema[];
+  allowExtraColumns: 'no' | 'anywhere' | 'onlyAfterSchemaFields';
+};
 
 /**
  * A validation operation to validate the dataset columns and their values
@@ -81,7 +93,7 @@ export type FullWorkflow = {
   title: string;
   owner: string;
   created_date: string;
-  schema?: WorkflowSchema;
+  schema?: WorkflowSchema_Output;
 };
 
 export type HTTPValidationError = {
@@ -169,22 +181,38 @@ export type WorkflowRunReport = {
 /**
  * A schema represents the sequence of operations a Workflow should apply.
  */
-export type WorkflowSchema = {
+export type WorkflowSchema_Input = {
   version?: '0.1';
   operations?: Array<
     FieldsetSchemaValidation | FileTypeValidation | RowCountValidation
   >;
-  fieldsetSchemas?: FieldsetSchema[];
+  fieldsetSchemas?: FieldsetSchema_Input[];
   params?: WorkflowParam[];
 };
 
 export type version = '0.1';
 
 /**
+ * A schema represents the sequence of operations a Workflow should apply.
+ */
+export type WorkflowSchema_Output = {
+  version?: '0.1';
+  operations?: Array<
+    FieldsetSchemaValidation | FileTypeValidation | RowCountValidation
+  >;
+  fieldsetSchemas?: FieldsetSchema_Output[];
+  params?: WorkflowParam[];
+};
+
+/**
  * Data model to update a Workflow
  */
 export type WorkflowUpdate = {
-  [key: string]: unknown;
+  id: string;
+  title: string;
+  owner: string;
+  created_date: string;
+  schema?: WorkflowSchema_Input;
 };
 
 export type GetSelfUserResponse = User;

@@ -233,7 +233,7 @@ def update_workflow(
     #        or admins to update it once authentication is implemented.
     workflow = fetch_workflow_or_raise(workflow_id, session, user)
 
-    for key, value in workflow_data.model_dump().items():
+    for key, value in workflow_data.model_dump(by_alias=True).items():
         setattr(workflow, key, value)
 
     session.commit()

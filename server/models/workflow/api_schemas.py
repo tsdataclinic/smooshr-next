@@ -3,7 +3,6 @@ from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
 from .workflow_schema import WorkflowSchema
 
 
@@ -30,10 +29,9 @@ class WorkflowCreate(BaseModel):
     title: str
 
 
-class WorkflowUpdate(BaseModel):
+class WorkflowUpdate(FullWorkflow):
     """Data model to update a Workflow"""
 
-    # TODO: What do we want to allow to update?
     pass
 
 

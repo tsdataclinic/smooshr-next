@@ -17,12 +17,12 @@ import { IconSettingsFilled } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { modals } from '@mantine/modals';
 import { useDisclosure } from '@mantine/hooks';
-import { type FieldsetSchema } from '../../../client';
+import { type FieldsetSchema_Output } from '../../../client';
 
 type Props = {
-  fieldsetSchema: FieldsetSchema;
-  onFieldsetSchemaDelete: (fieldsetSchema: FieldsetSchema) => void;
-  onFieldsetSchemaChange: (newFieldsetSchema: FieldsetSchema) => void;
+  fieldsetSchema: FieldsetSchema_Output;
+  onFieldsetSchemaDelete: (fieldsetSchema: FieldsetSchema_Output) => void;
+  onFieldsetSchemaChange: (newFieldsetSchema: FieldsetSchema_Output) => void;
 };
 
 export function FieldsetSchemaBlock({

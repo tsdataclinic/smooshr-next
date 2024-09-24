@@ -4,82 +4,82 @@
     {
       "type": "fileTypeValidation",
       "id": "asfasd",
-      "expected_file_type": "csv"
+      "expectedFileType": "csv"
     },
     {
       "type": "rowCountValidation",
-      "min_row_count": 1,
-      "max_row_count": 250,
+      "minRowCount": 1,
+      "maxRowCount": 250,
       "id": "asfasd"
     },
     {
       "type": "fieldsetSchemaValidation",
       "id": "asasd",
-      "fieldset_schema": {
-        "param_name": "fieldset_schema"
+      "fieldsetSchema": {
+        "paramName": "fieldset_schema"
       }
     }
   ],
-  "fieldset_schemas": [
+  "fieldsetSchemas": [
     {
       "id": "42",
       "name": "demographic_fields",
-      "order_matters": false,
-      "allow_extra_columns": "no",
+      "orderMatters": false,
+      "allowExtraColumns": "no",
       "fields": [
         {
           "id": "1",
           "name": "country",
-          "case_sensitive": true,
+          "caseSensitive": true,
           "required": true,
-          "allow_empty_values": false,
-          "allowed_values": null,
-          "data_type_validation": {
-            "data_type": "string"
+          "allowEmptyValues": false,
+          "allowedValues": null,
+          "dataTypeValidation": {
+            "dataType": "string"
           }
         },
         {
           "id": "2",
           "name": "capital",
-          "case_sensitive": true,
+          "caseSensitive": true,
           "required": true,
-          "allow_empty_values": false,
-          "allowed_values": null,
-          "data_type_validation": {
-            "data_type": "string"
+          "allowEmptyValues": false,
+          "allowedValues": null,
+          "dataTypeValidation": {
+            "dataType": "string"
           }
         },
         {
           "id": "3",
           "name": "population",
-          "case_sensitive": true,
+          "caseSensitive": true,
           "required": true,
-          "allow_empty_values": false,
-          "allowed_values": null,
-          "data_type_validation": {
-            "data_type": "number"
+          "allowEmptyValues": false,
+          "allowedValues": null,
+          "dataTypeValidation": {
+            "dataType": "number"
           }
         },
         {
           "id": "4",
           "name": "population_rank",
-          "case_sensitive": true,
+          "caseSensitive": true,
           "required": true,
-          "allow_empty_values": false,
-          "allowed_values": null,
-          "data_type_validation": {
-            "data_type": "number"
+          "allowEmptyValues": false,
+          "allowedValues": null,
+          "dataTypeValidation": {
+            "dataType": "number"
           }
         },
         {
           "id": "5",
           "name": "continent",
-          "case_sensitive": true,
+          "caseSensitive": true,
           "required": true,
-          "allow_empty_values": false,
-          "allowed_values": null,
-          "data_type_validation": {
-            "data_type": "string"
+          "allowEmptyValues": false,
+          "allowedValues": null,
+          "dataTypeValidation": {
+            "dataType": "string"
           }
         }
       ]
@@ -88,7 +88,7 @@
   "params": [
     {
       "name": "fieldset_schema",
-      "display_name": "Fieldset Schema",
+      "displayName": "Fieldset Schema",
       "description": "For testing",
       "type": "string",
       "required": "true"

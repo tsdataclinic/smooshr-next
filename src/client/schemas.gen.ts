@@ -119,7 +119,41 @@ export const $FieldSchema = {
   description: 'The validation schema for a dataset column',
 } as const;
 
-export const $FieldsetSchema = {
+export const $FieldsetSchema_Input = {
+  properties: {
+    id: {
+      type: 'string',
+      title: 'Id',
+    },
+    name: {
+      type: 'string',
+      title: 'Name',
+    },
+    orderMatters: {
+      type: 'boolean',
+      title: 'Ordermatters',
+    },
+    fields: {
+      items: {
+        $ref: '#/components/schemas/FieldSchema',
+      },
+      type: 'array',
+      title: 'Fields',
+    },
+    allowExtraColumns: {
+      type: 'string',
+      enum: ['no', 'anywhere', 'onlyAfterSchemaFields'],
+      title: 'Allowextracolumns',
+    },
+  },
+  type: 'object',
+  required: ['id', 'name', 'orderMatters', 'fields', 'allowExtraColumns'],
+  title: 'FieldsetSchema',
+  description: `The validation schema for a dataset's fieldset. Or, in other words,
+the column schemas. E.g. the column names, order, data types, allowable values.`,
+} as const;
+
+export const $FieldsetSchema_Output = {
   properties: {
     id: {
       type: 'string',
@@ -227,7 +261,7 @@ export const $FullWorkflow = {
       title: 'Created Date',
     },
     schema: {
-      $ref: '#/components/schemas/WorkflowSchema',
+      $ref: '#/components/schemas/WorkflowSchema-Output',
     },
   },
   type: 'object',
@@ -460,7 +494,7 @@ export const $WorkflowRunReport = {
   description: 'Run report schema for a server-side run of a workflow.',
 } as const;
 
-export const $WorkflowSchema = {
+export const $WorkflowSchema_Input = {
   properties: {
     version: {
       type: 'string',
@@ -488,7 +522,54 @@ export const $WorkflowSchema = {
     },
     fieldsetSchemas: {
       items: {
-        $ref: '#/components/schemas/FieldsetSchema',
+        $ref: '#/components/schemas/FieldsetSchema-Input',
+      },
+      type: 'array',
+      title: 'Fieldsetschemas',
+    },
+    params: {
+      items: {
+        $ref: '#/components/schemas/WorkflowParam',
+      },
+      type: 'array',
+      title: 'Params',
+    },
+  },
+  type: 'object',
+  title: 'WorkflowSchema',
+  description:
+    'A schema represents the sequence of operations a Workflow should apply.',
+} as const;
+
+export const $WorkflowSchema_Output = {
+  properties: {
+    version: {
+      type: 'string',
+      enum: ['0.1'],
+      const: '0.1',
+      title: 'Version',
+      default: '0.1',
+    },
+    operations: {
+      items: {
+        anyOf: [
+          {
+            $ref: '#/components/schemas/FieldsetSchemaValidation',
+          },
+          {
+            $ref: '#/components/schemas/FileTypeValidation',
+          },
+          {
+            $ref: '#/components/schemas/RowCountValidation',
+          },
+        ],
+      },
+      type: 'array',
+      title: 'Operations',
+    },
+    fieldsetSchemas: {
+      items: {
+        $ref: '#/components/schemas/FieldsetSchema-Output',
       },
       type: 'array',
       title: 'Fieldsetschemas',
@@ -508,8 +589,30 @@ export const $WorkflowSchema = {
 } as const;
 
 export const $WorkflowUpdate = {
-  properties: {},
+  properties: {
+    id: {
+      type: 'string',
+      title: 'Id',
+    },
+    title: {
+      type: 'string',
+      title: 'Title',
+    },
+    owner: {
+      type: 'string',
+      title: 'Owner',
+    },
+    created_date: {
+      type: 'string',
+      format: 'date-time',
+      title: 'Created Date',
+    },
+    schema: {
+      $ref: '#/components/schemas/WorkflowSchema-Input',
+    },
+  },
   type: 'object',
+  required: ['id', 'title', 'owner', 'created_date'],
   title: 'WorkflowUpdate',
   description: 'Data model to update a Workflow',
 } as const;

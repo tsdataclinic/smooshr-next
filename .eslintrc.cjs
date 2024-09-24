@@ -38,7 +38,7 @@ module.exports = {
     ],
     '@typescript-eslint/no-shadow': 'error',
     'arrow-body-style': 'off',
-    camelcase: 'warn',
+    camelcase: 'off',
     'react-hooks/exhaustive-deps': 'error',
     'react-hooks/rules-of-hooks': 'error',
     'react/function-component-definition': [
