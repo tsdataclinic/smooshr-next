@@ -1,3 +1,4 @@
+from typing import Any
 from dataclasses import dataclass
 import datetime 
 
@@ -79,7 +80,7 @@ def _check_csv_columns(csv_columns: list[str], fieldset_schema: FieldsetSchema) 
 
     return validations
     
-def _validate_field(row_num: int, row: dict, field: FieldSchema, params: dict[str, any]) -> list[ValidationFailure]:
+def _validate_field(row_num: int, row: dict, field: FieldSchema, params: dict[str, Any]) -> list[ValidationFailure]:
     """Validate a field in a row."""
     validations = []
 

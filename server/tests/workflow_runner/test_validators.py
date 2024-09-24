@@ -235,7 +235,7 @@ class TestCheckCsvColumns(unittest.TestCase):
 
 class TestValidateField(unittest.TestCase):
     def test_validate_field(self):
-        field = mock_field_schema("name", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=None)
+        field = mock_field_schema("name", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=None)
         self.assertEqual(
             _validate_field(1, {"name": "John"}, field, {}),
             []
@@ -251,7 +251,7 @@ class TestValidateField(unittest.TestCase):
         )
 
     def test_validate_field_case_insensitive(self):
-        field = mock_field_schema("name", required=True, caseSensitive=False, allowEmptyValues=False, allowedValues=None)
+        field = mock_field_schema("name", required=True, case_sensitive=False, allow_empty_values=False, allowed_values=None)
         self.assertEqual(
             _validate_field(1, {"Name": "John"}, field, {}),
             []
@@ -267,7 +267,7 @@ class TestValidateField(unittest.TestCase):
         )
 
     def test_validate_field_allow_empty(self):
-        field = mock_field_schema("name", required=True, caseSensitive=True, allowEmptyValues=True, allowedValues=None)
+        field = mock_field_schema("name", required=True, case_sensitive=True, allow_empty_values=True, allowed_values=None)
         self.assertEqual(
             _validate_field(1, {"name": ""}, field, {}),
             []
@@ -287,7 +287,7 @@ class TestValidateField(unittest.TestCase):
         )
 
     def test_validate_field_allowed_values(self):
-        field = mock_field_schema("name", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=["John", "Jane"])
+        field = mock_field_schema("name", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=["John", "Jane"])
         self.assertEqual(
             _validate_field(1, {"name": "John"}, field, {}),
             []
@@ -307,7 +307,7 @@ class TestValidateField(unittest.TestCase):
         )
 
     def test_validate_field_allowed_values_from_param(self):
-        field = mock_field_schema("name", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=ParamReference(paramName="allowed_names"))
+        field = mock_field_schema("name", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=ParamReference(paramName="allowed_names"))
         params = {"allowed_names": ["John", "Jane"]}
         self.assertEqual(
             _validate_field(1, {"name": "John"}, field, params),
@@ -328,7 +328,7 @@ class TestValidateField(unittest.TestCase):
         )
 
     def test_validate_field_number_type(self):
-        field = mock_field_schema("age", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=None, data_type_validation=BasicFieldDataTypeSchema(dataType="number"))
+        field = mock_field_schema("age", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=None, data_type_validation=BasicFieldDataTypeSchema(dataType="number"))
         self.assertEqual(
             _validate_field(1, {"age": "42"}, field, {}),
             []
@@ -348,7 +348,7 @@ class TestValidateField(unittest.TestCase):
         )
 
     def test_validate_field_timestamp_type(self):
-        field = mock_field_schema("date", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=None, data_type_validation=TimestampDataTypeSchema(dataType="timestamp", dateTimeFormat="%Y-%m-%d"))
+        field = mock_field_schema("date", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=None, data_type_validation=TimestampDataTypeSchema(dataType="timestamp", dateTimeFormat="%Y-%m-%d"))
         self.assertEqual(
             _validate_field(1, {"date": "2021-01-01"}, field, {}),
             []
@@ -369,9 +369,9 @@ class TestValidateFieldSet(unittest.TestCase):
             id="123",
             name="schema",
             fields=[
-                mock_field_schema("name", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=None),
-                mock_field_schema("age", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=None),
-                mock_field_schema("city", required=True, caseSensitive=True, allowEmptyValues=False, allowedValues=None)
+                mock_field_schema("name", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=None),
+                mock_field_schema("age", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=None),
+                mock_field_schema("city", required=True, case_sensitive=True, allow_empty_values=False, allowed_values=None)
             ],
             orderMatters=True,
             allowExtraColumns="anywhere"
