@@ -75,6 +75,7 @@ export function FieldsetSchemasEditor({
       </div>
 
       <Button
+        disabled={fieldsetSchemas.length === 0}
         onClick={() => {
           console.log('Save!', fieldsetSchemas);
           alert('Needs implementation');
