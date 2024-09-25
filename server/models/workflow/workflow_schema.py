@@ -16,6 +16,9 @@ class ParamReference(BaseModel):
 
     param_name: str = Field(alias="paramName")
 
+class BaseOperation(BaseModel):
+    title: str
+    description: str
 
 class FieldsetSchemaValidation(BaseModel):
     """A validation operation to validate the dataset columns and their values"""

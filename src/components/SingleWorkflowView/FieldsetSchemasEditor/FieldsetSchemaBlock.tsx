@@ -22,14 +22,12 @@ import { useFieldsetSchemasFormContext } from './FieldsetSchemasContext';
 type Props = {
   fieldsetSchema: FieldsetSchema_Output;
   index: number;
-  onLoadFieldsetFromCSV: (newFieldsetSchema: FieldsetSchema_Output) => void;
 };
 
 // TODO: add "allow extra columns" Select
 export function FieldsetSchemaBlock({
   fieldsetSchema,
   index,
-  onLoadFieldsetFromCSV,
 }: Props): JSX.Element {
   const form = useFieldsetSchemasFormContext();
   const [isCSVParseModalOpen, csvParseModalActions] = useDisclosure(false);
@@ -53,7 +51,7 @@ export function FieldsetSchemaBlock({
         header: true,
         skipEmptyLines: true,
         complete: (parsedResult): void => {
-          onLoadFieldsetFromCSV({
+          form.setFieldValue(`fieldsetSchemas.${index}`, {
             ...fieldsetSchema,
             name: file.name,
             fields:

@@ -63,26 +63,23 @@ export function FieldsetSchemasEditor({
     },
   });
 
-  const onLoadFieldsetFromCSV = React.useCallback(
-    (newSchema: FieldsetSchema_Output) => {
-      console.log('new schema', newSchema);
-      alert('Needs implementation');
-      /*
-      setFieldsetSchemas((prevSchemas) => {
-        return prevSchemas.map((schema) =>
-          schema.id === newSchema.id ? newSchema : schema,
-        );
-      });
-      */
-    },
-    [],
-  );
-
   const { fieldsetSchemas } = form.getValues();
 
   return (
     <FieldsetSchemasFormProvider form={form}>
-      <form className="space-y-3">
+      <form
+        className="space-y-3"
+        onSubmit={form.onSubmit((formValues) => {
+          saveFieldsetMutation.mutate(formValues.fieldsetSchemas, {
+            onSuccess: () => {
+              notifications.show({
+                title: 'Saved',
+                message: 'Updated column schemas',
+              });
+            },
+          });
+        })}
+      >
         <div className="space-y-2">
           {fieldsetSchemas.length === 0 ? (
             <Text>No schemas created yet</Text>
@@ -93,7 +90,6 @@ export function FieldsetSchemasEditor({
                   key={schema.id}
                   index={i}
                   fieldsetSchema={fieldsetSchemas[i]}
-                  onLoadFieldsetFromCSV={onLoadFieldsetFromCSV}
                 />
               );
             })
@@ -113,20 +109,7 @@ export function FieldsetSchemasEditor({
             Add new schema
           </Button>
 
-          <Button
-            disabled={fieldsetSchemas.length === 0}
-            onClick={() => {
-              saveFieldsetMutation.mutate(fieldsetSchemas, {
-                onSuccess: () => {
-                  console.log('success!');
-                  notifications.show({
-                    title: 'Saved',
-                    message: 'Updated column schemas',
-                  });
-                },
-              });
-            }}
-          >
+          <Button type="submit" disabled={fieldsetSchemas.length === 0}>
             Save
           </Button>
         </div>
