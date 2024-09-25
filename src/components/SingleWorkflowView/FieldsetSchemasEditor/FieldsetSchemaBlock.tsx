@@ -10,6 +10,8 @@ import {
   FileButton,
   Button,
   ActionIcon,
+  Select,
+  ComboboxItem,
 } from '@mantine/core';
 import * as Papa from 'papaparse';
 import { IconSettingsFilled } from '@tabler/icons-react';
@@ -24,7 +26,21 @@ type Props = {
   index: number;
 };
 
-// TODO: add "allow extra columns" Select
+const ALLOW_EXTRA_COLUMNS_OPTIONS: ComboboxItem[] = [
+  {
+    value: 'no',
+    label: 'No',
+  },
+  {
+    value: 'anywhere',
+    label: 'Anywhere',
+  },
+  {
+    value: 'onlyAfterSchemaFields',
+    label: 'Only after schema fields',
+  },
+];
+
 export function FieldsetSchemaBlock({
   fieldsetSchema,
   index,
@@ -137,17 +153,28 @@ export function FieldsetSchemaBlock({
           </Menu.Dropdown>
         </Menu>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           <TextInput
+            key={form.key(`fieldsetSchemas.${index}.name`)}
             {...form.getInputProps(`fieldsetSchemas.${index}.name`)}
             label="Schema Name"
           />
+          <Select
+            key={form.key(`fieldsetSchemas.${index}.allowExtraColumns`)}
+            {...form.getInputProps(
+              `fieldsetSchemas.${index}.allowExtraColumns`,
+            )}
+            data={ALLOW_EXTRA_COLUMNS_OPTIONS}
+            label="Allow extra columns"
+          />
           <Checkbox
+            key={form.key(`fieldsetSchemas.${index}.orderMatters`)}
             {...form.getInputProps(`fieldsetSchemas.${index}.orderMatters`, {
               type: 'checkbox',
             })}
             label="Order of columns matters"
           />
+
           {renderHeadersInfoTable()}
         </div>
       </Fieldset>

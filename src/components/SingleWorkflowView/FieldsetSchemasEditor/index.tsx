@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Text, Button } from '@mantine/core';
 import { v4 as uuid } from 'uuid';
 import type { FullWorkflow, FieldsetSchema_Output } from '../../../client';

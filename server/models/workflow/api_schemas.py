@@ -20,7 +20,7 @@ class BaseWorkflow(BaseModel):
 class FullWorkflow(BaseWorkflow):
     """A full workflow object, including the JSON schema"""
 
-    schema: WorkflowSchema = Field(default_factory=dict)
+    workflow_schema: WorkflowSchema = Field(alias="schema")
 
 
 class WorkflowCreate(BaseModel):

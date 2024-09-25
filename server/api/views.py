@@ -30,6 +30,7 @@ from server.models.workflow.api_schemas import (
     WorkflowRunReport,
 )
 from server.models.workflow.db_model import DBWorkflow
+from server.models.workflow.workflow_schema import WorkflowSchema
 
 LOG = logging.getLogger(__name__)
 
@@ -300,7 +301,7 @@ def run_workflow(
 @app.get("/api/workflows/{workflow_id}/run", tags=["workflows"], response_model=None)
 def return_workflow(
     workflow_id: str, session=Depends(get_session), user=Depends(get_current_user)
-) -> dict[str, Any]:
+) -> WorkflowSchema:
     """Returns a serialized json representation of the workflow that can be used
     to run the workflow locally. The workflow_id must be associated with a
     workflow the calling user has access to."""

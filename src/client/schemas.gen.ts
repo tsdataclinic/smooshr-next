@@ -189,6 +189,21 @@ the column schemas. E.g. the column names, order, data types, allowable values.`
 
 export const $FieldsetSchemaValidation = {
   properties: {
+    title: {
+      type: 'string',
+      title: 'Title',
+    },
+    description: {
+      anyOf: [
+        {
+          type: 'string',
+        },
+        {
+          type: 'null',
+        },
+      ],
+      title: 'Description',
+    },
     type: {
       type: 'string',
       enum: ['fieldsetSchemaValidation'],
@@ -212,7 +227,7 @@ export const $FieldsetSchemaValidation = {
     },
   },
   type: 'object',
-  required: ['type', 'id', 'fieldsetSchema'],
+  required: ['title', 'description', 'type', 'id', 'fieldsetSchema'],
   title: 'FieldsetSchemaValidation',
   description:
     'A validation operation to validate the dataset columns and their values',
@@ -220,6 +235,21 @@ export const $FieldsetSchemaValidation = {
 
 export const $FileTypeValidation = {
   properties: {
+    title: {
+      type: 'string',
+      title: 'Title',
+    },
+    description: {
+      anyOf: [
+        {
+          type: 'string',
+        },
+        {
+          type: 'null',
+        },
+      ],
+      title: 'Description',
+    },
     type: {
       type: 'string',
       enum: ['fileTypeValidation'],
@@ -236,7 +266,7 @@ export const $FileTypeValidation = {
     },
   },
   type: 'object',
-  required: ['type', 'id', 'expectedFileType'],
+  required: ['title', 'description', 'type', 'id', 'expectedFileType'],
   title: 'FileTypeValidation',
   description: 'A validation operation to check file type',
 } as const;
@@ -265,7 +295,7 @@ export const $FullWorkflow = {
     },
   },
   type: 'object',
-  required: ['id', 'title', 'owner', 'created_date'],
+  required: ['id', 'title', 'owner', 'created_date', 'schema'],
   title: 'FullWorkflow',
   description: 'A full workflow object, including the JSON schema',
 } as const;
@@ -299,6 +329,21 @@ export const $ParamReference = {
 
 export const $RowCountValidation = {
   properties: {
+    title: {
+      type: 'string',
+      title: 'Title',
+    },
+    description: {
+      anyOf: [
+        {
+          type: 'string',
+        },
+        {
+          type: 'null',
+        },
+      ],
+      title: 'Description',
+    },
     type: {
       type: 'string',
       enum: ['rowCountValidation'],
@@ -333,7 +378,14 @@ export const $RowCountValidation = {
     },
   },
   type: 'object',
-  required: ['type', 'id', 'minRowCount', 'maxRowCount'],
+  required: [
+    'title',
+    'description',
+    'type',
+    'id',
+    'minRowCount',
+    'maxRowCount',
+  ],
   title: 'RowCountValidation',
   description: 'A validation operation to check row counts',
 } as const;
@@ -501,7 +553,6 @@ export const $WorkflowSchema_Input = {
       enum: ['0.1'],
       const: '0.1',
       title: 'Version',
-      default: '0.1',
     },
     operations: {
       items: {
@@ -536,6 +587,7 @@ export const $WorkflowSchema_Input = {
     },
   },
   type: 'object',
+  required: ['version', 'operations', 'fieldsetSchemas', 'params'],
   title: 'WorkflowSchema',
   description:
     'A schema represents the sequence of operations a Workflow should apply.',
@@ -548,7 +600,6 @@ export const $WorkflowSchema_Output = {
       enum: ['0.1'],
       const: '0.1',
       title: 'Version',
-      default: '0.1',
     },
     operations: {
       items: {
@@ -583,6 +634,7 @@ export const $WorkflowSchema_Output = {
     },
   },
   type: 'object',
+  required: ['version', 'operations', 'fieldsetSchemas', 'params'],
   title: 'WorkflowSchema',
   description:
     'A schema represents the sequence of operations a Workflow should apply.',
@@ -612,7 +664,7 @@ export const $WorkflowUpdate = {
     },
   },
   type: 'object',
-  required: ['id', 'title', 'owner', 'created_date'],
+  required: ['id', 'title', 'owner', 'created_date', 'schema'],
   title: 'WorkflowUpdate',
   description: 'Data model to update a Workflow',
 } as const;

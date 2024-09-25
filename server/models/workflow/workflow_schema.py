@@ -18,9 +18,9 @@ class ParamReference(BaseModel):
 
 class BaseOperation(BaseModel):
     title: str
-    description: str
+    description: str | None
 
-class FieldsetSchemaValidation(BaseModel):
+class FieldsetSchemaValidation(BaseOperation):
     """A validation operation to validate the dataset columns and their values"""
 
     type: Literal["fieldsetSchemaValidation"]
@@ -28,7 +28,7 @@ class FieldsetSchemaValidation(BaseModel):
     fieldset_schema: str | ParamReference = Field(alias="fieldsetSchema")
 
 
-class FileTypeValidation(BaseModel):
+class FileTypeValidation(BaseOperation):
     """A validation operation to check file type"""
 
     type: Literal["fileTypeValidation"]
@@ -36,7 +36,7 @@ class FileTypeValidation(BaseModel):
     expected_file_type: str = Field(alias="expectedFileType")
 
 
-class RowCountValidation(BaseModel):
+class RowCountValidation(BaseOperation):
     """A validation operation to check row counts"""
 
     type: Literal["rowCountValidation"]
@@ -103,18 +103,18 @@ class WorkflowSchema(BaseModel):
     """A schema represents the sequence of operations a Workflow should apply."""
 
     # The schema version
-    version: Literal["0.1"] = Field(default="0.1")
+    version: Literal["0.1"]
 
     # the list of operations that this Workflow executes
-    operations: list[WorkflowOperation] = Field(default_factory=list)
+    operations: list[WorkflowOperation]
 
     # the list of fieldsetSchemas that this Workflow can support
-    fieldset_schemas: list[FieldsetSchema] = Field(default_factory=list, alias="fieldsetSchemas")
+    fieldset_schemas: list[FieldsetSchema] = Field(alias="fieldsetSchemas")
 
     # the list of params that are input at time a Workflow is executed
-    params: list[WorkflowParam] = Field(default_factory=list)
+    params: list[WorkflowParam] = Field()
 
 
 def create_empty_workflow_schema() -> WorkflowSchema:
     """Create an empty Workflow Schema"""
-    return WorkflowSchema()
+    return WorkflowSchema(version="0.1", operations=[], fieldsetSchemas=[], params=[])

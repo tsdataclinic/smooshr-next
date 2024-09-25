@@ -4,20 +4,26 @@
     {
       "type": "fileTypeValidation",
       "id": "asfasd",
-      "expectedFileType": "csv"
+      "expectedFileType": "csv",
+      "title": "Validate file type",
+      "description": "Description for file type validation"
     },
     {
       "type": "rowCountValidation",
       "minRowCount": 1,
       "maxRowCount": 250,
-      "id": "asfasd"
+      "id": "asfasd",
+      "title": "Validate row counts",
+      "description": "Description for row count validation"
     },
     {
       "type": "fieldsetSchemaValidation",
       "id": "asasd",
       "fieldsetSchema": {
         "paramName": "fieldset_schema"
-      }
+      },
+      "title": "Validate fieldset schema",
+      "description": "Description for fieldset schema validation"
     }
   ],
   "fieldsetSchemas": [

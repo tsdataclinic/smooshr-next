@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'wouter';
 import { WorkflowUtil } from '../../util/WorkflowUtil';
@@ -9,17 +10,18 @@ import {
   Group,
   Button,
   ActionIcon,
+  Stack,
   Affix,
   Menu,
   Drawer,
-  TextInput,
   Modal,
+  List,
   Text,
 } from '@mantine/core';
 import { IconDots, IconPlus } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
-import { useForm } from '@mantine/form';
 import { FieldsetSchemasEditor } from './FieldsetSchemasEditor';
+import { OperationEditor } from './OperationEditor';
 
 export function SingleWorkflowView(): JSX.Element {
   const params = useParams<{ workflowId: string }>();
@@ -37,23 +39,53 @@ export function SingleWorkflowView(): JSX.Element {
 
   const [isBottomDrawerOpen, bottomDrawerActions] = useDisclosure(false);
   const [isModalOpen, modalActions] = useDisclosure(false);
-  const schemaForm = useForm({
-    mode: 'uncontrolled',
-    initialValues: {
-      title: 'Validate column schemas',
-      headers: [],
-    },
-  });
-
   const fieldsetSchemas = workflow?.schema?.fieldsetSchemas ?? [];
 
-  return (
-    <>
-      {isLoading ? <Loader /> : null}
-      {!isLoading && workflow ? (
-        <>
+  console.log('Loaded workflow', workflow);
+
+  if (isLoading) {
+    return <Loader />;
+  }
+
+  if (!isLoading && workflow) {
+    const fieldsetSchemasEditorModal = (
+      <Modal
+        opened={isModalOpen}
+        onClose={modalActions.close}
+        title="Configuring column schemas"
+        size="80vw"
+      >
+        <FieldsetSchemasEditor
+          workflow={workflow}
+          defaultFieldsetSchemas={fieldsetSchemas}
+        />
+      </Modal>
+    );
+
+    const operationEditorDrawer = (
+      <Drawer
+        offset={8}
+        radius="md"
+        opened={isBottomDrawerOpen}
+        onClose={bottomDrawerActions.close}
+        title="Configuring validation step: checking column schemas"
+        withOverlay={false}
+        position="bottom"
+      >
+        <OperationEditor
+          operationType="fieldsetSchemaValidation"
+          workflow={workflow}
+        />
+      </Drawer>
+    );
+
+    const { operations } = workflow.schema;
+
+    return (
+      <>
+        <Stack>
           <Group>
-            <Title order={1}>{workflow?.title}</Title>
+            <Title order={1}>{workflow.title}</Title>
             <Menu withArrow shadow="md" width={200}>
               <Menu.Target>
                 <Button unstyled>
@@ -71,61 +103,50 @@ export function SingleWorkflowView(): JSX.Element {
             </Menu>
           </Group>
 
-          <p>This page is still a work in progress.</p>
-          <Affix position={{ bottom: 40, left: 40 }}>
-            <Menu withArrow shadow="md" width={250} position="left">
-              <Menu.Target>
-                <ActionIcon color="blue" radius="xl" size={60}>
-                  <IconPlus stroke={1.5} size={30} />
-                </ActionIcon>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item onClick={bottomDrawerActions.open}>
-                  Validate column schemas
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Affix>
-
-          <Modal
-            opened={isModalOpen}
-            onClose={modalActions.close}
-            title="Configuring column schemas"
-            size="80vw"
-          >
-            <FieldsetSchemasEditor
-              workflow={workflow}
-              defaultFieldsetSchemas={fieldsetSchemas}
-            />
-          </Modal>
-
-          <Drawer
-            offset={8}
-            radius="md"
-            opened={isBottomDrawerOpen}
-            onClose={bottomDrawerActions.close}
-            title="Configuring validation step: checking column schemas"
-            withOverlay={false}
-            position="bottom"
-          >
-            <form
-              onSubmit={schemaForm.onSubmit((values) => {
-                console.log(values);
-              })}
-              className="space-y-2"
+          <Title order={2}>Validations</Title>
+          {operations.length === 0 ? (
+            <Text>No validations have been added yet</Text>
+          ) : (
+            <List
+              size="lg"
+              className="rounded border border-gray-200 text-left"
             >
-              <TextInput
-                key={schemaForm.key('title')}
-                required
-                label="Action Title"
-                {...schemaForm.getInputProps('title')}
-              />
-              <Text>TODO: Select which fieldset to use</Text>
-              <Button type="submit">Save</Button>
-            </form>
-          </Drawer>
-        </>
-      ) : null}
-    </>
-  );
+              {operations.map((op, i) => {
+                return (
+                  <List.Item key={op.id}>
+                    <div className="flex w-full items-center p-3">
+                      <div className="border-r border-gray-400 pr-2">
+                        {i + 1}
+                      </div>
+                      <div className="pl-2">{op.title}</div>
+                    </div>
+                  </List.Item>
+                );
+              })}
+            </List>
+          )}
+        </Stack>
+
+        <Affix position={{ bottom: 40, left: 40 }}>
+          <Menu withArrow shadow="md" width={250} position="left">
+            <Menu.Target>
+              <ActionIcon color="blue" radius="xl" size={60}>
+                <IconPlus stroke={1.5} size={30} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item onClick={bottomDrawerActions.open}>
+                Validate column schemas
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </Affix>
+
+        {fieldsetSchemasEditorModal}
+        {operationEditorDrawer}
+      </>
+    );
+  }
+
+  return <React.Fragment />;
 }

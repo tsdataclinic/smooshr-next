@@ -30,5 +30,7 @@ class DBWorkflow(Base):
     )
 
     schema: Mapped[WorkflowSchema] = mapped_column(
-        PydanticType(WorkflowSchema), default=create_empty_workflow_schema
+        PydanticType(WorkflowSchema),
+        default=create_empty_workflow_schema,
+        nullable=False
     )
