@@ -2,8 +2,10 @@ import type {
   FullWorkflow,
   WorkflowSchema_Output,
 } from '../../../client/types.gen';
+import { Text } from '@mantine/core';
 import { FieldsetSchemaValidationEditor } from './FieldsetSchemaValidationEditor';
 import { ArrayElementType } from '../../../util/types';
+import { match } from 'ts-pattern';
 
 type OperationType = ArrayElementType<
   WorkflowSchema_Output['operations']
@@ -18,10 +20,12 @@ export function OperationEditor({
   operationType,
   workflow,
 }: Props): JSX.Element {
-  switch (operationType) {
-    case 'fieldsetSchemaValidation':
+  return match(operationType)
+    .with('fieldsetSchemaValidation', () => {
       return <FieldsetSchemaValidationEditor workflow={workflow} />;
-    default:
-      throw new Error('Not implemented yet');
-  }
+    })
+    .with('rowCountValidation', 'fileTypeValidation', () => {
+      return <Text>This validation type has not been implemented yet.</Text>;
+    })
+    .exhaustive();
 }

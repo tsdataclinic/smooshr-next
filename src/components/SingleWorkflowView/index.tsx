@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { match } from 'ts-pattern';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'wouter';
 import { WorkflowUtil } from '../../util/WorkflowUtil';
@@ -17,11 +18,22 @@ import {
   Modal,
   List,
   Text,
+  FileButton,
 } from '@mantine/core';
 import { IconDots, IconPlus } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { FieldsetSchemasEditor } from './FieldsetSchemasEditor';
 import { OperationEditor } from './OperationEditor';
+
+type ModalViewType = 'fieldsetSchemaEditor' | 'testWorkflow' | 'none';
+
+function getModalTitle(modalView: ModalViewType): string {
+  return match(modalView)
+    .with('fieldsetSchemaEditor', () => 'Configuring column schemas')
+    .with('testWorkflow', () => 'Test workflow')
+    .with('none', () => '')
+    .exhaustive();
+}
 
 export function SingleWorkflowView(): JSX.Element {
   const params = useParams<{ workflowId: string }>();
@@ -39,6 +51,7 @@ export function SingleWorkflowView(): JSX.Element {
 
   const [isBottomDrawerOpen, bottomDrawerActions] = useDisclosure(false);
   const [isModalOpen, modalActions] = useDisclosure(false);
+  const [modalView, setModalView] = React.useState<ModalViewType>('none');
   const fieldsetSchemas = workflow?.schema?.fieldsetSchemas ?? [];
 
   console.log('Loaded workflow', workflow);
@@ -48,60 +61,45 @@ export function SingleWorkflowView(): JSX.Element {
   }
 
   if (!isLoading && workflow) {
-    const fieldsetSchemasEditorModal = (
-      <Modal
-        opened={isModalOpen}
-        onClose={modalActions.close}
-        title="Configuring column schemas"
-        size="80vw"
-      >
-        <FieldsetSchemasEditor
-          workflow={workflow}
-          defaultFieldsetSchemas={fieldsetSchemas}
-        />
-      </Modal>
-    );
-
-    const operationEditorDrawer = (
-      <Drawer
-        offset={8}
-        radius="md"
-        opened={isBottomDrawerOpen}
-        onClose={bottomDrawerActions.close}
-        title="Configuring validation step: checking column schemas"
-        withOverlay={false}
-        position="bottom"
-      >
-        <OperationEditor
-          operationType="fieldsetSchemaValidation"
-          workflow={workflow}
-        />
-      </Drawer>
-    );
-
     const { operations } = workflow.schema;
+
+    const headerRow = (
+      <Group>
+        <Title order={1}>{workflow.title}</Title>
+        <Menu withArrow shadow="md" width={200}>
+          <Menu.Target>
+            <Button unstyled>
+              <IconDots />
+            </Button>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Item
+              onClick={() => {
+                setModalView('fieldsetSchemaEditor');
+                modalActions.open();
+              }}
+            >
+              Add column schemas
+            </Menu.Item>
+            <Menu.Item disabled>Edit inputs</Menu.Item>
+            <Menu.Item disabled>Publish workflow</Menu.Item>
+            <Menu.Item
+              onClick={() => {
+                setModalView('testWorkflow');
+                modalActions.open();
+              }}
+            >
+              Test workflow
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
+      </Group>
+    );
 
     return (
       <>
         <Stack>
-          <Group>
-            <Title order={1}>{workflow.title}</Title>
-            <Menu withArrow shadow="md" width={200}>
-              <Menu.Target>
-                <Button unstyled>
-                  <IconDots />
-                </Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item onClick={modalActions.open}>
-                  Add column schemas
-                </Menu.Item>
-                <Menu.Item disabled>Edit inputs</Menu.Item>
-                <Menu.Item disabled>Publish workflow</Menu.Item>
-                <Menu.Item disabled>Test workflow</Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
+          {headerRow}
 
           <Title order={2}>Validations</Title>
           {operations.length === 0 ? (
@@ -142,8 +140,58 @@ export function SingleWorkflowView(): JSX.Element {
           </Menu>
         </Affix>
 
-        {fieldsetSchemasEditorModal}
-        {operationEditorDrawer}
+        <Modal
+          opened={isModalOpen}
+          onClose={modalActions.close}
+          title={getModalTitle(modalView)}
+          size="80vw"
+        >
+          {match(modalView)
+            .with('fieldsetSchemaEditor', () => {
+              return (
+                <FieldsetSchemasEditor
+                  workflow={workflow}
+                  defaultFieldsetSchemas={fieldsetSchemas}
+                />
+              );
+            })
+            .with('testWorkflow', () => {
+              return (
+                <div className="space-y-2">
+                  <Stack>
+                    <FileButton
+                      onChange={() => console.log('okkk')}
+                      accept=".csv"
+                    >
+                      {(props) => (
+                        <Button variant="outline" {...props}>
+                          Upload CSV
+                        </Button>
+                      )}
+                    </FileButton>
+                  </Stack>
+                  <Button>Run Workflow</Button>
+                </div>
+              );
+            })
+            .with('none', () => null)
+            .exhaustive()}
+        </Modal>
+
+        <Drawer
+          offset={8}
+          radius="md"
+          opened={isBottomDrawerOpen}
+          onClose={bottomDrawerActions.close}
+          title="Configuring validation step: checking column schemas"
+          withOverlay={false}
+          position="bottom"
+        >
+          <OperationEditor
+            operationType="fieldsetSchemaValidation"
+            workflow={workflow}
+          />
+        </Drawer>
       </>
     );
   }
