@@ -1,14 +1,9 @@
 from typing import Any
 from dataclasses import dataclass
 import datetime 
-
 from server.models.workflow.workflow_schema import BasicFieldDataTypeSchema, FieldSchema, FieldsetSchema, FileTypeValidation, RowCountValidation, TimestampDataTypeSchema
-
-@dataclass
-class ValidationFailure:
-    """A validation failure with a message."""
-    message: str
-    row_number: int | None = None
+from server.models.workflow.api_schemas import ValidationFailure
+from pydantic import BaseModel, Field
 
 
 def validate_file_type(file_name: str, validation: FileTypeValidation) -> list[ValidationFailure]:

@@ -1,5 +1,5 @@
 """The models to represent a WorkflowSchema"""
-from typing import Literal
+from typing import Literal, Any
 
 from pydantic import BaseModel, Field
 
@@ -8,7 +8,7 @@ class CsvData(BaseModel):
     """The Data in a CSV file"""
 
     column_names: list[str]
-    data: list[dict[str, str]]
+    data: list[dict[str, Any]]
 
 
 class ParamReference(BaseModel):

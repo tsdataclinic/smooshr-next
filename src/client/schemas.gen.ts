@@ -43,14 +43,14 @@ than its literal type`,
 
 export const $Body_run_workflow = {
   properties: {
-    upload_csv: {
+    file: {
       type: 'string',
       format: 'binary',
-      title: 'Upload Csv',
+      title: 'File',
     },
   },
   type: 'object',
-  required: ['upload_csv'],
+  required: ['file'],
   title: 'Body_run_workflow',
 } as const;
 
@@ -481,6 +481,35 @@ export const $ValidationError = {
   title: 'ValidationError',
 } as const;
 
+export const $ValidationFailure = {
+  properties: {
+    message: {
+      type: 'string',
+      title: 'Message',
+    },
+    rowNumber: {
+      anyOf: [
+        {
+          type: 'integer',
+        },
+        {
+          type: 'null',
+        },
+      ],
+      title: 'Rownumber',
+    },
+  },
+  type: 'object',
+  required: ['message'],
+  title: 'ValidationFailure',
+  description: `A validation failure with a message.
+
+Arguments:
+- message (str) -- The error message
+- row_number (int | None) -- The row number of the error. Or None if there
+    is no row number (e.g. if this is a file type error).`,
+} as const;
+
 export const $WorkflowCreate = {
   properties: {
     title: {
@@ -527,23 +556,30 @@ is passed in when a Workflow is kicked off.`,
 
 export const $WorkflowRunReport = {
   properties: {
-    row_count: {
+    rowCount: {
       type: 'integer',
-      title: 'Row Count',
+      title: 'Rowcount',
     },
     filename: {
       type: 'string',
       title: 'Filename',
     },
-    workflow_id: {
+    workflowId: {
       type: 'string',
-      title: 'Workflow Id',
+      title: 'Workflowid',
+    },
+    validationFailures: {
+      items: {
+        $ref: '#/components/schemas/ValidationFailure',
+      },
+      type: 'array',
+      title: 'Validationfailures',
     },
   },
   type: 'object',
-  required: ['row_count', 'filename', 'workflow_id'],
+  required: ['rowCount', 'filename', 'workflowId', 'validationFailures'],
   title: 'WorkflowRunReport',
-  description: 'Run report schema for a server-side run of a workflow.',
+  description: 'Report for a server-side run of a workflow.',
 } as const;
 
 export const $WorkflowSchema_Input = {

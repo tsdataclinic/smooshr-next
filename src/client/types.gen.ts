@@ -21,7 +21,7 @@ export type BasicFieldDataTypeSchema = {
 export type dataType = 'any' | 'string' | 'number';
 
 export type Body_run_workflow = {
-  upload_csv: Blob | File;
+  file: Blob | File;
 };
 
 /**
@@ -155,6 +155,19 @@ export type ValidationError = {
 };
 
 /**
+ * A validation failure with a message.
+ *
+ * Arguments:
+ * - message (str) -- The error message
+ * - row_number (int | None) -- The row number of the error. Or None if there
+ * is no row number (e.g. if this is a file type error).
+ */
+export type ValidationFailure = {
+  message: string;
+  rowNumber?: number | null;
+};
+
+/**
  * Data model to create a new Workflow
  */
 export type WorkflowCreate = {
@@ -176,12 +189,13 @@ export type WorkflowParam = {
 export type type4 = 'string' | 'number' | 'string list';
 
 /**
- * Run report schema for a server-side run of a workflow.
+ * Report for a server-side run of a workflow.
  */
 export type WorkflowRunReport = {
-  row_count: number;
+  rowCount: number;
   filename: string;
-  workflow_id: string;
+  workflowId: string;
+  validationFailures: ValidationFailure[];
 };
 
 /**

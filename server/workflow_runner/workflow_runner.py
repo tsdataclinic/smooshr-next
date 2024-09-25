@@ -1,20 +1,20 @@
 from typing import Any
 import csv
 import io
-
 from server.models.workflow.workflow_schema import CsvData, FieldsetSchema, FieldsetSchemaValidation, FileTypeValidation, ParamReference, RowCountValidation, WorkflowParam, WorkflowSchema
+from server.models.workflow.api_schemas import ValidationFailure
 from .exceptions import FieldsetSchemaNotFoundException, ParameterDefinitionNotFoundException
-from .validators import ValidationFailure, validate_fieldset, validate_file_type, validate_row_count
+from .validators import validate_fieldset, validate_file_type, validate_row_count
 
-def run_workflow(
+def process_workflow(
         file_name: str,
-        file_contents: str,
+        file_contents: str | CsvData,
         param_values: dict[str, Any],
         schema: WorkflowSchema
     ) -> list[ValidationFailure]:
     """Validate and execute a workflow based on the configured schema and user-provided parameters."""
     _validate_param_values(param_values, schema)
-    csv_data = _get_csv_contents(file_contents)
+    csv_data = _get_csv_contents(file_contents) if isinstance(file_contents, str) else file_contents
     return _validate_csv(file_name, csv_data, param_values, schema)
 
 
@@ -37,12 +37,12 @@ def _get_csv_contents(contents: str) -> CsvData:
     return CsvData(column_names=fieldnames, data=list(reader))
 
 
-def _get_fieldset_schema(fieldset_name: str, fieldsets: list[FieldsetSchema]) -> FieldsetSchema:
+def _get_fieldset_schema(fieldset_id: str, fieldsets: list[FieldsetSchema]) -> FieldsetSchema:
     """Get the fieldset schema from the list of fieldsets."""
     for fieldset in fieldsets:
-        if fieldset.name == fieldset_name:
+        if fieldset.id == fieldset_id:
             return fieldset
-    raise FieldsetSchemaNotFoundException(f"Fieldset schema {fieldset_name} not found in schema.")
+    raise FieldsetSchemaNotFoundException(f"Fieldset schema {fieldset_id} not found in schema.")
 
 def _validate_csv(
         file_name: str,

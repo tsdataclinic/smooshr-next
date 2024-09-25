@@ -30,7 +30,8 @@ from server.models.workflow.api_schemas import (
     WorkflowRunReport,
 )
 from server.models.workflow.db_model import DBWorkflow
-from server.models.workflow.workflow_schema import WorkflowSchema
+from server.models.workflow.workflow_schema import CsvData, WorkflowSchema
+from server.workflow_runner.workflow_runner import process_workflow
 
 LOG = logging.getLogger(__name__)
 
@@ -256,11 +257,10 @@ def delete_workflow(
 
     return {"message": "Workflow deleted"}
 
-
 @app.post("/api/workflows/{workflow_id}/run", status_code=200, tags=["workflows"])
 def run_workflow(
     workflow_id: str,
-    upload_csv: UploadFile,
+    file: UploadFile,
     session=Depends(get_session),
     user=Depends(get_current_user),
 ) -> WorkflowRunReport:
@@ -268,10 +268,10 @@ def run_workflow(
     and returns any results or errors from the run. The workflow_id must be
     associated with a workflow the calling user has access to."""
 
-    # TODO: Actually run based on the workflow config
-    workflow = fetch_workflow_or_raise(workflow_id, session, user)
+    db_workflow = fetch_workflow_or_raise(workflow_id, session, user)
 
-    resource = Resource(upload_csv.file.read(), format="csv")
+    # load the uploaded file to a Frictionless Resource
+    resource = Resource(file.file.read(), format="csv")
 
     try:
         resource.infer(stats=True)
@@ -281,20 +281,35 @@ def run_workflow(
             detail="Could not parse the input file. Please check that it is a valid .csv file!",
         )
 
+    # TODO: eventually most, or all, of our `process_workflow` function should make use of
+    #   the Frictionless library so we can take advantage of its streaming functionality
+    #   when validating files.
     # POC of validating the input csv just for basic CSV formatting
     # see https://framework.frictionlessdata.io/docs/checks/baseline.html#reference-checks.baseline
     # for list of baseline checks
     report = validate(resource)
-
     if not report.valid:
         raise HTTPException(
             status_code=400, detail={"errors": report.flatten(["message"])}
         )
 
+    # get the CSV data from the Frictionless Resource to run our workflow
+    all_rows: list[dict[str, Any]] = [row.to_dict() for row in resource.read_rows()] # type: ignore
+    fieldnames = [field.name for field in resource.schema.fields]
+    filename = file.filename if file.filename else ''
+    csv_data = CsvData(
+        column_names=fieldnames,
+        data=all_rows,
+    )
+
+    # run our workflow
+    validation_results = process_workflow(filename, csv_data, {}, db_workflow.schema)
+
     return WorkflowRunReport(
-        row_count=len(resource.read_rows()),
-        filename=upload_csv.filename,
+        row_count=len(all_rows),
+        filename=file.filename if file.filename else '',
         workflow_id=workflow_id,
+        validation_failures=validation_results,
     )
 
 

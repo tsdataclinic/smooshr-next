@@ -1,6 +1,6 @@
 
-from .workflow_runner import run_workflow 
+from .workflow_runner import process_workflow 
 
 __all__ = [
-    "run_workflow"
+    "process_workflow"
 ]

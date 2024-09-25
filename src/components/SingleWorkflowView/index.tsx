@@ -18,12 +18,12 @@ import {
   Modal,
   List,
   Text,
-  FileButton,
 } from '@mantine/core';
 import { IconDots, IconPlus } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { FieldsetSchemasEditor } from './FieldsetSchemasEditor';
 import { OperationEditor } from './OperationEditor';
+import { TestWorkflowBlock } from './TestWorkflowBlock';
 
 type ModalViewType = 'fieldsetSchemaEditor' | 'testWorkflow' | 'none';
 
@@ -144,7 +144,7 @@ export function SingleWorkflowView(): JSX.Element {
           opened={isModalOpen}
           onClose={modalActions.close}
           title={getModalTitle(modalView)}
-          size="80vw"
+          size="auto"
         >
           {match(modalView)
             .with('fieldsetSchemaEditor', () => {
@@ -156,23 +156,7 @@ export function SingleWorkflowView(): JSX.Element {
               );
             })
             .with('testWorkflow', () => {
-              return (
-                <div className="space-y-2">
-                  <Stack>
-                    <FileButton
-                      onChange={() => console.log('okkk')}
-                      accept=".csv"
-                    >
-                      {(props) => (
-                        <Button variant="outline" {...props}>
-                          Upload CSV
-                        </Button>
-                      )}
-                    </FileButton>
-                  </Stack>
-                  <Button>Run Workflow</Button>
-                </div>
-              );
+              return <TestWorkflowBlock workflow={workflow} />;
             })
             .with('none', () => null)
             .exhaustive()}

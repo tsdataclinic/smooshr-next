@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
+
 from .workflow_schema import WorkflowSchema
 
 
@@ -34,10 +35,22 @@ class WorkflowUpdate(FullWorkflow):
 
     pass
 
+class ValidationFailure(BaseModel):
+    """
+    A validation failure with a message.
+
+    Arguments:
+    - message (str) -- The error message
+    - row_number (int | None) -- The row number of the error. Or None if there
+        is no row number (e.g. if this is a file type error).
+    """
+    message: str
+    row_number: int | None = Field(default=None, serialization_alias="rowNumber")
 
 class WorkflowRunReport(BaseModel):
-    """Run report schema for a server-side run of a workflow."""
+    """Report for a server-side run of a workflow."""
 
-    row_count: int
+    row_count: int = Field(serialization_alias="rowCount")
     filename: str
-    workflow_id: str
+    workflow_id: str = Field(serialization_alias="workflowId")
+    validation_failures: list[ValidationFailure] = Field(serialization_alias="validationFailures")
