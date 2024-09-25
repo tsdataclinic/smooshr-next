@@ -14,7 +14,9 @@ class TestValidateFile(unittest.TestCase):
         validation = FileTypeValidation(
             type="fileTypeValidation",
             id="123",
-            expectedFileType="csv"
+            expectedFileType="csv",
+            title="File type validation",
+            description=None,
         )
         self.assertEqual(
             validate_file_type("file.csv", validation),
@@ -37,7 +39,9 @@ class TestValidateRowCount(unittest.TestCase):
             type="rowCountValidation",
             id="123",
             minRowCount=2,
-            maxRowCount=4
+            maxRowCount=4,
+            title="Row count validation",
+            description=None,
         )
         self.assertEqual(
             validate_row_count([{}] * 2, validation), []
@@ -72,7 +76,9 @@ class TestValidateRowCount(unittest.TestCase):
             type="rowCountValidation",
             id="123",
             minRowCount=None,
-            maxRowCount=4
+            maxRowCount=4,
+            title="Row count validation",
+            description=None,
         )
         self.assertEqual(
             validate_row_count([], validation),
@@ -99,14 +105,15 @@ class TestValidateRowCount(unittest.TestCase):
                 )
             ]
         )
-        
 
     def test_validate_row_count_without_max_rows(self):
         validation = RowCountValidation(
             type="rowCountValidation",
             id="123",
             minRowCount=2,
-            maxRowCount=None
+            maxRowCount=None,
+            title="Row count validation",
+            description=None
         )
         self.assertEqual(
             validate_row_count([{}], validation),
@@ -399,4 +406,3 @@ class TestValidateFieldSet(unittest.TestCase):
                 )
             ]
         )
-        
