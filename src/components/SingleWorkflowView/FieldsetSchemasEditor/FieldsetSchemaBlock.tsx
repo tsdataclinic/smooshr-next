@@ -78,9 +78,48 @@ export function FieldsetSchemaBlock({
     }
   };
 
+  const renderHeadersInfoTable = () => {
+    const { fields } = fieldsetSchema;
+    if (fields.length > 0) {
+      return (
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Column name</Table.Th>
+              <Table.Th>Required</Table.Th>
+              <Table.Th>Data type</Table.Th>
+              <Table.Th>Case sensitive</Table.Th>
+              <Table.Th>Allows empty values</Table.Th>
+              <Table.Th>Allowed values</Table.Th>
+              <Table.Th />
+            </Table.Tr>
+          </Table.Thead>
+
+          <Table.Tbody>
+            {fields.map((fieldSchema, i) => {
+              return (
+                <FieldSchemaRow
+                  key={fieldSchema.id}
+                  fieldSchema={fieldSchema}
+                  fieldsetIndex={index}
+                  index={i}
+                />
+              );
+            })}
+          </Table.Tbody>
+        </Table>
+      );
+    }
+
+    return <Text>This schema contains no columns yet.</Text>;
+  };
+
   return (
     <>
-      <Fieldset className="relative" legend={fieldsetSchema.name}>
+      <Fieldset
+        className="relative"
+        legend={<Text>{fieldsetSchema.name}</Text>}
+      >
         <Menu withArrow shadow="md" width={250} position="left">
           <Menu.Target>
             <ActionIcon
@@ -111,36 +150,7 @@ export function FieldsetSchemaBlock({
             })}
             label="Order of columns matters"
           />
-          {fieldsetSchema.fields.length > 0 ? (
-            <Table>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Column name</Table.Th>
-                  <Table.Th>Required</Table.Th>
-                  <Table.Th>Data type</Table.Th>
-                  <Table.Th>Case sensitive</Table.Th>
-                  <Table.Th>Allows empty values</Table.Th>
-                  <Table.Th>Allowed values</Table.Th>
-                  <Table.Th />
-                </Table.Tr>
-              </Table.Thead>
-
-              <Table.Tbody>
-                {fieldsetSchema.fields.map((fieldSchema, i) => {
-                  return (
-                    <FieldSchemaRow
-                      key={fieldSchema.id}
-                      fieldSchema={fieldSchema}
-                      fieldsetIndex={index}
-                      index={i}
-                    />
-                  );
-                })}
-              </Table.Tbody>
-            </Table>
-          ) : (
-            <Text>This schema contains no columns yet.</Text>
-          )}
+          {renderHeadersInfoTable()}
         </div>
       </Fieldset>
 

@@ -81,10 +81,28 @@ export function FieldsetSchemasEditor({
   const { fieldsetSchemas } = form.getValues();
 
   return (
-    <div className="space-y-2">
-      <FieldsetSchemasFormProvider form={form}>
-        <form>
+    <FieldsetSchemasFormProvider form={form}>
+      <form className="space-y-3">
+        <div className="space-y-2">
+          {fieldsetSchemas.length === 0 ? (
+            <Text>No schemas created yet</Text>
+          ) : (
+            fieldsetSchemas.map((schema, i) => {
+              return (
+                <FieldsetSchemaBlock
+                  key={schema.id}
+                  index={i}
+                  fieldsetSchema={fieldsetSchemas[i]}
+                  onLoadFieldsetFromCSV={onLoadFieldsetFromCSV}
+                />
+              );
+            })
+          )}
+        </div>
+
+        <div className="flex justify-between">
           <Button
+            variant="outline"
             onClick={() => {
               form.insertListItem(
                 'fieldsetSchemas',
@@ -92,25 +110,8 @@ export function FieldsetSchemasEditor({
               );
             }}
           >
-            Create new schema
+            Add new schema
           </Button>
-
-          <div className="space-y-2">
-            {fieldsetSchemas.length === 0 ? (
-              <Text>No schemas created yet</Text>
-            ) : (
-              fieldsetSchemas.map((schema, i) => {
-                return (
-                  <FieldsetSchemaBlock
-                    key={schema.id}
-                    index={i}
-                    fieldsetSchema={fieldsetSchemas[i]}
-                    onLoadFieldsetFromCSV={onLoadFieldsetFromCSV}
-                  />
-                );
-              })
-            )}
-          </div>
 
           <Button
             disabled={fieldsetSchemas.length === 0}
@@ -128,8 +129,8 @@ export function FieldsetSchemasEditor({
           >
             Save
           </Button>
-        </form>
-      </FieldsetSchemasFormProvider>
-    </div>
+        </div>
+      </form>
+    </FieldsetSchemasFormProvider>
   );
 }
