@@ -14,10 +14,13 @@ cd /srv/$APP_NAME
 yarn install
 
 # Build the API server
-# TODO: add commands to build the API server, if it has one
+cp /srv/envs/server.env .env.server
+python3 -m venv venv
+source venv/bin/activate
+yarn py-install
 
 # Run the db migration
-# TODO: add commands to migrate any databases, if it has one
+yarn db-upgrade
 
 # Build the frontend
 cp /srv/envs/frontend.env .env.frontend
