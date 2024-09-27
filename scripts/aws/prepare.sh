@@ -1,6 +1,11 @@
 #!/bin/bash
 # In this script we install dependencies and compile the app's bundles.
 
+# Load NVM
+export NVM_DIR="$HOME/.nvm"
+# This loads nvm
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
 APP_NAME=ek12
 cd /srv/$APP_NAME
 

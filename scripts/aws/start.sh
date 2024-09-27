@@ -1,6 +1,11 @@
 #!/bin/bash
 # In this script we start the necessary servers.
 
+# Load NVM
+export NVM_DIR="$HOME/.nvm"
+# This loads nvm
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
 APP_NAME=ek12
 cd /srv/$APP_NAME
 
