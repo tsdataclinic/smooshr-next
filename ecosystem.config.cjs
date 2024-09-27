@@ -11,7 +11,7 @@ module.exports = {
     },
     {
       name: 'server',
-      script: './venv/bin/uviorn',
+      script: './venv/bin/uvicorn',
       args: 'views:app --log-config ./api-log-config.json --app-dir server/api',
       interpreter: 'python3',
       env_staging: {
