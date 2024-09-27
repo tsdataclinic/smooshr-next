@@ -11,7 +11,7 @@ APP_NAME=ek12
 cd /srv/$APP_NAME
 
 # Start the frontend server
-pm2 start "serve -s build" --name frontend
+pm2 start "serve -s dist" --name frontend
 
 # Start the API server
 # TODO: add command
