@@ -1,0 +1,27 @@
+version: 0.0
+os: linux
+
+# tell AWS CodeDeploy to copy the entire repo
+# https://docs.aws.amazon.com/codedeploy/latest/userguide/reference-appspec-file-structure-files.html
+files:
+  - source: .
+    destination: /srv/ek12
+
+# run our setup scripts
+hooks:
+  ApplicationStop:
+    - location: scripts/aws/stop.sh
+      timeout: 300
+      runas: root
+  BeforeInstall:
+    - location: scripts/aws/cleanup.sh
+      timeout: 300
+      runas: root
+  AfterInstall:
+    - location: scripts/aws/prepare.sh
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: scripts/aws/start.sh
+      timeout: 300
+      runas: root

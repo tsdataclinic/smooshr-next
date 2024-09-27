@@ -28,7 +28,7 @@
   ],
   "fieldsetSchemas": [
     {
-      "id": "42",
+      "id": "demographic_fields_uuid",
       "name": "demographic_fields",
       "orderMatters": false,
       "allowExtraColumns": "no",

@@ -41,5 +41,6 @@ __pycache__
 *.sqlite
 
 # testing 
+.coverage
 coverage.xml
 htmlcov/
