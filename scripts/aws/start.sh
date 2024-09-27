@@ -11,8 +11,5 @@ APP_NAME=ek12
 cd /srv/$APP_NAME
 source venv/bin/activate
 
-# Start the frontend server
-pm2 start "serve -s dist" --name frontend
-
-# Start the API server
-pm2 start "PYTHONPATH=. uvicorn views:app --log-config ./api-log-config.json --app-dir server/api" --name server
+# Start the servers according to ecosystem.config.js
+pm2 start ecosystem.config.js --env staging
