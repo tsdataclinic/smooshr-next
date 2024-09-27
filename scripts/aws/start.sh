@@ -12,4 +12,4 @@ cd /srv/$APP_NAME
 source venv/bin/activate
 
 # Start the servers according to ecosystem.config.js
-pm2 start ecosystem.config.js --env staging
+pm2 start ecosystem.config.cjs --env staging
