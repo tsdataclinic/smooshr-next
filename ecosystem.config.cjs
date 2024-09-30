@@ -4,7 +4,7 @@ module.exports = {
     {
       name: 'frontend',
       script: 'serve',
-      args: '-s dist',
+      args: '-l 3000 -s dist',
       env_staging: {
         NODE_ENV: 'staging',
       },
@@ -13,7 +13,7 @@ module.exports = {
       name: 'server',
       script: './venv/bin/uvicorn',
       args: 'views:app --log-config ./api-log-config.json --app-dir server/api',
-      interpreter: 'python3',
+      interpreter: './venv/bin/python3',
       env_staging: {
         PYTHONPATH: '.',
       },
