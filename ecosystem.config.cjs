@@ -3,7 +3,7 @@ module.exports = {
   apps: [
     {
       name: 'frontend',
-      script: 'serve',
+      script: './node_modules/.bin/serve',
       args: '-s dist -p 3000',
       env_staging: {
         NODE_ENV: 'staging',
