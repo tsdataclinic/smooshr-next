@@ -221,7 +221,7 @@ def create_workflow(
     return FullWorkflow.model_validate(db_workflow)
 
 
-@app.put("/workflows/{workflow_id}", tags=["workflows"])
+@app.put("/api/workflows/{workflow_id}", tags=["workflows"])
 def update_workflow(
     workflow_id: str,
     workflow_data: WorkflowUpdate,

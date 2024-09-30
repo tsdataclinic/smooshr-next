@@ -12,6 +12,9 @@ import type {
   GetWorkflowData,
   GetWorkflowError,
   GetWorkflowResponse,
+  UpdateWorkflowData,
+  UpdateWorkflowError,
+  UpdateWorkflowResponse,
   DeleteWorkflowData,
   DeleteWorkflowError,
   DeleteWorkflowResponse,
@@ -20,9 +23,6 @@ import type {
   CreateWorkflowData,
   CreateWorkflowError,
   CreateWorkflowResponse,
-  UpdateWorkflowData,
-  UpdateWorkflowError,
-  UpdateWorkflowResponse,
   RunWorkflowData,
   RunWorkflowError,
   RunWorkflowResponse,
@@ -63,6 +63,23 @@ export class WorkflowsService {
     return (options?.client ?? client).get<
       GetWorkflowResponse,
       GetWorkflowError,
+      ThrowOnError
+    >({
+      ...options,
+      url: '/api/workflows/{workflow_id}',
+    });
+  }
+
+  /**
+   * Update Workflow
+   * Update a workflow by ID
+   */
+  public static updateWorkflow<ThrowOnError extends boolean = false>(
+    options: Options<UpdateWorkflowData, ThrowOnError>,
+  ) {
+    return (options?.client ?? client).put<
+      UpdateWorkflowResponse,
+      UpdateWorkflowError,
       ThrowOnError
     >({
       ...options,
@@ -118,23 +135,6 @@ export class WorkflowsService {
     >({
       ...options,
       url: '/api/workflows',
-    });
-  }
-
-  /**
-   * Update Workflow
-   * Update a workflow by ID
-   */
-  public static updateWorkflow<ThrowOnError extends boolean = false>(
-    options: Options<UpdateWorkflowData, ThrowOnError>,
-  ) {
-    return (options?.client ?? client).put<
-      UpdateWorkflowResponse,
-      UpdateWorkflowError,
-      ThrowOnError
-    >({
-      ...options,
-      url: '/workflows/{workflow_id}',
     });
   }
 
