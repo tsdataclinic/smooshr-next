@@ -23,6 +23,7 @@ yarn install
 cp /srv/envs/server.env .env.server
 python3 -m venv venv
 source venv/bin/activate
+pip install pip-tools
 yarn py-install
 
 # Run the db migration
