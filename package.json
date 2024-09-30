@@ -10,7 +10,7 @@
     "db-upgrade": "python -m alembic upgrade head",
     "db-downgrade": "python -m alembic downgrade -1",
     "dev": "vite --mode frontend",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build --mode frontend",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "py-install": "pip-compile requirements.in && pip install -r requirements.txt",
