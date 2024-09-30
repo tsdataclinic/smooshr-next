@@ -4,7 +4,7 @@ module.exports = {
     {
       name: 'frontend',
       script: 'serve',
-      args: '-s dist -l 5173',
+      args: '-s dist -p 3000',
       env_staging: {
         NODE_ENV: 'staging',
       },
