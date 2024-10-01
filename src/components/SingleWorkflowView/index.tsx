@@ -18,12 +18,14 @@ import {
   Modal,
   List,
   Text,
+  Space,
 } from '@mantine/core';
 import { IconDots, IconPlus } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { FieldsetSchemasEditor } from './FieldsetSchemasEditor';
 import { OperationEditor } from './OperationEditor';
 import { TestWorkflowBlock } from './TestWorkflowBlock';
+import { Workspace } from './Workspace';
 
 type ModalViewType = 'fieldsetSchemaEditor' | 'testWorkflow' | 'none';
 
@@ -61,10 +63,8 @@ export function SingleWorkflowView(): JSX.Element {
   }
 
   if (!isLoading && workflow) {
-    const { operations } = workflow.schema;
-
     const headerRow = (
-      <Group>
+      <Group mb="lg">
         <Title order={1}>{workflow.title}</Title>
         <Menu withArrow shadow="md" width={200}>
           <Menu.Target>
@@ -98,32 +98,8 @@ export function SingleWorkflowView(): JSX.Element {
 
     return (
       <>
-        <Stack>
-          {headerRow}
-
-          <Title order={2}>Validations</Title>
-          {operations.length === 0 ? (
-            <Text>No validations have been added yet</Text>
-          ) : (
-            <List
-              size="lg"
-              className="rounded border border-gray-200 text-left"
-            >
-              {operations.map((op, i) => {
-                return (
-                  <List.Item key={op.id}>
-                    <div className="flex w-full items-center p-3">
-                      <div className="border-r border-gray-400 pr-2">
-                        {i + 1}
-                      </div>
-                      <div className="pl-2">{op.title}</div>
-                    </div>
-                  </List.Item>
-                );
-              })}
-            </List>
-          )}
-        </Stack>
+        {headerRow}
+        <Workspace workflow={workflow} />
 
         <Affix position={{ bottom: 40, left: 40 }}>
           <Menu withArrow shadow="md" width={250} position="left">
