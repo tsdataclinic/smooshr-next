@@ -1,5 +1,12 @@
 import * as React from 'react';
-import { AppShell, Group, Burger, Button } from '@mantine/core';
+import {
+  Container,
+  Text,
+  AppShell,
+  Group,
+  Burger,
+  Button,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Link } from 'wouter';
 import { useDataClinicAuth } from '../../auth/useDataClinicAuth';
@@ -35,6 +42,8 @@ export function Layout({ children }: Props): JSX.Element {
     </>
   );
 
+  console.log('auth?', isAuthenticated);
+
   return (
     <AppShell
       header={{ height: 60 }}
@@ -59,12 +68,20 @@ export function Layout({ children }: Props): JSX.Element {
           </Group>
         </Group>
       </AppShell.Header>
-
       <AppShell.Navbar py="md" px={4}>
         {navbarContent}
       </AppShell.Navbar>
-
-      <AppShell.Main>{children}</AppShell.Main>
+      <AppShell.Main>
+        {isAuthenticated ? (
+          children
+        ) : (
+          <Container ta="center">
+            <Text size="lg">
+              You are not signed in. Please sign in to use this app.
+            </Text>
+          </Container>
+        )}
+      </AppShell.Main>
     </AppShell>
   );
 }
