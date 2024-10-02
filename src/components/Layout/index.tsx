@@ -42,8 +42,6 @@ export function Layout({ children }: Props): JSX.Element {
     </>
   );
 
-  console.log('auth?', isAuthenticated);
-
   return (
     <AppShell
       header={{ height: 60 }}
