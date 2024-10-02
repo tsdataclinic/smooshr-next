@@ -47,9 +47,7 @@ function App(): JSX.Element {
                 <Route path={`${getSingleWorkflowBaseURI()}/:workflowId`}>
                   <SingleWorkflowView />
                 </Route>
-                <Route path={getAboutURI()}>
-                  <Layout>About page</Layout>
-                </Route>
+                <Route path={getAboutURI()}>About page</Route>
                 <Route>404: No such page!</Route>
               </Switch>
             </Layout>
