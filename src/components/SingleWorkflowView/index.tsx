@@ -64,7 +64,7 @@ export function SingleWorkflowView(): JSX.Element | null {
           title="Test workflow"
           size="auto"
         >
-          <TestWorkflowBlock workflow={workflow} />;
+          <TestWorkflowBlock workflow={workflow} />
         </Modal>
       </>
     );
