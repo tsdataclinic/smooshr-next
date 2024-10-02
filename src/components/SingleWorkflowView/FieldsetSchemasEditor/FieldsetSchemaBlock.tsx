@@ -1,7 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import {
   Table,
-  Modal,
   Menu,
   Text,
   TextInput,
@@ -16,7 +15,6 @@ import {
 import * as Papa from 'papaparse';
 import { IconSettingsFilled } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
-import { useDisclosure } from '@mantine/hooks';
 import type { FieldsetSchema_Output } from '../../../client';
 import { FieldSchemaRow } from './FieldSchemaRow';
 import { useFieldsetSchemasFormContext } from './FieldsetSchemasContext';
@@ -46,7 +44,6 @@ export function FieldsetSchemaBlock({
   index,
 }: Props): JSX.Element {
   const form = useFieldsetSchemasFormContext();
-  const [isCSVParseModalOpen, csvParseModalActions] = useDisclosure(false);
 
   const openDeleteModal = () =>
     modals.openConfirmModal({
@@ -85,14 +82,12 @@ export function FieldsetSchemaBlock({
                 };
               }) ?? [],
           });
-
-          csvParseModalActions.close();
         },
       });
     }
   };
 
-  const renderHeadersInfoTable = () => {
+  const renderHeadersMetadataTable = () => {
     const { fields } = fieldsetSchema;
     if (fields.length > 0) {
       return (
@@ -125,7 +120,7 @@ export function FieldsetSchemaBlock({
       );
     }
 
-    return <Text>This schema contains no columns yet.</Text>;
+    return <Text>This schema contains no columns.</Text>;
   };
 
   return (
@@ -146,9 +141,6 @@ export function FieldsetSchemaBlock({
             </ActionIcon>
           </Menu.Target>
           <Menu.Dropdown>
-            <Menu.Item onClick={csvParseModalActions.open}>
-              Generate schema from CSV
-            </Menu.Item>
             <Menu.Item onClick={openDeleteModal}>Delete schema</Menu.Item>
           </Menu.Dropdown>
         </Menu>
@@ -159,37 +151,39 @@ export function FieldsetSchemaBlock({
             {...form.getInputProps(`fieldsetSchemas.${index}.name`)}
             label="Schema Name"
           />
-          <Select
-            key={form.key(`fieldsetSchemas.${index}.allowExtraColumns`)}
-            {...form.getInputProps(
-              `fieldsetSchemas.${index}.allowExtraColumns`,
-            )}
-            data={ALLOW_EXTRA_COLUMNS_OPTIONS}
-            label="Allow extra columns"
-          />
-          <Checkbox
-            key={form.key(`fieldsetSchemas.${index}.orderMatters`)}
-            {...form.getInputProps(`fieldsetSchemas.${index}.orderMatters`, {
-              type: 'checkbox',
-            })}
-            label="Order of columns matters"
-          />
 
-          {renderHeadersInfoTable()}
+          {fieldsetSchema.fields.length === 0 ? (
+            <FileButton onChange={onCSVUpload} accept=".csv">
+              {(props) => (
+                <Button {...props}>Get column schema from CSV</Button>
+              )}
+            </FileButton>
+          ) : (
+            <>
+              <Select
+                key={form.key(`fieldsetSchemas.${index}.allowExtraColumns`)}
+                {...form.getInputProps(
+                  `fieldsetSchemas.${index}.allowExtraColumns`,
+                )}
+                data={ALLOW_EXTRA_COLUMNS_OPTIONS}
+                label="Allow extra columns"
+              />
+              <Checkbox
+                key={form.key(`fieldsetSchemas.${index}.orderMatters`)}
+                {...form.getInputProps(
+                  `fieldsetSchemas.${index}.orderMatters`,
+                  {
+                    type: 'checkbox',
+                  },
+                )}
+                label="Order of columns matters"
+              />
+
+              {renderHeadersMetadataTable()}
+            </>
+          )}
         </div>
       </Fieldset>
-
-      <Modal
-        opened={isCSVParseModalOpen}
-        onClose={csvParseModalActions.close}
-        title="Get Schema from CSV"
-      >
-        <div>
-          <FileButton onChange={onCSVUpload} accept=".csv">
-            {(props) => <Button {...props}>Get column schema from CSV</Button>}
-          </FileButton>
-        </div>
-      </Modal>
     </>
   );
 }
