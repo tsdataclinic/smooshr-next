@@ -274,6 +274,9 @@ def run_workflow(
     resource = Resource(file.file.read(), format="csv")
 
     try:
+        # check if the csv is even a valid csv file. Note that this is a stronger
+        # check than what is performed in `process_workflow` because we are checking
+        # for if the file adheres to the csv format, and not just the data within it
         resource.infer(stats=True)
     except frictionless.exception.FrictionlessException:
         raise HTTPException(
@@ -281,32 +284,13 @@ def run_workflow(
             detail="Could not parse the input file. Please check that it is a valid .csv file!",
         )
 
-    # TODO: eventually most, or all, of our `process_workflow` function should make use of
-    #   the Frictionless library so we can take advantage of its streaming functionality
-    #   when validating files.
-    # POC of validating the input csv just for basic CSV formatting
-    # see https://framework.frictionlessdata.io/docs/checks/baseline.html#reference-checks.baseline
-    # for list of baseline checks
-    report = validate(resource)
-    if not report.valid:
-        raise HTTPException(
-            status_code=400, detail={"errors": report.flatten(["message"])}
-        )
-
     # get the CSV data from the Frictionless Resource to run our workflow
-    all_rows: list[dict[str, Any]] = [row.to_dict() for row in resource.read_rows()] # type: ignore
-    fieldnames = [field.name for field in resource.schema.fields]
     filename = file.filename if file.filename else ''
-    csv_data = CsvData(
-        column_names=fieldnames,
-        data=all_rows,
-    )
-
     # run our workflow
-    validation_results = process_workflow(filename, csv_data, {}, db_workflow.schema)
+    validation_results = process_workflow(filename, resource, {}, db_workflow.schema)
 
     return WorkflowRunReport(
-        row_count=len(all_rows),
+        row_count=resource.rows,
         filename=file.filename if file.filename else '',
         workflow_id=workflow_id,
         validation_failures=validation_results,

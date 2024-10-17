@@ -1,10 +1,34 @@
 from typing import Any
 from dataclasses import dataclass
 import datetime 
-from server.models.workflow.workflow_schema import BasicFieldDataTypeSchema, FieldSchema, FieldsetSchema, FileTypeValidation, RowCountValidation, TimestampDataTypeSchema
-from server.models.workflow.api_schemas import ValidationFailure
+
+from frictionless import validate, Resource
 from pydantic import BaseModel, Field
 
+from server.models.workflow.workflow_schema import BasicFieldDataTypeSchema, FieldSchema, FieldsetSchema, FileTypeValidation, RowCountValidation, TimestampDataTypeSchema, CsvData
+from server.models.workflow.api_schemas import ValidationFailure
+
+def parse_frictionless(file_contents: str | Resource) -> tuple[Resource, list[ValidationFailure]]:
+    """Validate the file using the Frictionless baseline checks and parse the file contents into a 
+    Frictionless Resource if not already."""
+
+    if isinstance(file_contents, str):
+        # Resource expects bytes when the first argument is the actual csv contents
+        # A string is interpreted as a filename
+        resource = Resource(file_contents.encode("utf-8"), format="csv")
+    else:
+        resource = file_contents
+
+    report = validate(resource, skip_errors=["missing-cell"])
+    if not report.valid:
+        return resource, [
+            ValidationFailure(
+                row_number=error[0],
+                message="(from frictionless) " + error[1] 
+            )
+            for error in report.flatten(["rowNumber", "message"])
+        ]
+    return resource,[]
 
 def validate_file_type(file_name: str, validation: FileTypeValidation) -> list[ValidationFailure]:
     """Validate the file type of a file."""
@@ -112,13 +136,18 @@ def _validate_field(row_num: int, row: dict, field: FieldSchema, params: dict[st
         case BasicFieldDataTypeSchema(data_type="number"):
             try:
                 float(value)
-            except ValueError:
-                validations.append(
-                    ValidationFailure(
-                        row_number=row_num,
-                        message=f"Value '{value}' for field '{field.name}' is not a valid number"
+            # TypeError is raised if value is None
+            except (TypeError, ValueError) as e:
+                # if value is None, and we haven't already added a validation failure for a missing value, 
+                # create a validation failure 
+                if (isinstance(e, TypeError) and not field.required) \
+                    or isinstance(e, ValueError):
+                    validations.append(
+                        ValidationFailure(
+                            row_number=row_num,
+                            message=f"Value '{value}' for field '{field.name}' is not a valid number"
+                        )
                     )
-                )
         case TimestampDataTypeSchema(data_type="timestamp", date_time_format=date_time_format):
             try:
                 datetime.datetime.strptime(value, date_time_format)

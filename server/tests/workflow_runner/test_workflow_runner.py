@@ -2,6 +2,7 @@ import json
 import unittest
 
 from pathlib import Path
+from frictionless import Resource
 
 from server.workflow_runner.workflow_runner import process_workflow
 from server.models.workflow.workflow_schema import WorkflowSchema
@@ -27,4 +28,27 @@ class TestWorkflowRunner(unittest.TestCase):
             contents = f.read()
         failures = process_workflow("bad.csv", contents, {"fieldset_schema": "demographic_fields_uuid"}, self.schema)
         # 4 rows are missing population, which is a required field and also not a valid number
-        self.assertEqual(len(failures), 8)
+        self.assertEqual(len(failures), 11)
+
+    def test_on_resource(self):
+        """Tests that we can use a Resource as the file_contents argument in process_workflow."""
+        with GOOD_DATA_PATH.open() as f:
+            contents = f.read()
+        resource = Resource(contents.encode("utf-8"), format="csv")
+        failures = process_workflow("good.csv", resource, {"fieldset_schema": "demographic_fields_uuid"}, self.schema)
+        self.assertEqual(failures, [])
+
+        with BAD_DATA_PATH.open() as f:
+            contents = f.read()
+        resource = Resource(contents.encode("utf-8"), format="csv")
+        failures = process_workflow("bad.csv", resource, {"fieldset_schema": "demographic_fields_uuid"}, self.schema)
+        self.assertEqual(len(failures), 11)
+    
+    def test_implicit_frictionless_validation_flag(self):
+        """Tests that the implicit_frictionless_validation flag works by passing in a csv that would cause a frictionless error."""
+        with BAD_DATA_PATH.open() as f:
+            contents = f.read()
+        resource = Resource(contents.encode("utf-8"), format="csv")
+
+        failures_without_flag = process_workflow("bad.csv", resource, {"fieldset_schema": "demographic_fields_uuid"}, self.schema, implicit_frictionless_validation=False)
+        self.assertEqual(len(failures_without_flag), 10)
