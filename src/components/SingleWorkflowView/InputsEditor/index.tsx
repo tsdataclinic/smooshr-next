@@ -45,9 +45,6 @@ const PARAM_TYPE_OPTIONS: ComboboxItem[] = [
 ];
 
 export function InputsEditor({ workflow }: Props): JSX.Element {
-  // TODO: remove this line
-  console.log('workflow schema', workflow.schema);
-
   const workflowInputsForm = useForm<{ params: WorkflowParam[] }>({
     mode: 'controlled',
     initialValues: {
@@ -71,13 +68,11 @@ export function InputsEditor({ workflow }: Props): JSX.Element {
         ) : (
           params.map((param, i) => {
             return (
-              <Fieldset key={param.id} legend={<Text>{param.name}</Text>}>
+              <Fieldset
+                key={param.id}
+                legend={<Text>{param.displayName}</Text>}
+              >
                 <Group>
-                  <TextInput
-                    key={workflowInputsForm.key(`params.${i}.name`)}
-                    {...workflowInputsForm.getInputProps(`params.${i}.name`)}
-                    label="Name"
-                  />
                   <TextInput
                     key={workflowInputsForm.key(`params.${i}.displayName`)}
                     {...workflowInputsForm.getInputProps(

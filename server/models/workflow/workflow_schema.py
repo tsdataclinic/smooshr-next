@@ -90,9 +90,16 @@ class FieldsetSchema(BaseModel):
 class WorkflowParam(BaseModel):
     """The schema representing an argument (an input) for the Workflow that
     is passed in when a Workflow is kicked off.
+
+    Args:
+    - id: str - uuid, a stable id for this param that is not user-editable
+    - name: str - auto-generated name from the `display_name` to be used as the variable name for this param.
+    - display_name: str - user-editable display name of this param
+    - description: str
+    - required: bool
     """
 
-    id: str # uuid
+    id: str
     name: str
     display_name: str = Field(alias="displayName")
     description: str
