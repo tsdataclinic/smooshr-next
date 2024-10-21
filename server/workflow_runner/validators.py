@@ -24,7 +24,7 @@ def parse_frictionless(file_contents: str | Resource) -> tuple[Resource, list[Va
         return resource, [
             ValidationFailure(
                 row_number=error[0],
-                message="(from frictionless) " + error[1] 
+                message=error[1] 
             )
             for error in report.flatten(["rowNumber", "message"])
         ]
