@@ -525,6 +525,10 @@ export const $WorkflowCreate = {
 
 export const $WorkflowParam = {
   properties: {
+    id: {
+      type: 'string',
+      title: 'Id',
+    },
     name: {
       type: 'string',
       title: 'Name',
@@ -548,7 +552,7 @@ export const $WorkflowParam = {
     },
   },
   type: 'object',
-  required: ['name', 'displayName', 'description', 'required', 'type'],
+  required: ['id', 'name', 'displayName', 'description', 'required', 'type'],
   title: 'WorkflowParam',
   description: `The schema representing an argument (an input) for the Workflow that
 is passed in when a Workflow is kicked off.`,

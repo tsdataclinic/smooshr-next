@@ -290,7 +290,7 @@ def run_workflow(
     validation_results = process_workflow(filename, resource, {}, db_workflow.schema)
 
     return WorkflowRunReport(
-        row_count=resource.rows,
+        row_count=resource.rows if resource.rows else 0,
         filename=file.filename if file.filename else '',
         workflow_id=workflow_id,
         validation_failures=validation_results,

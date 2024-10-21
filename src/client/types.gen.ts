@@ -179,6 +179,7 @@ export type WorkflowCreate = {
  * is passed in when a Workflow is kicked off.
  */
 export type WorkflowParam = {
+  id: string;
   name: string;
   displayName: string;
   description: string;

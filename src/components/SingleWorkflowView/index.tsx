@@ -26,8 +26,6 @@ export function SingleWorkflowView(): JSX.Element | null {
   const [isTestWorkflowModalOpen, testWorkflowModalActions] =
     useDisclosure(false);
 
-  console.log('Loaded workflow', workflow);
-
   if (isLoading) {
     return <Loader />;
   }

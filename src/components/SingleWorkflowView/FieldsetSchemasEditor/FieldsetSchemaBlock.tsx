@@ -13,7 +13,7 @@ import {
   ComboboxItem,
 } from '@mantine/core';
 import * as Papa from 'papaparse';
-import { IconSettingsFilled } from '@tabler/icons-react';
+import { IconTrash } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
 import type { FieldsetSchema_Output } from '../../../client';
 import { FieldSchemaRow } from './FieldSchemaRow';
@@ -129,21 +129,16 @@ export function FieldsetSchemaBlock({
         className="relative"
         legend={<Text>{fieldsetSchema.name}</Text>}
       >
-        <Menu withArrow shadow="md" width={250} position="left">
-          <Menu.Target>
-            <ActionIcon
-              variant="transparent"
-              className="absolute -top-1 right-1"
-              color="dark"
-              size="sm"
-            >
-              <IconSettingsFilled />
-            </ActionIcon>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Item onClick={openDeleteModal}>Delete schema</Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
+        <ActionIcon
+          aria-label="Delete Column Rule"
+          variant="transparent"
+          className="absolute -top-1 right-1"
+          color="dark"
+          size="sm"
+          onClick={openDeleteModal}
+        >
+          <IconTrash />
+        </ActionIcon>
 
         <div className="space-y-3">
           <TextInput
