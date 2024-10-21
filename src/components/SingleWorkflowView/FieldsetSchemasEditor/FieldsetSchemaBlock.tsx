@@ -1,7 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import {
   Table,
-  Menu,
   Text,
   TextInput,
   Checkbox,

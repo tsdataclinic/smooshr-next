@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { UsersService } from '../client/services.gen.ts';
+import { UsersService } from '../client/services.gen';
 import { processAPIData } from '../util/apiUtil';
-import type { User } from '../client/types.gen.ts';
+import type { User } from '../client/types.gen';
 
 /**
  * A hook which returns information about the current user.

@@ -17,7 +17,7 @@ export function SingleWorkflowView(): JSX.Element | null {
       processAPIData(
         WorkflowsService.getWorkflow({
           path: {
-            workflow_id: params.workflowId, // eslint-disable-line camelcase
+            workflow_id: params.workflowId,
           },
         }),
       ),
