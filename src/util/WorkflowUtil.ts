@@ -2,6 +2,7 @@ import {
   FieldsetSchema_Output,
   FullWorkflow,
   WorkflowSchema_Output,
+  WorkflowParam,
 } from '../client';
 import { getSingleWorkflowBaseURI } from './uriUtil';
 import { ArrayElementType } from './types';
@@ -14,6 +15,19 @@ export const WorkflowUtil = {
 
   getWorkflowURI(id: string): string {
     return `${getSingleWorkflowBaseURI()}/${id}`;
+  },
+
+  updateWorkflowParams(
+    workflow: FullWorkflow,
+    params: readonly WorkflowParam[],
+  ): FullWorkflow {
+    return {
+      ...workflow,
+      schema: {
+        ...workflow.schema,
+        params: params as WorkflowParam[],
+      },
+    };
   },
 
   updateFieldsetSchemas(

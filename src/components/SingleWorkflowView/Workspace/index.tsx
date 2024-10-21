@@ -12,7 +12,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { FullWorkflow } from '../../../client';
 import { FieldsetSchemasEditor } from '../FieldsetSchemasEditor';
 import { OperationEditor } from '../OperationEditor';
-import { InputsEditor } from '../InputsEditor';
+import { ParamsEditor } from '../ParamsEditor';
 
 type Props = { workflow: FullWorkflow };
 
@@ -27,7 +27,7 @@ export function Workspace({ workflow }: Props): JSX.Element {
           <Stack>
             <Stack>
               <Title order={2}>Inputs</Title>
-              <InputsEditor workflow={workflow} />
+              <ParamsEditor workflow={workflow} />
             </Stack>
             <Stack>
               <Title order={2}>Column Rules</Title>
