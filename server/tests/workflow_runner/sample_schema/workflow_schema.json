@@ -93,6 +93,7 @@
   ],
   "params": [
     {
+      "id": "123456",
       "name": "fieldset_schema",
       "displayName": "Fieldset Schema",
       "description": "For testing",
