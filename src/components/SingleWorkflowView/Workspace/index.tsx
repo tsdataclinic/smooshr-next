@@ -12,6 +12,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { FullWorkflow } from '../../../client';
 import { FieldsetSchemasEditor } from '../FieldsetSchemasEditor';
 import { OperationEditor } from '../OperationEditor';
+import { InputsEditor } from '../InputsEditor';
 
 type Props = { workflow: FullWorkflow };
 
@@ -25,8 +26,8 @@ export function Workspace({ workflow }: Props): JSX.Element {
         <Grid.Col span={7}>
           <Stack>
             <Stack>
-              <Title order={2}>Workflow Inputs</Title>
-              <Text fs="italic">Workflow Inputs are not implemented yet.</Text>
+              <Title order={2}>Inputs</Title>
+              <InputsEditor workflow={workflow} />
             </Stack>
             <Stack>
               <Title order={2}>Column Rules</Title>
