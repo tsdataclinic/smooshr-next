@@ -9,3 +9,4 @@ frictionless
 pytest
 pytest-asyncio
 coverage
+black
