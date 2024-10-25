@@ -22,6 +22,7 @@ export type dataType = 'any' | 'string' | 'number';
 
 export type Body_run_workflow = {
   file: Blob | File;
+  workflow_inputs: string;
 };
 
 /**
@@ -34,7 +35,7 @@ export type FieldSchema = {
   required: boolean;
   dataTypeValidation: BasicFieldDataTypeSchema | TimestampDataTypeSchema;
   allowEmptyValues: boolean;
-  allowedValues: string[] | ParamReference | null;
+  allowedValues: Array<string> | ParamReference | null;
 };
 
 /**
@@ -45,7 +46,7 @@ export type FieldsetSchema_Input = {
   id: string;
   name: string;
   orderMatters: boolean;
-  fields: FieldSchema[];
+  fields: Array<FieldSchema>;
   allowExtraColumns: 'no' | 'anywhere' | 'onlyAfterSchemaFields';
 };
 
@@ -59,7 +60,7 @@ export type FieldsetSchema_Output = {
   id: string;
   name: string;
   orderMatters: boolean;
-  fields: FieldSchema[];
+  fields: Array<FieldSchema>;
   allowExtraColumns: 'no' | 'anywhere' | 'onlyAfterSchemaFields';
 };
 
@@ -101,7 +102,7 @@ export type FullWorkflow = {
 };
 
 export type HTTPValidationError = {
-  detail?: ValidationError[];
+  detail?: Array<ValidationError>;
 };
 
 /**
@@ -177,6 +178,13 @@ export type WorkflowCreate = {
 /**
  * The schema representing an argument (an input) for the Workflow that
  * is passed in when a Workflow is kicked off.
+ *
+ * Args:
+ * - id: str - uuid, a stable id for this param that is not user-editable
+ * - name: str - auto-generated name from the `display_name` to be used as the variable name for this param.
+ * - display_name: str - user-editable display name of this param
+ * - description: str
+ * - required: bool
  */
 export type WorkflowParam = {
   id: string;
@@ -196,7 +204,7 @@ export type WorkflowRunReport = {
   rowCount: number;
   filename: string;
   workflowId: string;
-  validationFailures: ValidationFailure[];
+  validationFailures: Array<ValidationFailure>;
 };
 
 /**
@@ -207,8 +215,8 @@ export type WorkflowSchema_Input = {
   operations: Array<
     FieldsetSchemaValidation | FileTypeValidation | RowCountValidation
   >;
-  fieldsetSchemas: FieldsetSchema_Input[];
-  params: WorkflowParam[];
+  fieldsetSchemas: Array<FieldsetSchema_Input>;
+  params: Array<WorkflowParam>;
 };
 
 export type version = '0.1';
@@ -221,8 +229,8 @@ export type WorkflowSchema_Output = {
   operations: Array<
     FieldsetSchemaValidation | FileTypeValidation | RowCountValidation
   >;
-  fieldsetSchemas: FieldsetSchema_Output[];
-  params: WorkflowParam[];
+  fieldsetSchemas: Array<FieldsetSchema_Output>;
+  params: Array<WorkflowParam>;
 };
 
 /**
@@ -271,7 +279,7 @@ export type DeleteWorkflowResponse = unknown;
 
 export type DeleteWorkflowError = HTTPValidationError;
 
-export type GetWorkflowsResponse = BaseWorkflow[];
+export type GetWorkflowsResponse = Array<BaseWorkflow>;
 
 export type GetWorkflowsError = unknown;
 

@@ -19,7 +19,7 @@
   "dependencies": {
     "@azure/msal-browser": "^3.20.0",
     "@azure/msal-react": "^2.0.22",
-    "@hey-api/client-fetch": "^0.2.4",
+    "@hey-api/client-fetch": "^0.4.2",
     "@mantine/core": "^7.10.1",
     "@mantine/form": "^7.10.1",
     "@mantine/hooks": "^7.10.1",
@@ -39,7 +39,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.52.8",
+    "@hey-api/openapi-ts": "^0.53.11",
     "@types/node": "^22.2.0",
     "@types/papaparse": "^5.3.14",
     "@types/pluralize": "^0.0.33",

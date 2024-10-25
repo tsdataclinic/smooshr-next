@@ -143,6 +143,12 @@ export class WorkflowsService {
    * Runs the workflow associated with id `workflow_id` on the passed in csv,
    * and returns any results or errors from the run. The workflow_id must be
    * associated with a workflow the calling user has access to.
+   *
+   * Args:
+   * workflow_id (str): The id of the workflow to run.
+   * file (UploadFile): The csv file to run the workflow on.
+   * workflow_inputs (str): The inputs to pass to the workflow. This is a
+   * stringified JSON object.
    */
   public static runWorkflow<ThrowOnError extends boolean = false>(
     options: Options<RunWorkflowData, ThrowOnError>,
@@ -156,6 +162,7 @@ export class WorkflowsService {
       ...formDataBodySerializer,
       headers: {
         'Content-Type': null,
+        ...options?.headers,
       },
       url: '/api/workflows/{workflow_id}/run',
     });

@@ -1,4 +1,5 @@
 """Entry point for the API server"""
+
 import csv
 import json
 import logging
@@ -9,7 +10,7 @@ from datetime import datetime
 from typing import Any, Generator
 
 import frictionless.exception
-from fastapi import Depends, FastAPI, HTTPException, Security, UploadFile
+from fastapi import Depends, FastAPI, HTTPException, Security, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 from fastapi_azure_auth import B2CMultiTenantAuthorizationCodeBearer
@@ -31,7 +32,7 @@ from server.models.workflow.api_schemas import (
 )
 from server.models.workflow.db_model import DBWorkflow
 from server.models.workflow.workflow_schema import CsvData, WorkflowSchema
-from server.workflow_runner.workflow_runner import process_workflow
+from server.workflow_runner.workflow_runner import process_workflow, WorkflowParamValue
 
 LOG = logging.getLogger(__name__)
 
@@ -182,9 +183,9 @@ def get_self_user(user: DBUser = Depends(get_current_user)) -> User:
 
 @app.get("/api/workflows/{workflow_id}", tags=["workflows"])
 def get_workflow(
-    workflow_id: str, 
+    workflow_id: str,
     session: Session = Depends(get_session),
-    user: DBUser = Depends(get_current_user),  
+    user: DBUser = Depends(get_current_user),
 ) -> FullWorkflow:
     """Get a workflow by ID"""
     # TODO - This should be updated to only return workflows for
@@ -257,16 +258,27 @@ def delete_workflow(
 
     return {"message": "Workflow deleted"}
 
+
 @app.post("/api/workflows/{workflow_id}/run", status_code=200, tags=["workflows"])
 def run_workflow(
     workflow_id: str,
     file: UploadFile,
+    workflow_inputs: str = Form(),
     session=Depends(get_session),
     user=Depends(get_current_user),
 ) -> WorkflowRunReport:
     """Runs the workflow associated with id `workflow_id` on the passed in csv,
     and returns any results or errors from the run. The workflow_id must be
-    associated with a workflow the calling user has access to."""
+    associated with a workflow the calling user has access to.
+
+    Args:
+        workflow_id (str): The id of the workflow to run.
+        file (UploadFile): The csv file to run the workflow on.
+        workflow_inputs (str): The inputs to pass to the workflow. This is a
+            stringified JSON object.
+    """
+    # deserialize the stringified JSON object into a dictionary
+    workflow_param_values: dict[str, WorkflowParamValue] = json.loads(workflow_inputs)
 
     db_workflow = fetch_workflow_or_raise(workflow_id, session, user)
 
@@ -285,13 +297,18 @@ def run_workflow(
         )
 
     # get the CSV data from the Frictionless Resource to run our workflow
-    filename = file.filename if file.filename else ''
+    filename = file.filename if file.filename else ""
     # run our workflow
-    validation_results = process_workflow(filename, resource, {}, db_workflow.schema)
+    validation_results = process_workflow(
+        file_name=filename,
+        file_contents=resource,
+        param_values={},
+        schema=db_workflow.schema,
+    )
 
     return WorkflowRunReport(
         row_count=resource.rows if resource.rows else 0,
-        filename=file.filename if file.filename else '',
+        filename=file.filename if file.filename else "",
         workflow_id=workflow_id,
         validation_failures=validation_results,
     )
