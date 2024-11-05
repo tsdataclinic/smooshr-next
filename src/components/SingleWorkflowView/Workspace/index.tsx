@@ -15,14 +15,14 @@ import { FieldsetSchemasEditor } from '../FieldsetSchemasEditor';
 import { OperationEditor } from '../OperationEditor';
 import { ParamsEditor } from '../ParamsEditor';
 import { IconTrash } from '@tabler/icons-react';
-import { UseFormReturnType } from '@mantine/form';
+import { useWorkflowModelContext } from '../WorkflowModelContext';
 
 type Props = {
   workflow: FullWorkflow;
-  workflowModel: UseFormReturnType<FullWorkflow>;
 };
 
-export function Workspace({ workflow, workflowModel }: Props): JSX.Element {
+export function Workspace({ workflow }: Props): JSX.Element {
+  const workflowModel = useWorkflowModelContext();
   const [isBottomDrawerOpen, bottomDrawerActions] = useDisclosure(false);
   const { fieldsetSchemas, operations } = workflow.schema;
 

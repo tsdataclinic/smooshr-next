@@ -10,6 +10,10 @@ import { TestWorkflowBlock } from './TestWorkflowBlock';
 import { Workspace } from './Workspace';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
+import {
+  useWorkflowModel,
+  WorkflowModelProvider,
+} from './WorkflowModelContext';
 
 export function SingleWorkflowView(): JSX.Element | null {
   const params = useParams<{ workflowId: string }>();
@@ -50,7 +54,7 @@ function LoadedWorkflowView({
   const params = useParams<{ workflowId: string }>();
 
   // initialize our workflow form model using the server workflow
-  const workflowModel = useForm({
+  const workflowModel = useWorkflowModel({
     mode: 'uncontrolled',
     initialValues: defaultWorkflow,
   });
@@ -82,7 +86,7 @@ function LoadedWorkflowView({
   });
 
   return (
-    <>
+    <WorkflowModelProvider form={workflowModel}>
       {/* Header row */}
       <Group mb="lg">
         <Title order={1}>{workflow.title}</Title>
@@ -114,7 +118,7 @@ function LoadedWorkflowView({
       </Group>
 
       {/* Main content */}
-      <Workspace workflow={workflow} workflowModel={workflowModel} />
+      <Workspace workflow={workflow} />
 
       <Modal
         opened={isTestWorkflowModalOpen}
@@ -124,6 +128,6 @@ function LoadedWorkflowView({
       >
         <TestWorkflowBlock workflow={workflow} />
       </Modal>
-    </>
+    </WorkflowModelProvider>
   );
 }
