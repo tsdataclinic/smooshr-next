@@ -7,16 +7,22 @@ import {
   Text,
   Title,
   Button,
+  ActionIcon,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { FullWorkflow } from '../../../client';
 import { FieldsetSchemasEditor } from '../FieldsetSchemasEditor';
 import { OperationEditor } from '../OperationEditor';
 import { ParamsEditor } from '../ParamsEditor';
+import { IconTrash } from '@tabler/icons-react';
+import { UseFormReturnType } from '@mantine/form';
 
-type Props = { workflow: FullWorkflow };
+type Props = {
+  workflow: FullWorkflow;
+  workflowModel: UseFormReturnType<FullWorkflow>;
+};
 
-export function Workspace({ workflow }: Props): JSX.Element {
+export function Workspace({ workflow, workflowModel }: Props): JSX.Element {
   const [isBottomDrawerOpen, bottomDrawerActions] = useDisclosure(false);
   const { fieldsetSchemas, operations } = workflow.schema;
 
@@ -56,12 +62,33 @@ export function Workspace({ workflow }: Props): JSX.Element {
               >
                 {operations.map((op, i) => {
                   return (
-                    <List.Item key={op.id}>
+                    <List.Item
+                      key={op.id}
+                      classNames={{
+                        itemWrapper: 'w-full',
+                        itemLabel: 'w-full',
+                      }}
+                    >
                       <div className="flex w-full items-center p-3">
                         <div className="border-r border-gray-400 pr-2">
                           {i + 1}
                         </div>
-                        <div className="pl-2">{op.title}</div>
+                        <div className="grow pl-2">{op.title}</div>
+
+                        <ActionIcon
+                          variant="transparent"
+                          color="dark"
+                          size="sm"
+                          onClick={() => {
+                            console.log('removing');
+                            workflowModel.removeListItem(
+                              'schema.operations',
+                              i,
+                            );
+                          }}
+                        >
+                          <IconTrash />
+                        </ActionIcon>
                       </div>
                     </List.Item>
                   );
