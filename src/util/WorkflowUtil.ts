@@ -3,15 +3,37 @@ import {
   FullWorkflow,
   WorkflowSchema_Output,
   WorkflowParam,
+  ParamReference,
 } from '../client';
 import { getSingleWorkflowBaseURI } from './uriUtil';
 import { ArrayElementType } from './types';
-import day from 'dayjs';
 
 export const WorkflowUtil = {
   QUERY_KEYS: {
     all: ['workflows'],
     workflow: (id: string): [string, string] => ['workflows', id],
+  },
+
+  WorkflowParam: {
+    toReferenceString(param: WorkflowParam): string {
+      return `param:${param.id}`;
+    },
+  },
+
+  ParamReference: {
+    isReferenceString(stringToTest: string): boolean {
+      return stringToTest.startsWith('param:');
+    },
+
+    toReferenceString(param: ParamReference): string {
+      return `param:${param.paramName}`;
+    },
+
+    fromReferenceString(paramReferenceString: string): ParamReference {
+      return {
+        paramName: paramReferenceString.substring(6),
+      };
+    },
   },
 
   getWorkflowURI(id: string): string {

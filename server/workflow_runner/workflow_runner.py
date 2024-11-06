@@ -84,25 +84,29 @@ def _get_csv_contents_from_resource(file_resource: Resource) -> CsvData:
 
 
 def _get_fieldset_schema(
-    fieldset_id: str, fieldsets: list[FieldsetSchema]
+    fieldset_name: str, fieldsets: list[FieldsetSchema]
 ) -> FieldsetSchema:
     """Get the fieldset schema from the list of fieldsets."""
     for fieldset in fieldsets:
-        if fieldset.id == fieldset_id:
+        if fieldset.name == fieldset_name:
             return fieldset
     raise FieldsetSchemaNotFoundException(
-        f"Fieldset schema {fieldset_id} not found in schema."
+        f"Fieldset schema {fieldset_name} not found in schema."
     )
 
 
 def _validate_csv(
     file_name: str,
     csv_data: CsvData,
-    param_values: dict[str, Any],
+    param_values: dict[str, WorkflowParamValue],
     schema: WorkflowSchema,
 ) -> list[ValidationFailure]:
     """Validate the CSV data based on the configured schema and user-provided parameters."""
     validations = []
+
+    param_schemas: dict[str, WorkflowParam] = {
+        param.id: param for param in schema.params
+    }
 
     for operation in schema.operations:
         match operation:
@@ -111,8 +115,23 @@ def _validate_csv(
                     case str():
                         fieldset_schema_name = operation.fieldset_schema
                     case ParamReference():
-                        param_name = operation.fieldset_schema.param_name
-                        fieldset_schema_name = param_values[param_name]
+                        param_id = operation.fieldset_schema.param_name
+                        param = param_schemas.get(param_id, None)
+
+                        if not param:
+                            return [
+                                ValidationFailure(
+                                    message=f"Param with id {param_id} could not be found in the param schemas."
+                                )
+                            ]
+
+                        fieldset_schema_name = param_values[param.name]
+                        if type(fieldset_schema_name) != str:
+                            return [
+                                ValidationFailure(
+                                    message=f"The param value referenced with {param.name} is not a string."
+                                )
+                            ]
 
                 fieldset_schema = _get_fieldset_schema(
                     fieldset_schema_name, schema.fieldset_schemas

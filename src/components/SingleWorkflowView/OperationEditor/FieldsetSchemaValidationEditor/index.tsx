@@ -1,8 +1,7 @@
-import { TextInput, Button, Select } from '@mantine/core';
+import { TextInput, Button } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import {
   FieldsetSchemaValidation,
-  FieldsetSchema_Output,
   FullWorkflow,
   WorkflowsService,
 } from '../../../../client';
@@ -11,6 +10,7 @@ import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { WorkflowUtil } from '../../../../util/WorkflowUtil';
 import { processAPIData } from '../../../../util/apiUtil';
 import { notifications } from '@mantine/notifications';
+import { FieldsetSchemaSelect } from './FieldsetSchemaSelect';
 
 type Props = {
   workflow: FullWorkflow;
@@ -57,12 +57,6 @@ export function FieldsetSchemaValidationEditor({
     },
   });
 
-  const fieldsetSchemaOptions = workflow.schema.fieldsetSchemas.map(
-    (fieldSchema: FieldsetSchema_Output) => {
-      return { value: fieldSchema.id, label: fieldSchema.name };
-    },
-  );
-
   return (
     <form
       onSubmit={fieldsetSchemaValidationForm.onSubmit(
@@ -90,14 +84,14 @@ export function FieldsetSchemaValidationEditor({
         {...fieldsetSchemaValidationForm.getInputProps('description')}
         label="Description"
       />
-      <Select
-        required
+
+      <FieldsetSchemaSelect
         key={fieldsetSchemaValidationForm.key('fieldsetSchema')}
         {...fieldsetSchemaValidationForm.getInputProps('fieldsetSchema')}
-        label="Column Schema"
-        data={fieldsetSchemaOptions}
-        placeholder="Select a column schema to use"
+        fieldsetSchemas={workflow.schema.fieldsetSchemas}
+        workflowParams={workflow.schema.params}
       />
+
       <Button type="submit">Save</Button>
     </form>
   );

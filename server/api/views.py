@@ -302,7 +302,7 @@ def run_workflow(
     validation_results = process_workflow(
         file_name=filename,
         file_contents=resource,
-        param_values={},
+        param_values=workflow_param_values,
         schema=db_workflow.schema,
     )
 

@@ -8,7 +8,6 @@ import { IconDots } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { TestWorkflowBlock } from './TestWorkflowBlock';
 import { Workspace } from './Workspace';
-import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import {
   useWorkflowModel,
@@ -101,6 +100,7 @@ function LoadedWorkflowView({
               onClick={() => {
                 saveWorkflowMutation.mutate(workflow);
                 notifications.show({
+                  color: 'green',
                   title: 'Saved',
                   message: 'Updated workflow',
                 });
