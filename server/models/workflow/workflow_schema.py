@@ -15,7 +15,7 @@ class CsvData(BaseModel):
 class ParamReference(BaseModel):
     """A simple object that references a param name"""
 
-    param_name: str = Field(alias="paramName")
+    param_id: str = Field(alias="paramId")
 
 
 class BaseOperation(BaseModel):

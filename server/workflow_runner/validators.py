@@ -179,7 +179,7 @@ def _validate_field(
         if isinstance(field.allowed_values, list):
             allowed_values = field.allowed_values
         else:
-            allowed_values = params[field.allowed_values.param_name]
+            allowed_values = params[field.allowed_values.param_id]
         if value not in allowed_values:
             validations.append(
                 ValidationFailure(
@@ -195,7 +195,7 @@ def validate_fieldset(
     csv_columns,
     csv_data: list[dict],
     fieldset_schema: FieldsetSchema,
-    params: dict[str, any],
+    params: dict[str, Any],
 ) -> list[ValidationFailure]:
     """Validate the fieldset schema of a file."""
     validations = []

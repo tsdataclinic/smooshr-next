@@ -20,7 +20,7 @@
       "type": "fieldsetSchemaValidation",
       "id": "asasd",
       "fieldsetSchema": {
-        "paramName": "fieldset_schema_param_uuid"
+        "paramId": "fieldset_schema_param_uuid"
       },
       "title": "Validate fieldset schema",
       "description": "Description for fieldset schema validation"

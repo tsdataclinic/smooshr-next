@@ -26,12 +26,12 @@ export const WorkflowUtil = {
     },
 
     toReferenceString(param: ParamReference): string {
-      return `param:${param.paramName}`;
+      return `param:${param.paramId}`;
     },
 
     fromReferenceString(paramReferenceString: string): ParamReference {
       return {
-        paramName: paramReferenceString.substring(6),
+        paramId: paramReferenceString.substring(6),
       };
     },
   },

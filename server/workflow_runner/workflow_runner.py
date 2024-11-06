@@ -59,7 +59,9 @@ def process_workflow(
     return workflow_validation_failures
 
 
-def _validate_param_values(param_values: dict[str, Any], schema: WorkflowSchema):
+def _validate_param_values(
+    param_values: dict[str, WorkflowParamValue], schema: WorkflowSchema
+):
     """
     Validate the user-provided parameter values each correspond to
     a parameter definition in the workflow schema.
@@ -115,7 +117,7 @@ def _validate_csv(
                     case str():
                         fieldset_schema_name = operation.fieldset_schema
                     case ParamReference():
-                        param_id = operation.fieldset_schema.param_name
+                        param_id = operation.fieldset_schema.param_id
                         param = param_schemas.get(param_id, None)
 
                         if not param:

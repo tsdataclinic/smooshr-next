@@ -62,7 +62,7 @@ function allowedValueListToString(
       : pluralize('values', allowedValues.length, true);
   }
 
-  return allowedValues.paramName;
+  return allowedValues.paramId;
 }
 
 export function FieldSchemaRow({

@@ -109,7 +109,7 @@ export type HTTPValidationError = {
  * A simple object that references a param name
  */
 export type ParamReference = {
-  paramName: string;
+  paramId: string;
 };
 
 /**

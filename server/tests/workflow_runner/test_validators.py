@@ -310,7 +310,7 @@ class TestValidateField(unittest.TestCase):
             required=True,
             case_sensitive=True,
             allow_empty_values=False,
-            allowed_values=ParamReference(paramName="allowed_names"),
+            allowed_values=ParamReference(paramId="allowed_names"),
         )
         params = {"allowed_names": ["John", "Jane"]}
         self.assertEqual(_validate_field(1, {"name": "John"}, field, params), [])
