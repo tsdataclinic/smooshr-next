@@ -121,6 +121,7 @@ export function Workspace({ workflow }: Props): JSX.Element {
       >
         <OperationEditor
           operationType="fieldsetSchemaValidation"
+          onClose={bottomDrawerActions.close}
           workflow={workflow}
         />
       </Drawer>

@@ -14,15 +14,19 @@ type OperationType = ArrayElementType<
 type Props = {
   operationType: OperationType;
   workflow: FullWorkflow;
+  onClose: () => void;
 };
 
 export function OperationEditor({
   operationType,
   workflow,
+  onClose,
 }: Props): JSX.Element {
   return match(operationType)
     .with('fieldsetSchemaValidation', () => {
-      return <FieldsetSchemaValidationEditor workflow={workflow} />;
+      return (
+        <FieldsetSchemaValidationEditor onClose={onClose} workflow={workflow} />
+      );
     })
     .with('rowCountValidation', 'fileTypeValidation', () => {
       return <Text>This validation type has not been implemented yet.</Text>;
