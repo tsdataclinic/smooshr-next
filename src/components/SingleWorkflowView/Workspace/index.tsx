@@ -59,8 +59,8 @@ export function Workspace({ workflow }: Props): JSX.Element {
                   <Menu.Item onClick={bottomDrawerActions.open}>
                     Apply column rulesets
                   </Menu.Item>
-                  <Menu.Item>Check file type</Menu.Item>
-                  <Menu.Item>Check row counts</Menu.Item>
+                  <Menu.Item disabled>Check file type</Menu.Item>
+                  <Menu.Item disabled>Check row counts</Menu.Item>
                 </Menu.Dropdown>
               </Menu>
             </Group>
