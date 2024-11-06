@@ -8,6 +8,7 @@ import {
   Title,
   Button,
   ActionIcon,
+  Menu,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { FullWorkflow } from '../../../client';
@@ -49,9 +50,19 @@ export function Workspace({ workflow }: Props): JSX.Element {
           <Stack>
             <Group justify="space-between">
               <Title order={2}>Validations</Title>
-              <Button onClick={bottomDrawerActions.open}>
-                Add new validation step
-              </Button>
+
+              <Menu>
+                <Menu.Target>
+                  <Button>Add new validation step</Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item onClick={bottomDrawerActions.open}>
+                    Apply column rulesets
+                  </Menu.Item>
+                  <Menu.Item>Check file type</Menu.Item>
+                  <Menu.Item>Check row counts</Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
             </Group>
             {operations.length === 0 ? (
               <Text>No validations have been added yet</Text>
@@ -104,7 +115,7 @@ export function Workspace({ workflow }: Props): JSX.Element {
         radius="md"
         opened={isBottomDrawerOpen}
         onClose={bottomDrawerActions.close}
-        title="Configuring validation step: checking column schemas"
+        title="Configuring validation step: apply colum rulesets"
         withOverlay={false}
         position="bottom"
       >

@@ -51,7 +51,7 @@ export function FieldsetSchemaValidationEditor({
     initialValues: {
       type: 'fieldsetSchemaValidation',
       id: uuid(),
-      title: 'Validate column schemas',
+      title: 'Apply column rulesets',
       description: '',
       fieldsetSchema: '',
     },

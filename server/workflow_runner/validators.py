@@ -62,13 +62,16 @@ def _check_csv_columns(csv_columns: list[str], fieldset_schema: FieldsetSchema) 
     
     """
     validations = []
+    required_columns_in_schema = [
+        field.name for field in fieldset_schema.fields if field.required
+    ]
     columnns_in_schema = [field.name for field in fieldset_schema.fields]
 
-    # check that all columns in the schema are present in the file
-    if not set(columnns_in_schema) <= set(csv_columns):
+    # check that all required columns in the schema are present in the file
+    if not set(required_columns_in_schema) <= set(csv_columns):
         validations.append(
             ValidationFailure(
-                message=f"File is missing columns required by the schema: {set(columnns_in_schema) - set(csv_columns)}" 
+                message=f"File is missing columns required by the schema: {set(required_columns_in_schema) - set(csv_columns)}" 
             )
         )
 
@@ -110,15 +113,6 @@ def _validate_field(row_num: int, row: dict, field: FieldSchema, params: dict[st
     else:
         case_insensitive_values = {key.lower(): value for key, value in row.items()}
         value = case_insensitive_values.get(field.name.lower())
-
-    # If the field is required and the value is missing, add a validation failure.
-    if field.required and value == None:
-        validations.append(
-            ValidationFailure(
-                row_number=row_num,
-                message=f"Missing a value for the required field '{field.name}'"
-            )
-        )
 
     # If the field does not allow empty values and the value is empty, add a validation failure.
     if not field.allow_empty_values and value == "":
