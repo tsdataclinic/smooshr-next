@@ -320,13 +320,13 @@ export const HTTPValidationErrorSchema = {
 
 export const ParamReferenceSchema = {
   properties: {
-    paramName: {
+    paramId: {
       type: 'string',
-      title: 'Paramname',
+      title: 'Paramid',
     },
   },
   type: 'object',
-  required: ['paramName'],
+  required: ['paramId'],
   title: 'ParamReference',
   description: 'A simple object that references a param name',
 } as const;
