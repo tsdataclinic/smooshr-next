@@ -58,20 +58,19 @@ function LoadedWorkflowView({
     initialValues: defaultWorkflow,
   });
 
-  const workflow = workflowModel.getValues();
-  console.log('current workflow', workflow);
-
   const [isTestWorkflowModalOpen, testWorkflowModalActions] =
     useDisclosure(false);
 
   const saveWorkflowMutation = useMutation({
-    mutationFn: async (updatedWorkflow: FullWorkflow) => {
+    mutationFn: async (workflowToSave: FullWorkflow) => {
+      console.log('Workflow to save', workflowToSave);
+
       return processAPIData(
         WorkflowsService.updateWorkflow({
           path: {
-            workflow_id: updatedWorkflow.id,
+            workflow_id: workflowToSave.id,
           },
-          body: updatedWorkflow,
+          body: workflowToSave,
         }),
       );
     },
@@ -84,6 +83,7 @@ function LoadedWorkflowView({
     },
   });
 
+  const workflow = workflowModel.getValues();
   return (
     <WorkflowModelProvider form={workflowModel}>
       {/* Header row */}
@@ -98,11 +98,15 @@ function LoadedWorkflowView({
           <Menu.Dropdown>
             <Menu.Item
               onClick={() => {
-                saveWorkflowMutation.mutate(workflow);
-                notifications.show({
-                  color: 'green',
-                  title: 'Saved',
-                  message: 'Updated workflow',
+                const finalWorkflow = workflowModel.getTransformedValues();
+                saveWorkflowMutation.mutate(finalWorkflow, {
+                  onSuccess: () => {
+                    notifications.show({
+                      color: 'green',
+                      title: 'Saved',
+                      message: 'Updated workflow',
+                    });
+                  },
                 });
               }}
             >
@@ -118,7 +122,7 @@ function LoadedWorkflowView({
       </Group>
 
       {/* Main content */}
-      <Workspace workflow={workflow} />
+      <Workspace />
 
       <Modal
         opened={isTestWorkflowModalOpen}
@@ -126,7 +130,7 @@ function LoadedWorkflowView({
         title="Test workflow"
         size="auto"
       >
-        <TestWorkflowBlock workflow={workflow} />
+        <TestWorkflowBlock />
       </Modal>
     </WorkflowModelProvider>
   );

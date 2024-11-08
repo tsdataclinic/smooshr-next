@@ -1,4 +1,3 @@
-import * as React from 'react';
 import pluralize from 'pluralize';
 import {
   ActionIcon,
@@ -10,16 +9,11 @@ import {
   ComboboxItem,
 } from '@mantine/core';
 import { IconCheck, IconEdit } from '@tabler/icons-react';
-import { ParamReference, FieldSchema } from '../../../client';
-import {
-  useDebouncedCallback,
-  useDisclosure,
-  useFocusTrap,
-} from '@mantine/hooks';
-import { useFieldsetSchemasFormContext } from './FieldsetSchemasContext';
+import { ParamReference } from '../../../client';
+import { useDisclosure, useFocusTrap } from '@mantine/hooks';
+import { useWorkflowModelContext } from '../WorkflowModelContext';
 
 type Props = {
-  fieldSchema: FieldSchema;
   fieldsetIndex: number;
   index: number;
 };
@@ -65,32 +59,20 @@ function allowedValueListToString(
   return allowedValues.paramId;
 }
 
-export function FieldSchemaRow({
-  fieldSchema,
-  fieldsetIndex,
-  index,
-}: Props): JSX.Element {
+export function FieldSchemaRow({ fieldsetIndex, index }: Props): JSX.Element {
+  const fieldSchemaPath = `schema.fieldsetSchemas.${fieldsetIndex}.fields.${index}`;
+  const workflowModel = useWorkflowModelContext();
   const focusTrapRef = useFocusTrap();
-  const form = useFieldsetSchemasFormContext();
   const [isEditModeOn, editModeActions] = useDisclosure(false);
-  const [colName, setColName] = React.useState(fieldSchema.name);
-
-  const formKeyBase = `fieldsetSchemas.${fieldsetIndex}.fields.${index}`;
-
-  const onNameChange = useDebouncedCallback((newColName) => {
-    form.setFieldValue(`${formKeyBase}.name`, newColName);
-  }, 200);
+  const fieldSchema =
+    workflowModel.getValues().schema.fieldsetSchemas[fieldsetIndex].fields[
+      index
+    ];
 
   const nameColumn = isEditModeOn ? (
     <TextInput
-      key={form.key(`${formKeyBase}.name`)}
-      {...form.getInputProps(`${formKeyBase}.name`)}
-      value={colName}
-      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-        const newColName = event.currentTarget.value;
-        setColName(newColName);
-        onNameChange(newColName);
-      }}
+      key={workflowModel.key(`${fieldSchemaPath}.name`)}
+      {...workflowModel.getInputProps(`${fieldSchemaPath}.name`)}
     />
   ) : (
     <Text size="sm">{fieldSchema.name}</Text>
@@ -98,8 +80,10 @@ export function FieldSchemaRow({
 
   const isRequiredColumn = isEditModeOn ? (
     <Checkbox
-      key={form.key(`${formKeyBase}.required`)}
-      {...form.getInputProps(`${formKeyBase}.required`, { type: 'checkbox' })}
+      key={workflowModel.key(`${fieldSchemaPath}.required`)}
+      {...workflowModel.getInputProps(`${fieldSchemaPath}.required`, {
+        type: 'checkbox',
+      })}
     />
   ) : (
     <Text size="sm">{booleanToString(fieldSchema.required)}</Text>
@@ -107,9 +91,11 @@ export function FieldSchemaRow({
 
   const dataTypeColumn = isEditModeOn ? (
     <Select
-      key={form.key(`${formKeyBase}.dataTypeValidation.dataType`)}
+      key={workflowModel.key(`${fieldSchemaPath}.dataTypeValidation.dataType`)}
       data={DATA_TYPE_OPTIONS}
-      {...form.getInputProps(`${formKeyBase}.dataTypeValidation.dataType`)}
+      {...workflowModel.getInputProps(
+        `${fieldSchemaPath}.dataTypeValidation.dataType`,
+      )}
     />
   ) : (
     <Text tt="capitalize" size="sm">
@@ -119,8 +105,8 @@ export function FieldSchemaRow({
 
   const isCaseSensitiveColumn = isEditModeOn ? (
     <Checkbox
-      key={form.key(`${formKeyBase}.caseSensitive`)}
-      {...form.getInputProps(`${formKeyBase}.caseSensitive`, {
+      key={workflowModel.key(`${fieldSchemaPath}.caseSensitive`)}
+      {...workflowModel.getInputProps(`${fieldSchemaPath}.caseSensitive`, {
         type: 'checkbox',
       })}
     />
@@ -130,8 +116,8 @@ export function FieldSchemaRow({
 
   const allowEmptyValuesColumn = isEditModeOn ? (
     <Checkbox
-      key={form.key(`${formKeyBase}.allowEmptyValues`)}
-      {...form.getInputProps(`${formKeyBase}.allowEmptyValues`, {
+      key={workflowModel.key(`${fieldSchemaPath}.allowEmptyValues`)}
+      {...workflowModel.getInputProps(`${fieldSchemaPath}.allowEmptyValues`, {
         type: 'checkbox',
       })}
     />

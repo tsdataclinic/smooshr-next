@@ -17,6 +17,7 @@ module.exports = {
   plugins: [
     'react-refresh',
     '@typescript-eslint',
+    'unused-imports',
     'react-hooks',
     'import',
     'jsx-a11y',
@@ -29,11 +30,15 @@ module.exports = {
     ],
     '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
     '@typescript-eslint/explicit-module-boundary-types': 'error',
-    '@typescript-eslint/no-unused-vars': [
-      'error',
+    '@typescript-eslint/no-unused-vars': 'off',
+    'unused-imports/no-unused-imports': 'error',
+    'unused-imports/no-unused-vars': [
+      'warn',
       {
+        vars: 'all',
+        varsIgnorePattern: '^_',
+        args: 'after-used',
         argsIgnorePattern: '^_',
-        ignoreRestSiblings: true,
       },
     ],
     '@typescript-eslint/no-shadow': 'error',

@@ -11,21 +11,17 @@ import {
   Menu,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { FullWorkflow } from '../../../client';
 import { FieldsetSchemasEditor } from '../FieldsetSchemasEditor';
 import { OperationEditor } from '../OperationEditor';
 import { ParamsEditor } from '../ParamsEditor';
 import { IconTrash } from '@tabler/icons-react';
 import { useWorkflowModelContext } from '../WorkflowModelContext';
+import { WorkflowUtil } from '../../../util/WorkflowUtil';
 
-type Props = {
-  workflow: FullWorkflow;
-};
-
-export function Workspace({ workflow }: Props): JSX.Element {
+export function Workspace(): JSX.Element {
   const workflowModel = useWorkflowModelContext();
   const [isBottomDrawerOpen, bottomDrawerActions] = useDisclosure(false);
-  const { fieldsetSchemas, operations } = workflow.schema;
+  const { operations } = workflowModel.getValues().schema;
 
   return (
     <>
@@ -34,14 +30,11 @@ export function Workspace({ workflow }: Props): JSX.Element {
           <Stack>
             <Stack>
               <Title order={2}>Inputs</Title>
-              <ParamsEditor workflow={workflow} />
+              <ParamsEditor />
             </Stack>
             <Stack>
               <Title order={2}>Column Rules</Title>
-              <FieldsetSchemasEditor
-                workflow={workflow}
-                defaultFieldsetSchemas={fieldsetSchemas}
-              />
+              <FieldsetSchemasEditor />
             </Stack>
           </Stack>
         </Grid.Col>
@@ -53,7 +46,7 @@ export function Workspace({ workflow }: Props): JSX.Element {
 
               <Menu>
                 <Menu.Target>
-                  <Button>Add new validation step</Button>
+                  <Button variant="outline">Add new validation step</Button>
                 </Menu.Target>
                 <Menu.Dropdown>
                   <Menu.Item onClick={bottomDrawerActions.open}>
@@ -91,11 +84,12 @@ export function Workspace({ workflow }: Props): JSX.Element {
                           color="dark"
                           size="sm"
                           onClick={() => {
-                            console.log('removing');
-                            workflowModel.removeListItem(
-                              'schema.operations',
-                              i,
-                            );
+                            const newWorkflow =
+                              WorkflowUtil.removeOperationByIndex(
+                                workflowModel.getValues(),
+                                i,
+                              );
+                            workflowModel.setValues(newWorkflow);
                           }}
                         >
                           <IconTrash />
@@ -122,7 +116,6 @@ export function Workspace({ workflow }: Props): JSX.Element {
         <OperationEditor
           operationType="fieldsetSchemaValidation"
           onClose={bottomDrawerActions.close}
-          workflow={workflow}
         />
       </Drawer>
     </>
