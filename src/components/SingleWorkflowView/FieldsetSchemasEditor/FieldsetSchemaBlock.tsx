@@ -14,12 +14,12 @@ import {
 import * as Papa from 'papaparse';
 import { IconTrash } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
-import type { FieldsetSchema_Output } from '../../../client';
 import { FieldSchemaRow } from './FieldSchemaRow';
-import { useFieldsetSchemasFormContext } from './FieldsetSchemasContext';
+import { useWorkflowModelContext } from '../WorkflowModelContext';
+import { WorkflowUtil } from '../../../util/WorkflowUtil';
+import { FieldsetSchema_Output } from '../../../client';
 
 type Props = {
-  fieldsetSchema: FieldsetSchema_Output;
   index: number;
 };
 
@@ -38,11 +38,11 @@ const ALLOW_EXTRA_COLUMNS_OPTIONS: ComboboxItem[] = [
   },
 ];
 
-export function FieldsetSchemaBlock({
-  fieldsetSchema,
-  index,
-}: Props): JSX.Element {
-  const form = useFieldsetSchemasFormContext();
+export function FieldsetSchemaBlock({ index }: Props): JSX.Element {
+  const fieldsetSchemaPath = `schema.fieldsetSchemas.${index}`;
+  const workflowModel = useWorkflowModelContext();
+  const fieldsetSchema =
+    workflowModel.getValues().schema.fieldsetSchemas[index];
 
   const openDeleteModal = () =>
     modals.openConfirmModal({
@@ -53,7 +53,11 @@ export function FieldsetSchemaBlock({
       labels: { confirm: 'Delete schema', cancel: 'Cancel' },
       confirmProps: { color: 'red' },
       onConfirm: () => {
-        form.removeListItem('fieldsetSchemas', index);
+        const newWorkflow = WorkflowUtil.removeFieldsetSchemaByIndex(
+          workflowModel.getValues(),
+          index,
+        );
+        workflowModel.setValues(newWorkflow);
       },
     });
 
@@ -63,24 +67,32 @@ export function FieldsetSchemaBlock({
         header: true,
         skipEmptyLines: true,
         complete: (parsedResult): void => {
-          form.setFieldValue(`fieldsetSchemas.${index}`, {
-            ...fieldsetSchema,
-            name: file.name,
-            fields:
-              parsedResult.meta.fields?.map((header) => {
-                return {
-                  id: uuid(),
-                  name: header,
-                  caseSensitive: true,
-                  required: true,
-                  dataTypeValidation: {
-                    dataType: 'any',
-                  },
-                  allowEmptyValues: false,
-                  allowedValues: [],
-                };
-              }) ?? [],
-          });
+          const newWorkflow = WorkflowUtil.updateFieldsetSchemaByIndex(
+            workflowModel.getValues(),
+            index,
+            (prevFieldsetSchema: FieldsetSchema_Output) => {
+              return {
+                ...prevFieldsetSchema,
+                name: file.name,
+                fields:
+                  parsedResult.meta.fields?.map((header) => {
+                    return {
+                      id: uuid(),
+                      name: header,
+                      caseSensitive: true,
+                      required: true,
+                      dataTypeValidation: {
+                        dataType: 'any',
+                      },
+                      allowEmptyValues: false,
+                      allowedValues: [],
+                    };
+                  }) ?? [],
+              };
+            },
+          );
+
+          workflowModel.setValues(newWorkflow);
         },
       });
     }
@@ -108,7 +120,6 @@ export function FieldsetSchemaBlock({
               return (
                 <FieldSchemaRow
                   key={fieldSchema.id}
-                  fieldSchema={fieldSchema}
                   fieldsetIndex={index}
                   index={i}
                 />
@@ -141,9 +152,9 @@ export function FieldsetSchemaBlock({
 
         <div className="space-y-3">
           <TextInput
-            key={form.key(`fieldsetSchemas.${index}.name`)}
-            {...form.getInputProps(`fieldsetSchemas.${index}.name`)}
-            label="Schema Name"
+            key={workflowModel.key(`${fieldsetSchemaPath}.name`)}
+            {...workflowModel.getInputProps(`${fieldsetSchemaPath}.name`)}
+            label="Ruleset Name"
           />
 
           {fieldsetSchema.fields.length === 0 ? (
@@ -154,26 +165,27 @@ export function FieldsetSchemaBlock({
             </FileButton>
           ) : (
             <>
-              <Select
-                key={form.key(`fieldsetSchemas.${index}.allowExtraColumns`)}
-                {...form.getInputProps(
-                  `fieldsetSchemas.${index}.allowExtraColumns`,
-                )}
-                data={ALLOW_EXTRA_COLUMNS_OPTIONS}
-                label="Allow extra columns"
-              />
+              {renderHeadersMetadataTable()}
               <Checkbox
-                key={form.key(`fieldsetSchemas.${index}.orderMatters`)}
-                {...form.getInputProps(
-                  `fieldsetSchemas.${index}.orderMatters`,
+                key={workflowModel.key(`${fieldsetSchemaPath}.orderMatters`)}
+                {...workflowModel.getInputProps(
+                  `${fieldsetSchemaPath}.orderMatters`,
                   {
                     type: 'checkbox',
                   },
                 )}
                 label="Order of columns matters"
               />
-
-              {renderHeadersMetadataTable()}
+              <Select
+                key={workflowModel.key(
+                  `${fieldsetSchemaPath}.allowExtraColumns`,
+                )}
+                {...workflowModel.getInputProps(
+                  `${fieldsetSchemaPath}.allowExtraColumns`,
+                )}
+                data={ALLOW_EXTRA_COLUMNS_OPTIONS}
+                label="Allow extra columns"
+              />
             </>
           )}
         </div>

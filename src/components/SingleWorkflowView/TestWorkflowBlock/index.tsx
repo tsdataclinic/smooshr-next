@@ -10,7 +10,6 @@ import {
   Button,
 } from '@mantine/core';
 import {
-  FullWorkflow,
   WorkflowParam,
   WorkflowRunReport,
   WorkflowsService,
@@ -23,10 +22,7 @@ import pluralize from 'pluralize';
 import { ParamFormInput } from './ParamFormInput';
 import { useForm } from '@mantine/form';
 import { WorkflowParamValues } from './types';
-
-type Props = {
-  workflow: FullWorkflow;
-};
+import { useWorkflowModelContext } from '../WorkflowModelContext';
 
 // TODO: eventually this shouldnt be needed, we should convert Frictionless errors
 // to validation errors instead of HTTP errors.
@@ -36,7 +32,8 @@ const WorkflowErrorSchema = z.object({
   }),
 });
 
-export function TestWorkflowBlock({ workflow }: Props): JSX.Element {
+export function TestWorkflowBlock(): JSX.Element {
+  const workflowModel = useWorkflowModelContext();
   const [file, setFile] = React.useState<File | undefined>();
   const [workflowReport, setWorkflowReport] = React.useState<
     WorkflowRunReport | undefined
@@ -47,7 +44,7 @@ export function TestWorkflowBlock({ workflow }: Props): JSX.Element {
   }>({
     initialValues: {
       workflowParamValues: R.mapToObj(
-        workflow.schema.params,
+        workflowModel.getValues().schema.params,
         (param: WorkflowParam) => {
           return [param.name, undefined];
         },
@@ -80,9 +77,8 @@ export function TestWorkflowBlock({ workflow }: Props): JSX.Element {
     },
   });
 
-  console.log('report', workflowReport);
-
-  const renderParamFormInputs = (params: readonly WorkflowParam[]) => {
+  const renderParamFormInputs = () => {
+    const params = workflowModel.getValues().schema.params;
     return (
       <Fieldset legend={<Text>Inputs</Text>}>
         {params.map((param) => {
@@ -108,7 +104,7 @@ export function TestWorkflowBlock({ workflow }: Props): JSX.Element {
             {
               workflowParamValues: formValues.workflowParamValues,
               fileToUpload: file,
-              workflowId: workflow.id,
+              workflowId: workflowModel.getValues().id,
             },
             {
               onSuccess: (report: WorkflowRunReport) => {
@@ -158,7 +154,7 @@ export function TestWorkflowBlock({ workflow }: Props): JSX.Element {
           {file ? <Text>{file.name}</Text> : null}
         </Group>
 
-        {renderParamFormInputs(workflow.schema.params)}
+        {renderParamFormInputs()}
 
         {workflowReport ? (
           <>

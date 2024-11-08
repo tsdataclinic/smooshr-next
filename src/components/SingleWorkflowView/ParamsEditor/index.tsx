@@ -1,4 +1,4 @@
-import { WorkflowsService, FullWorkflow, WorkflowParam } from '../../../client';
+import { WorkflowParam } from '../../../client';
 import { IconTrash } from '@tabler/icons-react';
 import { v4 as uuid } from 'uuid';
 import {
@@ -14,31 +14,10 @@ import {
   ActionIcon,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useMutation } from '@tanstack/react-query';
 import { WorkflowUtil } from '../../../util/WorkflowUtil';
-import { processAPIData } from '../../../util/apiUtil';
-import { notifications } from '@mantine/notifications';
 import { modals } from '@mantine/modals';
-
-type Props = {
-  workflow: FullWorkflow;
-};
-
-/**
- * Convert a display string to a valid identifier name for a variable.
- */
-function toVariableIdentifierName(displayName: string): string {
-  return (
-    displayName
-      .trim()
-      // Remove all non-alphanumeric characters except spaces
-      .replace(/[^\w\s]/g, '')
-      // Replace spaces to underscores
-      .replace(/\s+/g, '_')
-      // make first character lower case
-      .replace(/^[A-Z]/, (match) => match.toLowerCase())
-  );
-}
+import { useWorkflowModelContext } from '../WorkflowModelContext';
+import { toVariableIdentifierName } from '../../../util/stringUtil';
 
 function makeEmptyWorkflowParam(index: number): WorkflowParam {
   const displayName = `Input ${index}`;
@@ -67,7 +46,9 @@ const PARAM_TYPE_OPTIONS: ComboboxItem[] = [
   },
 ];
 
-export function ParamsEditor({ workflow }: Props): JSX.Element {
+export function ParamsEditor(): JSX.Element {
+  const workflowModel = useWorkflowModelContext();
+
   const openDeleteModal = (inputIdx: number) => {
     modals.openConfirmModal({
       title: 'Delete input',
@@ -77,68 +58,61 @@ export function ParamsEditor({ workflow }: Props): JSX.Element {
       labels: { confirm: 'Delete input', cancel: 'Cancel' },
       confirmProps: { color: 'red' },
       onConfirm: () => {
+        const newWorkflow = WorkflowUtil.removeParamByIndex(
+          workflowModel.getValues(),
+          inputIdx,
+        );
         workflowInputsForm.removeListItem('params', inputIdx);
+        workflowModel.setValues(newWorkflow);
       },
     });
   };
 
+  // NOTE: we *cannot* use workflowModel directly because we need this sub-form,
+  // because we we have to apply a transformation on value change to update
+  // the param name with a transformed form of the display name
   const workflowInputsForm = useForm<{ params: WorkflowParam[] }>({
-    mode: 'controlled',
+    mode: 'uncontrolled',
     initialValues: {
-      params: workflow.schema.params,
+      params: workflowModel.getValues().schema.params,
     },
-    transformValues: (values) => {
-      return {
-        params: values.params.map((param) => {
-          return {
-            ...param,
-            name: toVariableIdentifierName(param.displayName),
-          };
-        }),
-      };
-    },
-  });
+    onValuesChange: (newParams: { params: WorkflowParam[] }) => {
+      const transformedParams = newParams.params.map((param) => {
+        return {
+          ...param,
+          name: toVariableIdentifierName(param.displayName),
+        };
+      });
 
-  const saveInputsMutation = useMutation({
-    mutationFn: async (workflowParams: readonly WorkflowParam[]) => {
       const workflowToSave = WorkflowUtil.updateWorkflowParams(
-        workflow,
-        workflowParams,
+        workflowModel.getValues(),
+        transformedParams,
       );
-      const savedWorkflow = await processAPIData(
-        WorkflowsService.updateWorkflow({
-          path: {
-            workflow_id: workflowToSave.id,
-          },
-          body: workflowToSave,
-        }),
-      );
-      return savedWorkflow;
+      workflowModel.setValues(workflowToSave);
     },
   });
 
   const { params } = workflowInputsForm.getValues();
 
   return (
-    <form
-      onSubmit={workflowInputsForm.onSubmit((paramsToSubmit) => {
-        saveInputsMutation.mutate(paramsToSubmit.params, {
-          onSuccess: () => {
-            notifications.show({
-              title: 'Success',
-              message: 'Inputs saved successfully',
-              color: 'green',
-            });
-          },
-        });
-      })}
-    >
+    <form>
       <Stack>
         {params.length === 0 ? (
           <Text>No workflow inputs have been configured yet</Text>
         ) : (
           <>
-            <Button type="submit">Save</Button>
+            <Button
+              variant="outline"
+              style={{ alignSelf: 'flex-start' }}
+              onClick={() => {
+                workflowInputsForm.insertListItem(
+                  'params',
+                  makeEmptyWorkflowParam(params.length + 1),
+                );
+              }}
+            >
+              Add new input
+            </Button>
             {params.map((param, i) => {
               return (
                 <Fieldset
@@ -196,17 +170,6 @@ export function ParamsEditor({ workflow }: Props): JSX.Element {
             })}
           </>
         )}
-        <Button
-          variant="outline"
-          onClick={() => {
-            workflowInputsForm.insertListItem(
-              'params',
-              makeEmptyWorkflowParam(params.length + 1),
-            );
-          }}
-        >
-          Add new input
-        </Button>
       </Stack>
     </form>
   );

@@ -53,6 +53,17 @@ export const WorkflowUtil = {
     };
   },
 
+  removeParamByIndex(workflow: FullWorkflow, index: number): FullWorkflow {
+    const { params } = workflow.schema;
+    return {
+      ...workflow,
+      schema: {
+        ...workflow.schema,
+        params: params.filter((_, idx) => idx !== index) as WorkflowParam[],
+      },
+    };
+  },
+
   updateFieldsetSchemas(
     workflow: FullWorkflow,
     fieldsetSchemas: readonly FieldsetSchema_Output[],
@@ -62,6 +73,56 @@ export const WorkflowUtil = {
       schema: {
         ...workflow.schema,
         fieldsetSchemas: fieldsetSchemas as FieldsetSchema_Output[],
+      },
+    };
+  },
+
+  updateFieldsetSchemaByIndex(
+    workflow: FullWorkflow,
+    index: number,
+    updater: (
+      prevFieldsetSchema: FieldsetSchema_Output,
+    ) => FieldsetSchema_Output,
+  ): FullWorkflow {
+    const { fieldsetSchemas } = workflow.schema;
+    return {
+      ...workflow,
+      schema: {
+        ...workflow.schema,
+        fieldsetSchemas: [
+          ...fieldsetSchemas.slice(0, index),
+          updater(fieldsetSchemas[index]),
+          ...fieldsetSchemas.slice(index + 1),
+        ],
+      },
+    };
+  },
+
+  insertFieldsetSchema(
+    workflow: FullWorkflow,
+    fieldsetSchema: FieldsetSchema_Output,
+  ): FullWorkflow {
+    return {
+      ...workflow,
+      schema: {
+        ...workflow.schema,
+        fieldsetSchemas: workflow.schema.fieldsetSchemas.concat([
+          fieldsetSchema,
+        ]),
+      },
+    };
+  },
+
+  removeFieldsetSchemaByIndex(
+    workflow: FullWorkflow,
+    index: number,
+  ): FullWorkflow {
+    const { fieldsetSchemas } = workflow.schema;
+    return {
+      ...workflow,
+      schema: {
+        ...workflow.schema,
+        fieldsetSchemas: fieldsetSchemas.filter((_, idx) => idx !== index),
       },
     };
   },
@@ -90,6 +151,17 @@ export const WorkflowUtil = {
         operations: workflow.schema.operations.map((op) =>
           op.id === operationToUpdate.id ? operationToUpdate : op,
         ),
+      },
+    };
+  },
+
+  removeOperationByIndex(workflow: FullWorkflow, index: number): FullWorkflow {
+    const { operations } = workflow.schema;
+    return {
+      ...workflow,
+      schema: {
+        ...workflow.schema,
+        operations: operations.filter((_, idx) => idx !== index),
       },
     };
   },

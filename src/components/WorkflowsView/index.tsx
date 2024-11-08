@@ -12,7 +12,7 @@ import { Link, useLocation } from 'wouter';
 export function WorkflowsView(): JSX.Element {
   const [, navigate] = useLocation();
   const [isCreateModalOpened, createModalActions] = useDisclosure(false);
-  const form = useForm({
+  const newWorkflowForm = useForm({
     mode: 'uncontrolled',
     initialValues: {
       title: 'New workflow',
@@ -103,7 +103,7 @@ export function WorkflowsView(): JSX.Element {
         title="Create New Workflow"
       >
         <form
-          onSubmit={form.onSubmit((values) => {
+          onSubmit={newWorkflowForm.onSubmit((values) => {
             createWorkflowMutation.mutate(values.title, {
               onSuccess: (newWorkflow) => {
                 notifications.show({
@@ -124,10 +124,10 @@ export function WorkflowsView(): JSX.Element {
           })}
         >
           <TextInput
-            key={form.key('title')}
+            key={newWorkflowForm.key('title')}
             required
             label="Workflow Title"
-            {...form.getInputProps('title')}
+            {...newWorkflowForm.getInputProps('title')}
           />
           <div className="mt-4 space-x-2 text-right">
             <Button variant="outline" onClick={createModalActions.close}>

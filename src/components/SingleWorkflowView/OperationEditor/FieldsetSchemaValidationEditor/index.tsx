@@ -1,18 +1,16 @@
 import { TextInput, Button } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { FieldsetSchemaValidation, FullWorkflow } from '../../../../client';
+import { FieldsetSchemaValidation } from '../../../../client';
 import { v4 as uuid } from 'uuid';
 import { WorkflowUtil } from '../../../../util/WorkflowUtil';
 import { FieldsetSchemaSelect } from './FieldsetSchemaSelect';
 import { useWorkflowModelContext } from '../../WorkflowModelContext';
 
 type Props = {
-  workflow: FullWorkflow;
   onClose: () => void;
 };
 
 export function FieldsetSchemaValidationEditor({
-  workflow,
   onClose,
 }: Props): JSX.Element {
   const workflowModel = useWorkflowModelContext();
@@ -32,14 +30,15 @@ export function FieldsetSchemaValidationEditor({
     <form
       onSubmit={fieldsetSchemaValidationForm.onSubmit(
         (validationConfig: FieldsetSchemaValidation) => {
-          const workflowToSave = workflow.schema.operations.find(
+          const prevWorkflow = workflowModel.getValues();
+          const newWorkflow = prevWorkflow.schema.operations.find(
             (op) => op.id === validationConfig.id,
           )
-            ? WorkflowUtil.updateOperation(workflow, validationConfig)
-            : WorkflowUtil.insertOperation(workflow, validationConfig);
+            ? WorkflowUtil.updateOperation(prevWorkflow, validationConfig)
+            : WorkflowUtil.insertOperation(prevWorkflow, validationConfig);
 
           // update the form model
-          workflowModel.setValues(workflowToSave);
+          workflowModel.setValues(newWorkflow);
           onClose();
         },
       )}
@@ -60,8 +59,6 @@ export function FieldsetSchemaValidationEditor({
       <FieldsetSchemaSelect
         key={fieldsetSchemaValidationForm.key('fieldsetSchema')}
         {...fieldsetSchemaValidationForm.getInputProps('fieldsetSchema')}
-        fieldsetSchemas={workflow.schema.fieldsetSchemas}
-        workflowParams={workflow.schema.params}
       />
 
       <Button type="submit">Add</Button>
