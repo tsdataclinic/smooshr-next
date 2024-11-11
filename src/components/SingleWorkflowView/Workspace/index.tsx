@@ -15,7 +15,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { FieldsetSchemasEditor } from '../FieldsetSchemasEditor';
 import { OperationEditor } from '../OperationEditor';
 import { ParamsEditor } from '../ParamsEditor';
-import { IconTrash } from '@tabler/icons-react';
+import { IconEdit, IconTrash } from '@tabler/icons-react';
 import {
   FieldsetSchema_Output,
   WorkflowParam,
@@ -34,6 +34,12 @@ export function Workspace({
 }: Props): JSX.Element {
   const [isBottomDrawerOpen, bottomDrawerActions] = useDisclosure(false);
   const { fieldsetSchemas, operations, params } = workflowSchema;
+  const [operationEditorMode, setOperationEditorMode] = React.useState<
+    'add' | 'update'
+  >('add');
+  const [operationToEdit, setOperationToEdit] = React.useState<
+    Operation | undefined
+  >(undefined);
 
   const onWorkflowParamsChange = React.useCallback(
     (newParams: WorkflowParam[]) => {
@@ -64,6 +70,10 @@ export function Workspace({
     },
     [workflowSchema, onWorkflowSchemaChange],
   );
+
+  function uuid(): string {
+    throw new Error('Function not implemented.');
+  }
 
   return (
     <>
@@ -97,7 +107,20 @@ export function Workspace({
                   <Button variant="outline">Add new validation step</Button>
                 </Menu.Target>
                 <Menu.Dropdown>
-                  <Menu.Item onClick={bottomDrawerActions.open}>
+                  <Menu.Item
+                    onClick={() => {
+                      setOperationEditorMode('add');
+                      // create an empty fieldset schema validation operation
+                      setOperationToEdit({
+                        type: 'fieldsetSchemaValidation',
+                        id: uuid(),
+                        title: 'Apply column rulesets',
+                        description: '',
+                        fieldsetSchema: '',
+                      });
+                      bottomDrawerActions.open();
+                    }}
+                  >
                     Apply column rulesets
                   </Menu.Item>
                   <Menu.Item disabled>Check file type</Menu.Item>
@@ -132,6 +155,19 @@ export function Workspace({
                           color="dark"
                           size="sm"
                           onClick={() => {
+                            setOperationEditorMode('update');
+                            setOperationToEdit(op);
+                            bottomDrawerActions.open();
+                          }}
+                        >
+                          <IconEdit />
+                        </ActionIcon>
+
+                        <ActionIcon
+                          variant="transparent"
+                          color="dark"
+                          size="sm"
+                          onClick={() => {
                             // delete the operation
                             onWorkflowOperationsChange(
                               operations.filter(
@@ -157,30 +193,29 @@ export function Workspace({
         radius="md"
         opened={isBottomDrawerOpen}
         onClose={bottomDrawerActions.close}
-        title="Configuring validation step: apply colum rulesets"
+        title="Configuring validation step"
         withOverlay={false}
         position="bottom"
       >
-        <OperationEditor
-          mode="add"
-          operationType="fieldsetSchemaValidation"
-          onClose={bottomDrawerActions.close}
-          onAddOperation={(operation: Operation) => {
-            onWorkflowOperationsChange([...operations, operation]);
-          }}
-          onUpdateOperation={(operation: Operation) => {
-            onWorkflowOperationsChange(
-              operations.map((op) => {
-                if (op.id === operation.id) {
-                  return operation;
-                }
-                return op;
-              }),
-            );
-          }}
-          fieldsetSchemas={fieldsetSchemas}
-          workflowParams={params}
-        />
+        {operationToEdit ? (
+          <OperationEditor
+            mode={operationEditorMode}
+            onClose={bottomDrawerActions.close}
+            onAddOperation={(operation: Operation) => {
+              onWorkflowOperationsChange([...operations, operation]);
+            }}
+            onUpdateOperation={(operation: Operation) => {
+              onWorkflowOperationsChange(
+                operations.map((op) => {
+                  return op.id === operation.id ? operation : op;
+                }),
+              );
+            }}
+            fieldsetSchemas={fieldsetSchemas}
+            workflowParams={params}
+            defaultOperation={operationToEdit}
+          />
+        ) : null}
       </Drawer>
     </>
   );

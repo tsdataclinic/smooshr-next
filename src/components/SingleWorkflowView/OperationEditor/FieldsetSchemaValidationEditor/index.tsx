@@ -5,7 +5,6 @@ import {
   FieldsetSchemaValidation,
   WorkflowParam,
 } from '../../../../client';
-import { v4 as uuid } from 'uuid';
 import { FieldsetSchemaSelect } from './FieldsetSchemaSelect';
 
 type Props = {
@@ -15,6 +14,7 @@ type Props = {
   onClose: () => void;
   fieldsetSchemas: FieldsetSchema_Output[];
   workflowParams: WorkflowParam[];
+  defaultOperation: FieldsetSchemaValidation;
 };
 
 export function FieldsetSchemaValidationEditor({
@@ -24,16 +24,11 @@ export function FieldsetSchemaValidationEditor({
   onUpdateOperation,
   fieldsetSchemas,
   workflowParams,
+  defaultOperation,
 }: Props): JSX.Element {
   const fieldsetSchemaValidationForm = useForm<FieldsetSchemaValidation>({
     mode: 'uncontrolled',
-    initialValues: {
-      type: 'fieldsetSchemaValidation',
-      id: uuid(),
-      title: 'Apply column rulesets',
-      description: '',
-      fieldsetSchema: '',
-    },
+    initialValues: defaultOperation,
   });
 
   return (
@@ -69,7 +64,7 @@ export function FieldsetSchemaValidationEditor({
         workflowParams={workflowParams}
       />
 
-      <Button type="submit">Add</Button>
+      <Button type="submit">{mode === 'add' ? 'Add' : 'Update'}</Button>
     </form>
   );
 }
