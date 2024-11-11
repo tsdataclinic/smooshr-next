@@ -78,7 +78,7 @@ export function Workspace({
               />
             </Stack>
             <Stack>
-              <Title order={2}>Column Rules</Title>
+              <Title order={2}>Column Rulesets</Title>
               <FieldsetSchemasEditor
                 fieldsetSchemas={fieldsetSchemas}
                 onFieldsetSchemasChange={onFieldsetSchemasChange}
