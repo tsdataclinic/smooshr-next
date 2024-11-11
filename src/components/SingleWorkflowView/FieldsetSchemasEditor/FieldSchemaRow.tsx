@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { IconCheck, IconEdit } from '@tabler/icons-react';
 import { FieldSchema, ParamReference } from '../../../client';
-import { useDisclosure, useFocusTrap } from '@mantine/hooks';
+import { useDisclosure } from '@mantine/hooks';
 import { useField } from '@mantine/form';
 
 type Props = {
