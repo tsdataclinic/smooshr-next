@@ -9,13 +9,14 @@ import {
   ComboboxItem,
 } from '@mantine/core';
 import { IconCheck, IconEdit } from '@tabler/icons-react';
-import { ParamReference } from '../../../client';
+import { FieldSchema, ParamReference } from '../../../client';
 import { useDisclosure, useFocusTrap } from '@mantine/hooks';
-import { useWorkflowModelContext } from '../WorkflowModelContext';
+import { useField } from '@mantine/form';
 
 type Props = {
-  fieldsetIndex: number;
-  index: number;
+  fieldIndex: number;
+  fieldSchema: FieldSchema;
+  onFieldSchemaChange: (index: number, fieldSchema: FieldSchema) => void;
 };
 
 const DATA_TYPE_OPTIONS: ComboboxItem[] = [
@@ -59,44 +60,44 @@ function allowedValueListToString(
   return allowedValues.paramId;
 }
 
-export function FieldSchemaRow({ fieldsetIndex, index }: Props): JSX.Element {
-  const fieldSchemaPath = `schema.fieldsetSchemas.${fieldsetIndex}.fields.${index}`;
-  const workflowModel = useWorkflowModelContext();
-  const focusTrapRef = useFocusTrap();
+export function FieldSchemaRow({
+  fieldSchema,
+  fieldIndex,
+  onFieldSchemaChange,
+}: Props): JSX.Element {
   const [isEditModeOn, editModeActions] = useDisclosure(false);
-  const fieldSchema =
-    workflowModel.getValues().schema.fieldsetSchemas[fieldsetIndex].fields[
-      index
-    ];
+
+  const nameField = useField({ initialValue: fieldSchema.name });
+  const isRequiredField = useField({
+    initialValue: fieldSchema.required,
+    type: 'checkbox',
+  });
+  const dataTypeField = useField({
+    initialValue: fieldSchema.dataTypeValidation.dataType,
+  });
+  const isCaseSensitiveField = useField({
+    initialValue: fieldSchema.caseSensitive,
+    type: 'checkbox',
+  });
+  const allowEmptyValuesField = useField({
+    initialValue: fieldSchema.allowEmptyValues,
+    type: 'checkbox',
+  });
 
   const nameColumn = isEditModeOn ? (
-    <TextInput
-      key={workflowModel.key(`${fieldSchemaPath}.name`)}
-      {...workflowModel.getInputProps(`${fieldSchemaPath}.name`)}
-    />
+    <TextInput {...nameField.getInputProps()} />
   ) : (
     <Text size="sm">{fieldSchema.name}</Text>
   );
 
   const isRequiredColumn = isEditModeOn ? (
-    <Checkbox
-      key={workflowModel.key(`${fieldSchemaPath}.required`)}
-      {...workflowModel.getInputProps(`${fieldSchemaPath}.required`, {
-        type: 'checkbox',
-      })}
-    />
+    <Checkbox {...isRequiredField.getInputProps()} />
   ) : (
     <Text size="sm">{booleanToString(fieldSchema.required)}</Text>
   );
 
   const dataTypeColumn = isEditModeOn ? (
-    <Select
-      key={workflowModel.key(`${fieldSchemaPath}.dataTypeValidation.dataType`)}
-      data={DATA_TYPE_OPTIONS}
-      {...workflowModel.getInputProps(
-        `${fieldSchemaPath}.dataTypeValidation.dataType`,
-      )}
-    />
+    <Select {...dataTypeField.getInputProps()} data={DATA_TYPE_OPTIONS} />
   ) : (
     <Text tt="capitalize" size="sm">
       {fieldSchema.dataTypeValidation.dataType}
@@ -104,29 +105,19 @@ export function FieldSchemaRow({ fieldsetIndex, index }: Props): JSX.Element {
   );
 
   const isCaseSensitiveColumn = isEditModeOn ? (
-    <Checkbox
-      key={workflowModel.key(`${fieldSchemaPath}.caseSensitive`)}
-      {...workflowModel.getInputProps(`${fieldSchemaPath}.caseSensitive`, {
-        type: 'checkbox',
-      })}
-    />
+    <Checkbox {...isCaseSensitiveField.getInputProps()} />
   ) : (
     <Text size="sm">{booleanToString(fieldSchema.caseSensitive)}</Text>
   );
 
   const allowEmptyValuesColumn = isEditModeOn ? (
-    <Checkbox
-      key={workflowModel.key(`${fieldSchemaPath}.allowEmptyValues`)}
-      {...workflowModel.getInputProps(`${fieldSchemaPath}.allowEmptyValues`, {
-        type: 'checkbox',
-      })}
-    />
+    <Checkbox {...allowEmptyValuesField.getInputProps()} />
   ) : (
     <Text size="sm">{booleanToString(fieldSchema.allowEmptyValues)}</Text>
   );
 
   return (
-    <Table.Tr key={fieldSchema.name} ref={focusTrapRef}>
+    <Table.Tr key={fieldSchema.name}>
       <Table.Td>{nameColumn}</Table.Td>
       <Table.Td>{isRequiredColumn}</Table.Td>
       <Table.Td>{dataTypeColumn}</Table.Td>
@@ -147,6 +138,25 @@ export function FieldSchemaRow({ fieldsetIndex, index }: Props): JSX.Element {
           onClick={() => {
             if (isEditModeOn) {
               editModeActions.close();
+
+              // update the field schema
+              const dataType = dataTypeField.getValue();
+              const newFieldSchema = {
+                ...fieldSchema,
+                name: nameField.getValue(),
+                required: isRequiredField.getValue(),
+                dataTypeValidation:
+                  dataType === 'timestamp'
+                    ? {
+                        dataType,
+                        dateTimeFormat: 'YYYY-MM-DD HH:mm:ss',
+                      }
+                    : { dataType },
+                caseSensitive: isCaseSensitiveField.getValue(),
+                allowEmptyValues: allowEmptyValuesField.getValue(),
+              };
+
+              onFieldSchemaChange(fieldIndex, newFieldSchema);
             } else {
               editModeActions.open();
             }

@@ -1,3 +1,5 @@
+import * as R from 'remeda';
+import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 import {
   Table,
@@ -9,21 +11,25 @@ import {
   Button,
   ActionIcon,
   Select,
-  ComboboxItem,
 } from '@mantine/core';
 import * as Papa from 'papaparse';
 import { IconTrash } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
 import { FieldSchemaRow } from './FieldSchemaRow';
-import { useWorkflowModelContext } from '../WorkflowModelContext';
-import { WorkflowUtil } from '../../../util/WorkflowUtil';
-import { FieldsetSchema_Output } from '../../../client';
+import { FieldSchema, FieldsetSchema_Output } from '../../../client';
+import { useField } from '@mantine/form';
 
 type Props = {
+  fieldsetSchema: FieldsetSchema_Output;
   index: number;
+  onFieldsetSchemaChange: (
+    index: number,
+    fieldsetSchema: FieldsetSchema_Output,
+  ) => void;
+  onFieldsetSchemaDelete: (index: number) => void;
 };
 
-const ALLOW_EXTRA_COLUMNS_OPTIONS: ComboboxItem[] = [
+const ALLOW_EXTRA_COLUMNS_OPTIONS = [
   {
     value: 'no',
     label: 'No',
@@ -36,13 +42,42 @@ const ALLOW_EXTRA_COLUMNS_OPTIONS: ComboboxItem[] = [
     value: 'onlyAfterSchemaFields',
     label: 'Only after schema fields',
   },
-];
+] as const;
 
-export function FieldsetSchemaBlock({ index }: Props): JSX.Element {
-  const fieldsetSchemaPath = `schema.fieldsetSchemas.${index}`;
-  const workflowModel = useWorkflowModelContext();
-  const fieldsetSchema =
-    workflowModel.getValues().schema.fieldsetSchemas[index];
+const ALLOW_EXTRA_COLUMNS_VALUES = ALLOW_EXTRA_COLUMNS_OPTIONS.map(
+  (option) => option.value,
+);
+
+export function FieldsetSchemaBlock({
+  fieldsetSchema,
+  index,
+  onFieldsetSchemaChange,
+  onFieldsetSchemaDelete,
+}: Props): JSX.Element {
+  const nameField = useField({ initialValue: fieldsetSchema.name });
+  const orderMattersField = useField({
+    initialValue: fieldsetSchema.orderMatters,
+    type: 'checkbox',
+  });
+  const allowExtraColumnsField = useField({
+    initialValue: fieldsetSchema.allowExtraColumns,
+  });
+
+  const onFieldSchemaChange = React.useCallback(
+    (fieldIdx: number, fieldSchema: FieldSchema) => {
+      // update fieldschema according to index
+      const newFieldsetSchema: FieldsetSchema_Output = {
+        ...fieldsetSchema,
+        fields: [
+          ...fieldsetSchema.fields.slice(0, fieldIdx),
+          fieldSchema,
+          ...fieldsetSchema.fields.slice(fieldIdx + 1),
+        ],
+      };
+      onFieldsetSchemaChange(index, newFieldsetSchema);
+    },
+    [fieldsetSchema, index, onFieldsetSchemaChange],
+  );
 
   const openDeleteModal = () =>
     modals.openConfirmModal({
@@ -53,11 +88,7 @@ export function FieldsetSchemaBlock({ index }: Props): JSX.Element {
       labels: { confirm: 'Delete schema', cancel: 'Cancel' },
       confirmProps: { color: 'red' },
       onConfirm: () => {
-        const newWorkflow = WorkflowUtil.removeFieldsetSchemaByIndex(
-          workflowModel.getValues(),
-          index,
-        );
-        workflowModel.setValues(newWorkflow);
+        onFieldsetSchemaDelete(index);
       },
     });
 
@@ -67,32 +98,26 @@ export function FieldsetSchemaBlock({ index }: Props): JSX.Element {
         header: true,
         skipEmptyLines: true,
         complete: (parsedResult): void => {
-          const newWorkflow = WorkflowUtil.updateFieldsetSchemaByIndex(
-            workflowModel.getValues(),
-            index,
-            (prevFieldsetSchema: FieldsetSchema_Output) => {
-              return {
-                ...prevFieldsetSchema,
-                name: file.name,
-                fields:
-                  parsedResult.meta.fields?.map((header) => {
-                    return {
-                      id: uuid(),
-                      name: header,
-                      caseSensitive: true,
-                      required: true,
-                      dataTypeValidation: {
-                        dataType: 'any',
-                      },
-                      allowEmptyValues: false,
-                      allowedValues: [],
-                    };
-                  }) ?? [],
-              };
-            },
-          );
+          const newFieldsetSchema: FieldsetSchema_Output = {
+            ...fieldsetSchema,
+            name: file.name,
+            fields:
+              parsedResult.meta.fields?.map((header: string) => {
+                return {
+                  id: uuid(),
+                  name: header,
+                  caseSensitive: true,
+                  required: true,
+                  dataTypeValidation: {
+                    dataType: 'any',
+                  },
+                  allowEmptyValues: false,
+                  allowedValues: [],
+                };
+              }) ?? [],
+          };
 
-          workflowModel.setValues(newWorkflow);
+          onFieldsetSchemaChange(index, newFieldsetSchema);
         },
       });
     }
@@ -120,8 +145,9 @@ export function FieldsetSchemaBlock({ index }: Props): JSX.Element {
               return (
                 <FieldSchemaRow
                   key={fieldSchema.id}
-                  fieldsetIndex={index}
-                  index={i}
+                  fieldSchema={fieldSchema}
+                  fieldIndex={i}
+                  onFieldSchemaChange={onFieldSchemaChange}
                 />
               );
             })}
@@ -152,9 +178,16 @@ export function FieldsetSchemaBlock({ index }: Props): JSX.Element {
 
         <div className="space-y-3">
           <TextInput
-            key={workflowModel.key(`${fieldsetSchemaPath}.name`)}
-            {...workflowModel.getInputProps(`${fieldsetSchemaPath}.name`)}
+            {...nameField.getInputProps()}
             label="Ruleset Name"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const newName = e.currentTarget.value;
+              nameField.getInputProps().onChange(newName);
+              onFieldsetSchemaChange(index, {
+                ...fieldsetSchema,
+                name: newName,
+              });
+            }}
           />
 
           {fieldsetSchema.fields.length === 0 ? (
@@ -167,24 +200,31 @@ export function FieldsetSchemaBlock({ index }: Props): JSX.Element {
             <>
               {renderHeadersMetadataTable()}
               <Checkbox
-                key={workflowModel.key(`${fieldsetSchemaPath}.orderMatters`)}
-                {...workflowModel.getInputProps(
-                  `${fieldsetSchemaPath}.orderMatters`,
-                  {
-                    type: 'checkbox',
-                  },
-                )}
+                {...orderMattersField.getInputProps()}
                 label="Order of columns matters"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const newOrderMatters = e.currentTarget.checked;
+                  orderMattersField.getInputProps().onChange(newOrderMatters);
+                  onFieldsetSchemaChange(index, {
+                    ...fieldsetSchema,
+                    orderMatters: newOrderMatters,
+                  });
+                }}
               />
               <Select
-                key={workflowModel.key(
-                  `${fieldsetSchemaPath}.allowExtraColumns`,
-                )}
-                {...workflowModel.getInputProps(
-                  `${fieldsetSchemaPath}.allowExtraColumns`,
-                )}
+                {...allowExtraColumnsField.getInputProps()}
+                allowDeselect={false}
                 data={ALLOW_EXTRA_COLUMNS_OPTIONS}
                 label="Allow extra columns"
+                onChange={(value: string | null) => {
+                  if (R.isIncludedIn(value, ALLOW_EXTRA_COLUMNS_VALUES)) {
+                    allowExtraColumnsField.getInputProps().onChange(value);
+                    onFieldsetSchemaChange(index, {
+                      ...fieldsetSchema,
+                      allowExtraColumns: value,
+                    });
+                  }
+                }}
               />
             </>
           )}

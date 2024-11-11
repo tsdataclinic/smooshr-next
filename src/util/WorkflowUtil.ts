@@ -40,30 +40,6 @@ export const WorkflowUtil = {
     return `${getSingleWorkflowBaseURI()}/${id}`;
   },
 
-  updateWorkflowParams(
-    workflow: FullWorkflow,
-    params: readonly WorkflowParam[],
-  ): FullWorkflow {
-    return {
-      ...workflow,
-      schema: {
-        ...workflow.schema,
-        params: params as WorkflowParam[],
-      },
-    };
-  },
-
-  removeParamByIndex(workflow: FullWorkflow, index: number): FullWorkflow {
-    const { params } = workflow.schema;
-    return {
-      ...workflow,
-      schema: {
-        ...workflow.schema,
-        params: params.filter((_, idx) => idx !== index) as WorkflowParam[],
-      },
-    };
-  },
-
   updateFieldsetSchemas(
     workflow: FullWorkflow,
     fieldsetSchemas: readonly FieldsetSchema_Output[],
@@ -94,21 +70,6 @@ export const WorkflowUtil = {
           updater(fieldsetSchemas[index]),
           ...fieldsetSchemas.slice(index + 1),
         ],
-      },
-    };
-  },
-
-  insertFieldsetSchema(
-    workflow: FullWorkflow,
-    fieldsetSchema: FieldsetSchema_Output,
-  ): FullWorkflow {
-    return {
-      ...workflow,
-      schema: {
-        ...workflow.schema,
-        fieldsetSchemas: workflow.schema.fieldsetSchemas.concat([
-          fieldsetSchema,
-        ]),
       },
     };
   },
