@@ -58,22 +58,22 @@ export function ParamsEditor({
   return (
     <form>
       <Stack>
+        <Button
+          variant="outline"
+          style={{ alignSelf: 'flex-start' }}
+          onClick={() => {
+            onWorkflowParamsChange([
+              ...workflowParams,
+              makeEmptyWorkflowParam(workflowParams.length + 1),
+            ]);
+          }}
+        >
+          Add new input
+        </Button>
         {workflowParams.length === 0 ? (
           <Text>No workflow inputs have been configured yet</Text>
         ) : (
           <>
-            <Button
-              variant="outline"
-              style={{ alignSelf: 'flex-start' }}
-              onClick={() => {
-                onWorkflowParamsChange([
-                  ...workflowParams,
-                  makeEmptyWorkflowParam(workflowParams.length + 1),
-                ]);
-              }}
-            >
-              Add new input
-            </Button>
             {workflowParams.map((param, i) => {
               return (
                 <WorkflowParamBlock
