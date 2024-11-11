@@ -85,7 +85,7 @@ def _get_csv_contents_from_resource(file_resource: Resource) -> CsvData:
     )
 
 
-def _get_fieldset_schema(
+def _get_fieldset_schema_by_name(
     fieldset_name: str, fieldsets: list[FieldsetSchema]
 ) -> FieldsetSchema:
     """Get the fieldset schema from the list of fieldsets."""
@@ -93,7 +93,19 @@ def _get_fieldset_schema(
         if fieldset.name == fieldset_name:
             return fieldset
     raise FieldsetSchemaNotFoundException(
-        f"Fieldset schema {fieldset_name} not found in schema."
+        f"Fieldset schema with name '{fieldset_name}' not found in schema."
+    )
+
+
+def _get_fieldset_schema_by_id(
+    fieldset_id: str, fieldsets: list[FieldsetSchema]
+) -> FieldsetSchema:
+    """Get the fieldset schema from the list of fieldsets."""
+    for fieldset in fieldsets:
+        if fieldset.id == fieldset_id:
+            return fieldset
+    raise FieldsetSchemaNotFoundException(
+        f"Fieldset schema with id '{fieldset_id}' not found in schema."
     )
 
 
@@ -115,7 +127,9 @@ def _validate_csv(
             case FieldsetSchemaValidation():
                 match operation.fieldset_schema:
                     case str():
-                        fieldset_schema_name = operation.fieldset_schema
+                        fieldset_schema = _get_fieldset_schema_by_id(
+                            operation.fieldset_schema, schema.fieldset_schemas
+                        )
                     case ParamReference():
                         param_id = operation.fieldset_schema.param_id
                         param = param_schemas.get(param_id, None)
@@ -134,10 +148,10 @@ def _validate_csv(
                                     message=f"The param value referenced with {param.name} is not a string."
                                 )
                             ]
+                        fieldset_schema = _get_fieldset_schema_by_name(
+                            fieldset_schema_name, schema.fieldset_schemas
+                        )
 
-                fieldset_schema = _get_fieldset_schema(
-                    fieldset_schema_name, schema.fieldset_schemas
-                )
                 validations.extend(
                     validate_fieldset(
                         csv_data.column_names,
