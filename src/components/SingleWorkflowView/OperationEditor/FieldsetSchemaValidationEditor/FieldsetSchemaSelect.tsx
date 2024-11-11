@@ -7,9 +7,11 @@ import {
 } from '../../../../client';
 import { UncontrolledInputProps } from '../../../../util/types';
 import { WorkflowUtil } from '../../../../util/WorkflowUtil';
-import { useWorkflowModelContext } from '../../WorkflowModelContext';
 
-type Props = UncontrolledInputProps<string | ParamReference>;
+type Props = UncontrolledInputProps<string | ParamReference> & {
+  fieldsetSchemas: FieldsetSchema_Output[];
+  workflowParams: WorkflowParam[];
+};
 
 /**
  * A FieldsetSchema selector that supports either selecting a fieldset
@@ -17,11 +19,11 @@ type Props = UncontrolledInputProps<string | ParamReference>;
  * selected, we handle converting it from a param reference string
  * to a param reference object.
  */
-export function FieldsetSchemaSelect({ ...inputProps }: Props): JSX.Element {
-  const workflowModel = useWorkflowModelContext();
-  const { fieldsetSchemas, params: workflowParams } =
-    workflowModel.getValues().schema;
-
+export function FieldsetSchemaSelect({
+  fieldsetSchemas,
+  workflowParams,
+  ...inputProps
+}: Props): JSX.Element {
   const [value, onSelectChange] = useUncontrolled(inputProps);
 
   const fieldsetSchemaOptions: ComboboxItem[] = fieldsetSchemas.map(

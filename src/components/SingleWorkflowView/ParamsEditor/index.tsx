@@ -1,23 +1,10 @@
+import * as React from 'react';
 import { WorkflowParam } from '../../../client';
-import { IconTrash } from '@tabler/icons-react';
 import { v4 as uuid } from 'uuid';
-import {
-  Group,
-  Button,
-  Fieldset,
-  Checkbox,
-  ComboboxItem,
-  Select,
-  Text,
-  TextInput,
-  Stack,
-  ActionIcon,
-} from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { WorkflowUtil } from '../../../util/WorkflowUtil';
+import { Button, Text, Stack } from '@mantine/core';
 import { modals } from '@mantine/modals';
-import { useWorkflowModelContext } from '../WorkflowModelContext';
 import { toVariableIdentifierName } from '../../../util/stringUtil';
+import { WorkflowParamBlock } from './WorkflowParamBlock';
 
 function makeEmptyWorkflowParam(index: number): WorkflowParam {
   const displayName = `Input ${index}`;
@@ -31,24 +18,15 @@ function makeEmptyWorkflowParam(index: number): WorkflowParam {
   };
 }
 
-const PARAM_TYPE_OPTIONS: ComboboxItem[] = [
-  {
-    value: 'string',
-    label: 'Text',
-  },
-  {
-    value: 'number',
-    label: 'Number',
-  },
-  {
-    value: 'string list',
-    label: 'Text list',
-  },
-];
+type Props = {
+  workflowParams: WorkflowParam[];
+  onWorkflowParamsChange: (params: WorkflowParam[]) => void;
+};
 
-export function ParamsEditor(): JSX.Element {
-  const workflowModel = useWorkflowModelContext();
-
+export function ParamsEditor({
+  workflowParams,
+  onWorkflowParamsChange,
+}: Props): JSX.Element {
   const openDeleteModal = (inputIdx: number) => {
     modals.openConfirmModal({
       title: 'Delete input',
@@ -58,46 +36,29 @@ export function ParamsEditor(): JSX.Element {
       labels: { confirm: 'Delete input', cancel: 'Cancel' },
       confirmProps: { color: 'red' },
       onConfirm: () => {
-        const newWorkflow = WorkflowUtil.removeParamByIndex(
-          workflowModel.getValues(),
-          inputIdx,
+        onWorkflowParamsChange(
+          workflowParams.filter((_, i) => {
+            return i !== inputIdx;
+          }),
         );
-        workflowInputsForm.removeListItem('params', inputIdx);
-        workflowModel.setValues(newWorkflow);
       },
     });
   };
 
-  // NOTE: we *cannot* use workflowModel directly because we need this sub-form,
-  // because we we have to apply a transformation on value change to update
-  // the param name with a transformed form of the display name
-  const workflowInputsForm = useForm<{ params: WorkflowParam[] }>({
-    mode: 'uncontrolled',
-    initialValues: {
-      params: workflowModel.getValues().schema.params,
-    },
-    onValuesChange: (newParams: { params: WorkflowParam[] }) => {
-      const transformedParams = newParams.params.map((param) => {
-        return {
-          ...param,
-          name: toVariableIdentifierName(param.displayName),
-        };
+  const onWorkflowParamChange = React.useCallback(
+    (updatedParam: WorkflowParam) => {
+      const newParams = workflowParams.map((p) => {
+        return p.id === updatedParam.id ? updatedParam : p;
       });
-
-      const workflowToSave = WorkflowUtil.updateWorkflowParams(
-        workflowModel.getValues(),
-        transformedParams,
-      );
-      workflowModel.setValues(workflowToSave);
+      onWorkflowParamsChange(newParams);
     },
-  });
-
-  const { params } = workflowInputsForm.getValues();
+    [workflowParams, onWorkflowParamsChange],
+  );
 
   return (
     <form>
       <Stack>
-        {params.length === 0 ? (
+        {workflowParams.length === 0 ? (
           <Text>No workflow inputs have been configured yet</Text>
         ) : (
           <>
@@ -105,67 +66,23 @@ export function ParamsEditor(): JSX.Element {
               variant="outline"
               style={{ alignSelf: 'flex-start' }}
               onClick={() => {
-                workflowInputsForm.insertListItem(
-                  'params',
-                  makeEmptyWorkflowParam(params.length + 1),
-                );
+                onWorkflowParamsChange([
+                  ...workflowParams,
+                  makeEmptyWorkflowParam(workflowParams.length + 1),
+                ]);
               }}
             >
               Add new input
             </Button>
-            {params.map((param, i) => {
+            {workflowParams.map((param, i) => {
               return (
-                <Fieldset
+                <WorkflowParamBlock
                   key={param.id}
-                  className="relative"
-                  legend={<Text>{param.displayName}</Text>}
-                >
-                  <ActionIcon
-                    aria-label="Delete input"
-                    variant="transparent"
-                    className="absolute -top-1 right-1"
-                    color="dark"
-                    size="sm"
-                  >
-                    <IconTrash onClick={() => openDeleteModal(i)} />
-                  </ActionIcon>
-
-                  <Group>
-                    <TextInput
-                      key={workflowInputsForm.key(`params.${i}.displayName`)}
-                      {...workflowInputsForm.getInputProps(
-                        `params.${i}.displayName`,
-                      )}
-                      label="Display name"
-                    />
-                    <Select
-                      key={workflowInputsForm.key(`params.${i}.type`)}
-                      {...workflowInputsForm.getInputProps(`params.${i}.type`)}
-                      data={PARAM_TYPE_OPTIONS}
-                      label="Type"
-                    />
-                    <Checkbox
-                      key={workflowInputsForm.key(`params.${i}.required`)}
-                      {...workflowInputsForm.getInputProps(
-                        `params.${i}.required`,
-                        {
-                          type: 'checkbox',
-                        },
-                      )}
-                      label="Required"
-                    />
-                  </Group>
-                  <Group align="center">
-                    <TextInput
-                      key={workflowInputsForm.key(`params.${i}.description`)}
-                      {...workflowInputsForm.getInputProps(
-                        `params.${i}.description`,
-                      )}
-                      label="Description"
-                      className="w-full"
-                    />
-                  </Group>
-                </Fieldset>
+                  workflowParam={param}
+                  paramIndex={i}
+                  onOpenDeleteModal={openDeleteModal}
+                  onWorkflowParamChange={onWorkflowParamChange}
+                />
               );
             })}
           </>

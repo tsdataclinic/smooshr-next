@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
   Drawer,
   Group,
@@ -15,13 +16,54 @@ import { FieldsetSchemasEditor } from '../FieldsetSchemasEditor';
 import { OperationEditor } from '../OperationEditor';
 import { ParamsEditor } from '../ParamsEditor';
 import { IconTrash } from '@tabler/icons-react';
-import { useWorkflowModelContext } from '../WorkflowModelContext';
-import { WorkflowUtil } from '../../../util/WorkflowUtil';
+import {
+  FieldsetSchema_Output,
+  WorkflowParam,
+  WorkflowSchema_Output,
+} from '../../../client';
 
-export function Workspace(): JSX.Element {
-  const workflowModel = useWorkflowModelContext();
+import { Operation } from '../OperationEditor/types';
+type Props = {
+  workflowSchema: WorkflowSchema_Output;
+  onWorkflowSchemaChange: (workflowSchema: WorkflowSchema_Output) => void;
+};
+
+export function Workspace({
+  workflowSchema,
+  onWorkflowSchemaChange,
+}: Props): JSX.Element {
   const [isBottomDrawerOpen, bottomDrawerActions] = useDisclosure(false);
-  const { operations } = workflowModel.getValues().schema;
+  const { fieldsetSchemas, operations, params } = workflowSchema;
+
+  const onWorkflowParamsChange = React.useCallback(
+    (newParams: WorkflowParam[]) => {
+      onWorkflowSchemaChange({
+        ...workflowSchema,
+        params: newParams,
+      });
+    },
+    [workflowSchema, onWorkflowSchemaChange],
+  );
+
+  const onFieldsetSchemasChange = React.useCallback(
+    (newFieldsetSchemas: FieldsetSchema_Output[]) => {
+      onWorkflowSchemaChange({
+        ...workflowSchema,
+        fieldsetSchemas: newFieldsetSchemas,
+      });
+    },
+    [workflowSchema, onWorkflowSchemaChange],
+  );
+
+  const onWorkflowOperationsChange = React.useCallback(
+    (newOperations: WorkflowSchema_Output['operations']) => {
+      onWorkflowSchemaChange({
+        ...workflowSchema,
+        operations: newOperations,
+      });
+    },
+    [workflowSchema, onWorkflowSchemaChange],
+  );
 
   return (
     <>
@@ -30,11 +72,17 @@ export function Workspace(): JSX.Element {
           <Stack>
             <Stack>
               <Title order={2}>Inputs</Title>
-              <ParamsEditor />
+              <ParamsEditor
+                workflowParams={params}
+                onWorkflowParamsChange={onWorkflowParamsChange}
+              />
             </Stack>
             <Stack>
               <Title order={2}>Column Rules</Title>
-              <FieldsetSchemasEditor />
+              <FieldsetSchemasEditor
+                fieldsetSchemas={fieldsetSchemas}
+                onFieldsetSchemasChange={onFieldsetSchemasChange}
+              />
             </Stack>
           </Stack>
         </Grid.Col>
@@ -84,12 +132,12 @@ export function Workspace(): JSX.Element {
                           color="dark"
                           size="sm"
                           onClick={() => {
-                            const newWorkflow =
-                              WorkflowUtil.removeOperationByIndex(
-                                workflowModel.getValues(),
-                                i,
-                              );
-                            workflowModel.setValues(newWorkflow);
+                            // delete the operation
+                            onWorkflowOperationsChange(
+                              operations.filter(
+                                (operation) => operation.id !== op.id,
+                              ),
+                            );
                           }}
                         >
                           <IconTrash />
@@ -114,8 +162,24 @@ export function Workspace(): JSX.Element {
         position="bottom"
       >
         <OperationEditor
+          mode="add"
           operationType="fieldsetSchemaValidation"
           onClose={bottomDrawerActions.close}
+          onAddOperation={(operation: Operation) => {
+            onWorkflowOperationsChange([...operations, operation]);
+          }}
+          onUpdateOperation={(operation: Operation) => {
+            onWorkflowOperationsChange(
+              operations.map((op) => {
+                if (op.id === operation.id) {
+                  return operation;
+                }
+                return op;
+              }),
+            );
+          }}
+          fieldsetSchemas={fieldsetSchemas}
+          workflowParams={params}
         />
       </Drawer>
     </>

@@ -10,6 +10,7 @@ import {
   Button,
 } from '@mantine/core';
 import {
+  FullWorkflow,
   WorkflowParam,
   WorkflowRunReport,
   WorkflowsService,
@@ -22,7 +23,6 @@ import pluralize from 'pluralize';
 import { ParamFormInput } from './ParamFormInput';
 import { useForm } from '@mantine/form';
 import { WorkflowParamValues } from './types';
-import { useWorkflowModelContext } from '../WorkflowModelContext';
 
 // TODO: eventually this shouldnt be needed, we should convert Frictionless errors
 // to validation errors instead of HTTP errors.
@@ -32,23 +32,25 @@ const WorkflowErrorSchema = z.object({
   }),
 });
 
-export function TestWorkflowBlock(): JSX.Element {
-  const workflowModel = useWorkflowModelContext();
+type Props = {
+  workflow: FullWorkflow;
+};
+
+export function TestWorkflowBlock({ workflow }: Props): JSX.Element {
   const [file, setFile] = React.useState<File | undefined>();
   const [workflowReport, setWorkflowReport] = React.useState<
     WorkflowRunReport | undefined
   >(undefined);
 
+  const { params } = workflow.schema;
+
   const paramsForm = useForm<{
     workflowParamValues: WorkflowParamValues;
   }>({
     initialValues: {
-      workflowParamValues: R.mapToObj(
-        workflowModel.getValues().schema.params,
-        (param: WorkflowParam) => {
-          return [param.name, undefined];
-        },
-      ),
+      workflowParamValues: R.mapToObj(params, (param: WorkflowParam) => {
+        return [param.name, undefined];
+      }),
     },
   });
 
@@ -78,10 +80,9 @@ export function TestWorkflowBlock(): JSX.Element {
   });
 
   const renderParamFormInputs = () => {
-    const params = workflowModel.getValues().schema.params;
     return (
       <Fieldset legend={<Text>Inputs</Text>}>
-        {params.map((param) => {
+        {params.map((param: WorkflowParam) => {
           return (
             <ParamFormInput
               key={param.id}
@@ -97,14 +98,12 @@ export function TestWorkflowBlock(): JSX.Element {
   return (
     <form
       onSubmit={paramsForm.onSubmit((formValues) => {
-        console.log('values to submit', formValues);
-
         if (file) {
           runWorkflowMutation.mutate(
             {
               workflowParamValues: formValues.workflowParamValues,
               fileToUpload: file,
-              workflowId: workflowModel.getValues().id,
+              workflowId: workflow.id,
             },
             {
               onSuccess: (report: WorkflowRunReport) => {
