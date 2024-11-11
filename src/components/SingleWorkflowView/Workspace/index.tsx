@@ -23,6 +23,7 @@ import {
 } from '../../../client';
 
 import { Operation } from '../OperationEditor/types';
+import { InfoTooltip } from '../../ui/InfoTooltip';
 type Props = {
   workflowSchema: WorkflowSchema_Output;
   onWorkflowSchemaChange: (workflowSchema: WorkflowSchema_Output) => void;
@@ -81,14 +82,26 @@ export function Workspace({
         <Grid.Col span={7}>
           <Stack>
             <Stack>
-              <Title order={2}>Inputs</Title>
+              <Group>
+                <Title order={2}>Inputs</Title>
+                <InfoTooltip
+                  color="black"
+                  tooltip="Inputs are parameters that can be sent to the workflow when it is run. You can refer to them when configuring validations."
+                />
+              </Group>
               <ParamsEditor
                 workflowParams={params}
                 onWorkflowParamsChange={onWorkflowParamsChange}
               />
             </Stack>
             <Stack>
-              <Title order={2}>Column Rulesets</Title>
+              <Group>
+                <Title order={2}>Column Rulesets</Title>
+                <InfoTooltip
+                  color="black"
+                  tooltip="Rulesets are collections of rules to validate the columns of a dataset. You can refer to them when configuring a new validation step."
+                />
+              </Group>
               <FieldsetSchemasEditor
                 fieldsetSchemas={fieldsetSchemas}
                 onFieldsetSchemasChange={onFieldsetSchemasChange}

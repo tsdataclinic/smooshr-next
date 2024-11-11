@@ -11,7 +11,7 @@ import {
   Button,
   ActionIcon,
   Select,
-  Space,
+  Group,
 } from '@mantine/core';
 import * as Papa from 'papaparse';
 import { IconTrash } from '@tabler/icons-react';
@@ -19,7 +19,7 @@ import { modals } from '@mantine/modals';
 import { FieldSchemaRow } from './FieldSchemaRow';
 import { FieldSchema, FieldsetSchema_Output } from '../../../client';
 import { useField } from '@mantine/form';
-import { InfoIcon } from '../../ui/InfoIcon';
+import { InfoTooltip } from '../../ui/InfoTooltip';
 
 type Props = {
   fieldsetSchema: FieldsetSchema_Output;
@@ -137,13 +137,14 @@ export function FieldsetSchemaBlock({
               <Table.Th>Data type</Table.Th>
               <Table.Th>Case sensitive</Table.Th>
               <Table.Th>Allows empty values</Table.Th>
-              <Table.Th className="flex">
-                Allowed values
-                <Space w="4px" />
-                <InfoIcon
-                  tooltip="This feature is not implemented yet"
-                  color="red"
-                />
+              <Table.Th>
+                <Group>
+                  Allowed values
+                  <InfoTooltip
+                    tooltip="This feature is not implemented yet"
+                    color="red"
+                  />
+                </Group>
               </Table.Th>
               <Table.Th />
             </Table.Tr>

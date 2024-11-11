@@ -111,8 +111,8 @@ function LoadedWorkflowView({
             >
               Save workflow
             </Menu.Item>
-            <Menu.Item disabled>Edit workflow</Menu.Item>
-            <Menu.Item disabled>Publish workflow</Menu.Item>
+            <Menu.Item disabled>Edit title (not implemented)</Menu.Item>
+            <Menu.Item disabled>Publish workflow (not implemented)</Menu.Item>
             <Menu.Item onClick={testWorkflowModalActions.open}>
               Test workflow
             </Menu.Item>
