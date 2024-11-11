@@ -80,6 +80,10 @@ export function TestWorkflowBlock({ workflow }: Props): JSX.Element {
   });
 
   const renderParamFormInputs = () => {
+    if (params.length === 0) {
+      return null;
+    }
+
     return (
       <Fieldset legend={<Text>Inputs</Text>}>
         {params.map((param: WorkflowParam) => {
