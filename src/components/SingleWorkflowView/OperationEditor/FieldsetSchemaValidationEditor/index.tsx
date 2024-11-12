@@ -1,4 +1,4 @@
-import { TextInput, Button } from '@mantine/core';
+import { TextInput, Button, Stack, Box } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import {
   FieldsetSchema_Output,
@@ -12,9 +12,9 @@ type Props = {
   onAddOperation: (operation: FieldsetSchemaValidation) => void;
   onUpdateOperation: (operation: FieldsetSchemaValidation) => void;
   onClose: () => void;
+  defaultOperation: FieldsetSchemaValidation;
   fieldsetSchemas: FieldsetSchema_Output[];
   workflowParams: WorkflowParam[];
-  defaultOperation: FieldsetSchemaValidation;
 };
 
 export function FieldsetSchemaValidationEditor({
@@ -22,9 +22,9 @@ export function FieldsetSchemaValidationEditor({
   onClose,
   onAddOperation,
   onUpdateOperation,
+  defaultOperation,
   fieldsetSchemas,
   workflowParams,
-  defaultOperation,
 }: Props): JSX.Element {
   const fieldsetSchemaValidationForm = useForm<FieldsetSchemaValidation>({
     mode: 'uncontrolled',
@@ -43,28 +43,31 @@ export function FieldsetSchemaValidationEditor({
           onClose();
         },
       )}
-      className="space-y-2"
     >
-      <TextInput
-        required
-        key={fieldsetSchemaValidationForm.key('title')}
-        {...fieldsetSchemaValidationForm.getInputProps('title')}
-        label="Custom Title"
-      />
-      <TextInput
-        key={fieldsetSchemaValidationForm.key('description')}
-        {...fieldsetSchemaValidationForm.getInputProps('description')}
-        label="Description"
-      />
+      <Stack>
+        <TextInput
+          required
+          key={fieldsetSchemaValidationForm.key('title')}
+          {...fieldsetSchemaValidationForm.getInputProps('title')}
+          label="Custom Title"
+        />
+        <TextInput
+          key={fieldsetSchemaValidationForm.key('description')}
+          {...fieldsetSchemaValidationForm.getInputProps('description')}
+          label="Description"
+        />
 
-      <FieldsetSchemaSelect
-        key={fieldsetSchemaValidationForm.key('fieldsetSchema')}
-        {...fieldsetSchemaValidationForm.getInputProps('fieldsetSchema')}
-        fieldsetSchemas={fieldsetSchemas}
-        workflowParams={workflowParams}
-      />
+        <FieldsetSchemaSelect
+          key={fieldsetSchemaValidationForm.key('fieldsetSchema')}
+          {...fieldsetSchemaValidationForm.getInputProps('fieldsetSchema')}
+          fieldsetSchemas={fieldsetSchemas}
+          workflowParams={workflowParams}
+        />
 
-      <Button type="submit">{mode === 'add' ? 'Add' : 'Update'}</Button>
+        <Box>
+          <Button type="submit">{mode === 'add' ? 'Add' : 'Update'}</Button>
+        </Box>
+      </Stack>
     </form>
   );
 }

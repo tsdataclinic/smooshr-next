@@ -21,9 +21,10 @@ import {
   WorkflowParam,
   WorkflowSchema_Output,
 } from '../../../client';
-
+import { v4 as uuid } from 'uuid';
 import { Operation } from '../OperationEditor/types';
 import { InfoTooltip } from '../../ui/InfoTooltip';
+
 type Props = {
   workflowSchema: WorkflowSchema_Output;
   onWorkflowSchemaChange: (workflowSchema: WorkflowSchema_Output) => void;
@@ -71,10 +72,6 @@ export function Workspace({
     },
     [workflowSchema, onWorkflowSchemaChange],
   );
-
-  function uuid(): string {
-    throw new Error('Function not implemented.');
-  }
 
   return (
     <>
@@ -127,7 +124,7 @@ export function Workspace({
                       setOperationToEdit({
                         type: 'fieldsetSchemaValidation',
                         id: uuid(),
-                        title: 'Apply column rulesets',
+                        title: 'Apply column ruleset',
                         description: '',
                         fieldsetSchema: '',
                       });
@@ -136,7 +133,21 @@ export function Workspace({
                   >
                     Apply column rulesets
                   </Menu.Item>
-                  <Menu.Item disabled>Check file type</Menu.Item>
+                  <Menu.Item
+                    onClick={() => {
+                      setOperationEditorMode('add');
+                      setOperationToEdit({
+                        type: 'fileTypeValidation',
+                        id: uuid(),
+                        title: 'Check file type',
+                        description: '',
+                        expectedFileType: '.csv',
+                      });
+                      bottomDrawerActions.open();
+                    }}
+                  >
+                    Check file type
+                  </Menu.Item>
                   <Menu.Item disabled>Check row counts</Menu.Item>
                 </Menu.Dropdown>
               </Menu>

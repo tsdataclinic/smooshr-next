@@ -1,12 +1,14 @@
 import { Text } from '@mantine/core';
 import { FieldsetSchemaValidationEditor } from './FieldsetSchemaValidationEditor';
-import { match, P } from 'ts-pattern';
+import { match } from 'ts-pattern';
 import { Operation } from './types';
 import {
   FieldsetSchema_Output,
   FieldsetSchemaValidation,
+  FileTypeValidation,
   WorkflowParam,
 } from '../../../client';
+import { FileTypeValidationEditor } from './FileTypeValidationEditor';
 
 type Props = {
   mode: 'add' | 'update';
@@ -37,14 +39,25 @@ export function OperationEditor({
             onClose={onClose}
             onAddOperation={onAddOperation}
             onUpdateOperation={onUpdateOperation}
+            defaultOperation={operation}
             fieldsetSchemas={fieldsetSchemas}
             workflowParams={workflowParams}
-            defaultOperation={operation}
           />
         );
       },
     )
-    .with({ type: P.union('rowCountValidation', 'fileTypeValidation') }, () => {
+    .with({ type: 'fileTypeValidation' }, (operation: FileTypeValidation) => {
+      return (
+        <FileTypeValidationEditor
+          mode={mode}
+          onClose={onClose}
+          onAddOperation={onAddOperation}
+          onUpdateOperation={onUpdateOperation}
+          defaultOperation={operation}
+        />
+      );
+    })
+    .with({ type: 'rowCountValidation' }, () => {
       return <Text>This validation type has not been implemented yet.</Text>;
     })
     .exhaustive();
