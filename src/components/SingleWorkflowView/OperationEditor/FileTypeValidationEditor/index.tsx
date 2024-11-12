@@ -1,7 +1,6 @@
 import { useForm } from '@mantine/form';
-import { Box, Button, Group, Select, Stack, TextInput } from '@mantine/core';
+import { Box, Button, Select, Stack, TextInput } from '@mantine/core';
 import { FileTypeValidation } from '../../../../client';
-import { InfoTooltip } from '../../../ui/InfoTooltip';
 
 type Props = {
   mode: 'add' | 'update';
