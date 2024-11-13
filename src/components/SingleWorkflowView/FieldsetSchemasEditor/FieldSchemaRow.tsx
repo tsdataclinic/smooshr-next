@@ -7,11 +7,14 @@ import {
   Checkbox,
   Select,
   ComboboxItem,
+  TagsInput,
+  Group,
 } from '@mantine/core';
 import { IconCheck, IconEdit } from '@tabler/icons-react';
 import { FieldSchema, ParamReference } from '../../../client';
 import { useDisclosure } from '@mantine/hooks';
 import { useField } from '@mantine/form';
+import { modals } from '@mantine/modals';
 
 type Props = {
   fieldIndex: number;
@@ -66,7 +69,6 @@ export function FieldSchemaRow({
   onFieldSchemaChange,
 }: Props): JSX.Element {
   const [isEditModeOn, editModeActions] = useDisclosure(false);
-
   const nameField = useField({ initialValue: fieldSchema.name });
   const isRequiredField = useField({
     initialValue: fieldSchema.required,
@@ -83,6 +85,19 @@ export function FieldSchemaRow({
     initialValue: fieldSchema.allowEmptyValues,
     type: 'checkbox',
   });
+  const allowedValuesField = useField({
+    initialValue: Array.isArray(fieldSchema.allowedValues)
+      ? fieldSchema.allowedValues
+      : undefined,
+  });
+
+  const openAllowedValuesModal = () =>
+    modals.openConfirmModal({
+      title: 'Allowed values',
+      children: <TagsInput {...allowedValuesField.getInputProps()} />,
+      labels: { confirm: 'Save', cancel: 'Cancel' },
+      confirmProps: { color: 'blue' },
+    });
 
   const nameColumn = isEditModeOn ? (
     <TextInput {...nameField.getInputProps()} />
@@ -116,6 +131,32 @@ export function FieldSchemaRow({
     <Text size="sm">{booleanToString(fieldSchema.allowEmptyValues)}</Text>
   );
 
+  const allowedValuesColumn = isEditModeOn ? (
+    <Text size="sm">
+      <Group>
+        {allowedValueListToString(fieldSchema.allowedValues)}
+        {isEditModeOn ? (
+          <ActionIcon
+            aria-label="Edit allowed values"
+            variant="transparent"
+            color="dark"
+            size="sm"
+          >
+            <IconEdit
+              onClick={() => {
+                openAllowedValuesModal();
+              }}
+            />
+          </ActionIcon>
+        ) : (
+          ''
+        )}
+      </Group>
+    </Text>
+  ) : (
+    <Text size="sm">{allowedValueListToString(fieldSchema.allowedValues)}</Text>
+  );
+
   return (
     <Table.Tr key={fieldSchema.name}>
       <Table.Td>{nameColumn}</Table.Td>
@@ -123,12 +164,7 @@ export function FieldSchemaRow({
       <Table.Td>{dataTypeColumn}</Table.Td>
       <Table.Td>{isCaseSensitiveColumn}</Table.Td>
       <Table.Td>{allowEmptyValuesColumn}</Table.Td>
-
-      <Table.Td>
-        <Text size="sm">
-          {allowedValueListToString(fieldSchema.allowedValues)}
-        </Text>
-      </Table.Td>
+      <Table.Td>{allowedValuesColumn}</Table.Td>
 
       <Table.Td>
         <ActionIcon
