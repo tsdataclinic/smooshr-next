@@ -1,10 +1,5 @@
-from typing import Any
-from dataclasses import dataclass
 import datetime
-
 from frictionless import validate, Resource
-from pydantic import BaseModel, Field
-
 from server.models.workflow.workflow_schema import (
     BasicFieldDataTypeSchema,
     FieldSchema,
@@ -12,9 +7,22 @@ from server.models.workflow.workflow_schema import (
     FileTypeValidation,
     RowCountValidation,
     TimestampDataTypeSchema,
-    CsvData,
+    WorkflowParam,
 )
 from server.models.workflow.api_schemas import ValidationFailure
+from .exceptions import ParameterDefinitionNotFoundException
+
+WorkflowParamValue = int | str | list[str] | None
+
+
+def _get_param_schema_by_id(
+    param_schemas: dict[str, WorkflowParam], param_id: str
+) -> WorkflowParam:
+    if param_id in param_schemas:
+        return param_schemas[param_id]
+    raise ParameterDefinitionNotFoundException(
+        f"Parameter definition for id '{param_id}' not found in schema."
+    )
 
 
 def parse_frictionless(
@@ -120,7 +128,11 @@ def _check_csv_columns(
 
 
 def _validate_field(
-    row_num: int, row: dict, field: FieldSchema, params: dict[str, Any]
+    row_num: int,
+    row: dict,
+    field: FieldSchema,
+    param_schemas: dict[str, WorkflowParam],
+    param_values: dict[str, WorkflowParamValue],
 ) -> list[ValidationFailure]:
     """Validate a field in a row."""
     validations = []
@@ -147,7 +159,7 @@ def _validate_field(
             pass  # no additional validation needed
         case BasicFieldDataTypeSchema(data_type="number"):
             try:
-                float(value)
+                float(value)  # type: ignore
             # TypeError is raised if value is None
             except (TypeError, ValueError) as e:
                 # if value is None, and we haven't already added a validation failure for a missing value,
@@ -165,7 +177,7 @@ def _validate_field(
             data_type="timestamp", date_time_format=date_time_format
         ):
             try:
-                datetime.datetime.strptime(value, date_time_format)
+                datetime.datetime.strptime(value, date_time_format)  # type: ignore
             except ValueError:
                 validations.append(
                     ValidationFailure(
@@ -179,8 +191,12 @@ def _validate_field(
         if isinstance(field.allowed_values, list):
             allowed_values = field.allowed_values
         else:
-            allowed_values = params[field.allowed_values.param_id]
-        if value not in allowed_values:
+            param = _get_param_schema_by_id(
+                param_schemas, field.allowed_values.param_id
+            )
+            allowed_values = param_values[param.name]
+
+        if value not in allowed_values:  # type: ignore
             validations.append(
                 ValidationFailure(
                     row_number=row_num,
@@ -195,7 +211,8 @@ def validate_fieldset(
     csv_columns,
     csv_data: list[dict],
     fieldset_schema: FieldsetSchema,
-    params: dict[str, Any],
+    param_schemas: dict[str, WorkflowParam],
+    param_values: dict[str, WorkflowParamValue],
 ) -> list[ValidationFailure]:
     """Validate the fieldset schema of a file."""
     validations = []
@@ -203,6 +220,14 @@ def validate_fieldset(
     validations.extend(_check_csv_columns(csv_columns, fieldset_schema))
     for row_num, row in enumerate(csv_data):
         for field in fieldset_schema.fields:
-            validations.extend(_validate_field(row_num + 1, row, field, params))
+            validations.extend(
+                _validate_field(
+                    row_num=row_num + 1,
+                    row=row,
+                    field=field,
+                    param_schemas=param_schemas,
+                    param_values=param_values,
+                )
+            )
 
     return validations

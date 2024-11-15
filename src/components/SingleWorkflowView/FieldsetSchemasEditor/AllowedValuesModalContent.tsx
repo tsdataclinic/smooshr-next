@@ -60,7 +60,7 @@ export const AllowedValuesModalContent = React.forwardRef(function (
       label: param.displayName,
     }));
 
-  const onSwitchChange = (value: string) => {
+  const onPickerModeChange = (value: string) => {
     setPickerMode(value as 'workflow-params' | 'value-list');
     setAllowedValues(value === 'value-list' ? [] : null);
   };
@@ -120,7 +120,7 @@ export const AllowedValuesModalContent = React.forwardRef(function (
           { label: 'Use workflow input', value: 'workflow-params' },
         ]}
         value={pickerMode}
-        onChange={onSwitchChange}
+        onChange={onPickerModeChange}
       />
       {pickerMode === 'workflow-params' ? renderWorkflowParamsPicker() : null}
       {pickerMode === 'value-list' ? renderValueListPicker() : null}
