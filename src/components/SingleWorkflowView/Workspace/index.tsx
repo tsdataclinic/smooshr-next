@@ -102,6 +102,7 @@ export function Workspace({
               <FieldsetSchemasEditor
                 fieldsetSchemas={fieldsetSchemas}
                 onFieldsetSchemasChange={onFieldsetSchemasChange}
+                workflowParams={params}
               />
             </Stack>
           </Stack>

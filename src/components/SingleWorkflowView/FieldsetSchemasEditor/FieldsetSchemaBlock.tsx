@@ -16,7 +16,11 @@ import * as Papa from 'papaparse';
 import { IconTrash } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
 import { FieldSchemaRow } from './FieldSchemaRow';
-import { FieldSchema, FieldsetSchema_Output } from '../../../client';
+import {
+  FieldSchema,
+  FieldsetSchema_Output,
+  WorkflowParam,
+} from '../../../client';
 import { useField } from '@mantine/form';
 
 type Props = {
@@ -27,6 +31,7 @@ type Props = {
     fieldsetSchema: FieldsetSchema_Output,
   ) => void;
   onFieldsetSchemaDelete: (index: number) => void;
+  workflowParams: WorkflowParam[];
 };
 
 const ALLOW_EXTRA_COLUMNS_OPTIONS = [
@@ -53,6 +58,7 @@ export function FieldsetSchemaBlock({
   index,
   onFieldsetSchemaChange,
   onFieldsetSchemaDelete,
+  workflowParams,
 }: Props): JSX.Element {
   const nameField = useField({ initialValue: fieldsetSchema.name });
   const orderMattersField = useField({
@@ -148,6 +154,7 @@ export function FieldsetSchemaBlock({
                   fieldSchema={fieldSchema}
                   fieldIndex={i}
                   onFieldSchemaChange={onFieldSchemaChange}
+                  workflowParams={workflowParams}
                 />
               );
             })}
