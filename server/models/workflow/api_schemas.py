@@ -1,4 +1,5 @@
 """Workflow schemas that are used in the API."""
+
 from datetime import datetime
 from typing import Any
 
@@ -35,6 +36,7 @@ class WorkflowUpdate(FullWorkflow):
 
     pass
 
+
 class ValidationFailure(BaseModel):
     """
     A validation failure with a message.
@@ -44,8 +46,10 @@ class ValidationFailure(BaseModel):
     - row_number (int | None) -- The row number of the error. Or None if there
         is no row number (e.g. if this is a file type error).
     """
+
     message: str
     row_number: int | None = Field(default=None, serialization_alias="rowNumber")
+
 
 class WorkflowRunReport(BaseModel):
     """Report for a server-side run of a workflow."""
@@ -53,4 +57,6 @@ class WorkflowRunReport(BaseModel):
     row_count: int = Field(serialization_alias="rowCount")
     filename: str
     workflow_id: str = Field(serialization_alias="workflowId")
-    validation_failures: list[ValidationFailure] = Field(serialization_alias="validationFailures")
+    validation_failures: list[ValidationFailure] = Field(
+        serialization_alias="validationFailures"
+    )
