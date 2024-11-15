@@ -11,15 +11,17 @@ import {
   Button,
   ActionIcon,
   Select,
-  Group,
 } from '@mantine/core';
 import * as Papa from 'papaparse';
 import { IconTrash } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
 import { FieldSchemaRow } from './FieldSchemaRow';
-import { FieldSchema, FieldsetSchema_Output } from '../../../client';
+import {
+  FieldSchema,
+  FieldsetSchema_Output,
+  WorkflowParam,
+} from '../../../client';
 import { useField } from '@mantine/form';
-import { InfoTooltip } from '../../ui/InfoTooltip';
 
 type Props = {
   fieldsetSchema: FieldsetSchema_Output;
@@ -29,6 +31,7 @@ type Props = {
     fieldsetSchema: FieldsetSchema_Output,
   ) => void;
   onFieldsetSchemaDelete: (index: number) => void;
+  workflowParams: WorkflowParam[];
 };
 
 const ALLOW_EXTRA_COLUMNS_OPTIONS = [
@@ -55,6 +58,7 @@ export function FieldsetSchemaBlock({
   index,
   onFieldsetSchemaChange,
   onFieldsetSchemaDelete,
+  workflowParams,
 }: Props): JSX.Element {
   const nameField = useField({ initialValue: fieldsetSchema.name });
   const orderMattersField = useField({
@@ -137,15 +141,7 @@ export function FieldsetSchemaBlock({
               <Table.Th>Data type</Table.Th>
               <Table.Th>Case sensitive</Table.Th>
               <Table.Th>Allows empty values</Table.Th>
-              <Table.Th>
-                <Group>
-                  Allowed values
-                  <InfoTooltip
-                    tooltip="This feature is not implemented yet"
-                    color="red"
-                  />
-                </Group>
-              </Table.Th>
+              <Table.Th>Allowed values</Table.Th>
               <Table.Th />
             </Table.Tr>
           </Table.Thead>
@@ -158,6 +154,7 @@ export function FieldsetSchemaBlock({
                   fieldSchema={fieldSchema}
                   fieldIndex={i}
                   onFieldSchemaChange={onFieldSchemaChange}
+                  workflowParams={workflowParams}
                 />
               );
             })}

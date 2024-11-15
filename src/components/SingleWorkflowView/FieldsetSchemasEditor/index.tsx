@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Text, Button, Stack } from '@mantine/core';
 import { v4 as uuid } from 'uuid';
 import type { FieldsetSchema_Output } from '../../../client';
+import type { WorkflowParam } from '../../../client'; // assuming WorkflowParam is defined in the same file as FieldsetSchema_Output
 import { FieldsetSchemaBlock } from './FieldsetSchemaBlock';
 
 function makeEmptyFieldsetSchema(idx: number): FieldsetSchema_Output {
@@ -17,11 +18,13 @@ function makeEmptyFieldsetSchema(idx: number): FieldsetSchema_Output {
 type Props = {
   fieldsetSchemas: FieldsetSchema_Output[];
   onFieldsetSchemasChange: (fieldsetSchemas: FieldsetSchema_Output[]) => void;
+  workflowParams: WorkflowParam[];
 };
 
 export function FieldsetSchemasEditor({
   fieldsetSchemas,
   onFieldsetSchemasChange,
+  workflowParams,
 }: Props): JSX.Element {
   const onFieldsetSchemaChange = React.useCallback(
     (index: number, fieldsetSchema: FieldsetSchema_Output) => {
@@ -69,6 +72,7 @@ export function FieldsetSchemasEditor({
                   fieldsetSchema={fieldsetSchema}
                   onFieldsetSchemaChange={onFieldsetSchemaChange}
                   onFieldsetSchemaDelete={onFieldsetSchemaDelete}
+                  workflowParams={workflowParams}
                 />
               );
             })

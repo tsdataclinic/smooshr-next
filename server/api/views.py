@@ -32,7 +32,8 @@ from server.models.workflow.api_schemas import (
 )
 from server.models.workflow.db_model import DBWorkflow
 from server.models.workflow.workflow_schema import CsvData, WorkflowSchema
-from server.workflow_runner.workflow_runner import process_workflow, WorkflowParamValue
+from server.workflow_runner.workflow_runner import process_workflow
+from server.workflow_runner.validators import WorkflowParamValue
 
 LOG = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ class Settings(BaseSettings):
     AZURE_POLICY_AUTH_NAME: str = Field(default="")
     AZURE_B2C_SCOPES: str = Field(default="")
 
-    model_config: SettingsConfigDict = SettingsConfigDict(
+    model_config: SettingsConfigDict = SettingsConfigDict(  # type: ignore
         env_file=".env.server", case_sensitive=True
     )
 

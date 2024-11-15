@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import MagicMock
 
 from server.models.workflow.workflow_schema import (
+    WorkflowParam,
     BasicFieldDataTypeSchema,
     FieldSchema,
     FileTypeValidation,
@@ -9,9 +10,11 @@ from server.models.workflow.workflow_schema import (
     RowCountValidation,
     FieldsetSchema,
     TimestampDataTypeSchema,
+    WorkflowParam,
 )
 from server.workflow_runner.validators import (
     ValidationFailure,
+    WorkflowParamValue,
     _check_csv_columns,
     _validate_field,
     validate_file_type,
@@ -242,9 +245,9 @@ class TestValidateField(unittest.TestCase):
             allow_empty_values=False,
             allowed_values=None,
         )
-        self.assertEqual(_validate_field(1, {"Name": "John"}, field, {}), [])
+        self.assertEqual(_validate_field(1, {"Name": "John"}, field, {}, {}), [])
         self.assertEqual(
-            _validate_field(1, {"Name": ""}, field, {}),
+            _validate_field(1, {"Name": ""}, field, {}, {}),
             [
                 ValidationFailure(
                     row_number=1, message="Empty value for the field 'name'"
@@ -258,18 +261,18 @@ class TestValidateField(unittest.TestCase):
             "name",
             allow_empty_values=True,
         )
-        self.assertEqual(_validate_field(1, {"name": "John"}, field, {}), [])
-        self.assertEqual(_validate_field(1, {"name": ""}, field, {}), [])
-        self.assertEqual(_validate_field(1, {"name": None}, field, {}), [])
+        self.assertEqual(_validate_field(1, {"name": "John"}, field, {}, {}), [])
+        self.assertEqual(_validate_field(1, {"name": ""}, field, {}, {}), [])
+        self.assertEqual(_validate_field(1, {"name": None}, field, {}, {}), [])
 
         # now disallow empty values
         field = mock_field_schema(
             "name",
             allow_empty_values=False,
         )
-        self.assertEqual(_validate_field(1, {"name": "John"}, field, {}), [])
+        self.assertEqual(_validate_field(1, {"name": "John"}, field, {}, {}), [])
         self.assertEqual(
-            _validate_field(1, {"name": ""}, field, {}),
+            _validate_field(1, {"name": ""}, field, {}, {}),
             [
                 ValidationFailure(
                     row_number=1, message="Empty value for the field 'name'"
@@ -277,7 +280,7 @@ class TestValidateField(unittest.TestCase):
             ],
         )
         self.assertEqual(
-            _validate_field(1, {"name": None}, field, {}),
+            _validate_field(1, {"name": None}, field, {}, {}),
             [
                 ValidationFailure(
                     row_number=1, message="Empty value for the field 'name'"
@@ -293,10 +296,10 @@ class TestValidateField(unittest.TestCase):
             allow_empty_values=False,
             allowed_values=["John", "Jane"],
         )
-        self.assertEqual(_validate_field(1, {"name": "John"}, field, {}), [])
-        self.assertEqual(_validate_field(1, {"name": "Jane"}, field, {}), [])
+        self.assertEqual(_validate_field(1, {"name": "John"}, field, {}, {}), [])
+        self.assertEqual(_validate_field(1, {"name": "Jane"}, field, {}, {}), [])
         self.assertEqual(
-            _validate_field(1, {"name": "Bob"}, field, {}),
+            _validate_field(1, {"name": "Bob"}, field, {}, {}),
             [
                 ValidationFailure(
                     row_number=1, message="Value 'Bob' is not allowed for field 'name'"
@@ -310,13 +313,27 @@ class TestValidateField(unittest.TestCase):
             required=True,
             case_sensitive=True,
             allow_empty_values=False,
-            allowed_values=ParamReference(paramId="allowed_names"),
+            allowed_values=ParamReference(paramId="allowed_names_uuid"),
         )
-        params = {"allowed_names": ["John", "Jane"]}
-        self.assertEqual(_validate_field(1, {"name": "John"}, field, params), [])
-        self.assertEqual(_validate_field(1, {"name": "Jane"}, field, params), [])
+        param_schemas = {
+            "allowed_names_uuid": WorkflowParam(
+                id="allowed_names_uuid",
+                name="allowed_names",
+                displayName="Allowed names",
+                required=True,
+                description="",
+                type="string list",
+            )
+        }
+        params: dict[str, WorkflowParamValue] = {"allowed_names": ["John", "Jane"]}
         self.assertEqual(
-            _validate_field(1, {"name": "Bob"}, field, params),
+            _validate_field(1, {"name": "John"}, field, param_schemas, params), []
+        )
+        self.assertEqual(
+            _validate_field(1, {"name": "Jane"}, field, param_schemas, params), []
+        )
+        self.assertEqual(
+            _validate_field(1, {"name": "Bob"}, field, param_schemas, params),
             [
                 ValidationFailure(
                     row_number=1, message="Value 'Bob' is not allowed for field 'name'"
@@ -333,10 +350,10 @@ class TestValidateField(unittest.TestCase):
             allowed_values=None,
             data_type_validation=BasicFieldDataTypeSchema(dataType="number"),
         )
-        self.assertEqual(_validate_field(1, {"age": "42"}, field, {}), [])
-        self.assertEqual(_validate_field(1, {"age": "42.0"}, field, {}), [])
+        self.assertEqual(_validate_field(1, {"age": "42"}, field, {}, {}), [])
+        self.assertEqual(_validate_field(1, {"age": "42.0"}, field, {}, {}), [])
         self.assertEqual(
-            _validate_field(1, {"age": "42.0.0"}, field, {}),
+            _validate_field(1, {"age": "42.0.0"}, field, {}, {}),
             [
                 ValidationFailure(
                     row_number=1,
@@ -356,9 +373,9 @@ class TestValidateField(unittest.TestCase):
                 dataType="timestamp", dateTimeFormat="%Y-%m-%d"
             ),
         )
-        self.assertEqual(_validate_field(1, {"date": "2021-01-01"}, field, {}), [])
+        self.assertEqual(_validate_field(1, {"date": "2021-01-01"}, field, {}, {}), [])
         self.assertEqual(
-            _validate_field(1, {"date": "2021-01-01 00:00:00.000"}, field, {}),
+            _validate_field(1, {"date": "2021-01-01 00:00:00.000"}, field, {}, {}),
             [
                 ValidationFailure(
                     row_number=1,
@@ -406,6 +423,7 @@ class TestValidateFieldSet(unittest.TestCase):
                 [{"name": "John", "age": "42", "city": "New York"}],
                 fieldset_schema,
                 {},
+                {},
             ),
             [],
         )
@@ -414,6 +432,7 @@ class TestValidateFieldSet(unittest.TestCase):
                 ["name", "age", "city"],
                 [{"name": "John", "age": "42", "city": ""}],
                 fieldset_schema,
+                {},
                 {},
             ),
             [
@@ -427,6 +446,7 @@ class TestValidateFieldSet(unittest.TestCase):
                 ["name", "age", "city"],
                 [{"name": "John", "age": None, "city": "New York"}],
                 fieldset_schema,
+                {},
                 {},
             ),
             [

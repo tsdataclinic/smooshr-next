@@ -1,6 +1,4 @@
 from typing import Any
-import csv
-import io
 
 from frictionless import Resource
 
@@ -20,13 +18,13 @@ from .exceptions import (
     ParameterDefinitionNotFoundException,
 )
 from .validators import (
+    _get_param_schema_by_id,
     validate_fieldset,
     validate_file_type,
     validate_row_count,
     parse_frictionless,
+    WorkflowParamValue,
 )
-
-WorkflowParamValue = int | str | list[str] | None
 
 
 def process_workflow(
@@ -131,16 +129,9 @@ def _validate_csv(
                             operation.fieldset_schema, schema.fieldset_schemas
                         )
                     case ParamReference():
-                        param_id = operation.fieldset_schema.param_id
-                        param = param_schemas.get(param_id, None)
-
-                        if not param:
-                            return [
-                                ValidationFailure(
-                                    message=f"Param with id {param_id} could not be found in the param schemas."
-                                )
-                            ]
-
+                        param = _get_param_schema_by_id(
+                            param_schemas, operation.fieldset_schema.param_id
+                        )
                         fieldset_schema_name = param_values[param.name]
                         if type(fieldset_schema_name) != str:
                             return [
@@ -157,6 +148,7 @@ def _validate_csv(
                         csv_data.column_names,
                         csv_data.data,
                         fieldset_schema,
+                        param_schemas,
                         param_values,
                     )
                 )

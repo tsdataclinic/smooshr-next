@@ -1,7 +1,7 @@
-import { WorkflowParam } from '../../../client';
-import { NumberInput, Text, TextInput } from '@mantine/core';
-import { match } from 'ts-pattern';
+import { NumberInput, TagsInput, TextInput } from '@mantine/core';
 import { UseFormReturnType } from '@mantine/form';
+import { match } from 'ts-pattern';
+import { WorkflowParam } from '../../../client';
 import { WorkflowParamValues } from './types';
 
 type Props = {
@@ -26,6 +26,7 @@ export function ParamFormInput({ param, paramsForm }: Props): JSX.Element {
             {...inputProps}
             required={param.required}
             label={param.displayName}
+            description={param.description}
           />
         ))
         .with('string', () => (
@@ -34,13 +35,20 @@ export function ParamFormInput({ param, paramsForm }: Props): JSX.Element {
             {...inputProps}
             required={param.required}
             label={param.displayName}
+            description={param.description}
           />
         ))
         .with('string list', () => {
           return (
             <>
-              <Text>{param.displayName}</Text>
-              <Text color="red">String list params are not supported yet.</Text>
+              <TagsInput
+                key={inputKey}
+                {...inputProps}
+                required={param.required}
+                label={param.displayName}
+                description={param.description}
+                placeholder="Press Enter to add a value"
+              />
             </>
           );
         })
