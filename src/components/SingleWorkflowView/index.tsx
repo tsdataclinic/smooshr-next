@@ -104,7 +104,7 @@ export function SingleWorkflowView(): JSX.Element | null {
         },
       });
     },
-    1000,
+    3000,
   );
 
   const [isTestWorkflowModalOpen, testWorkflowModalActions] =
