@@ -1,5 +1,13 @@
-import { Button, Group, Loader, Modal, Title, Tooltip } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import {
+  Button,
+  Group,
+  Loader,
+  Modal,
+  Text,
+  Title,
+  Tooltip,
+} from '@mantine/core';
+import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as React from 'react';
@@ -15,8 +23,10 @@ import { TestWorkflowBlock } from './TestWorkflowBlock';
 import { Workspace } from './Workspace';
 
 export function SingleWorkflowView(): JSX.Element | null {
+  const queryClient = useQueryClient();
   const params = useParams<{ workflowId: string }>();
-  const { data: workflowFromServer, isLoading } = useQuery({
+
+  const { data: workflow, isLoading } = useQuery({
     queryKey: WorkflowUtil.QUERY_KEYS.workflow(params.workflowId),
     queryFn: () => {
       return processAPIData(
@@ -29,27 +39,15 @@ export function SingleWorkflowView(): JSX.Element | null {
     },
   });
 
-  if (isLoading) {
-    return <Loader />;
-  }
-
-  if (!isLoading && workflowFromServer) {
-    return <LoadedWorkflowView defaultWorkflow={workflowFromServer} />;
-  }
-
-  return null;
-}
-
-function LoadedWorkflowView({
-  defaultWorkflow,
-}: {
-  defaultWorkflow: FullWorkflow;
-}): JSX.Element {
-  const queryClient = useQueryClient();
-  const urlParams = useParams<{ workflowId: string }>();
-  const [workflow, setWorkflow] = React.useState<FullWorkflow>(defaultWorkflow);
-  const [isTestWorkflowModalOpen, testWorkflowModalActions] =
-    useDisclosure(false);
+  const updateWorkflowInCache = React.useCallback(
+    (worfklowId: string, newWorkflow: FullWorkflow | undefined) => {
+      queryClient.setQueryData(
+        WorkflowUtil.QUERY_KEYS.workflow(worfklowId),
+        newWorkflow,
+      );
+    },
+    [queryClient],
+  );
 
   const saveWorkflowMutation = useMutation({
     mutationFn: async (workflowToSave: FullWorkflow) => {
@@ -63,69 +61,103 @@ function LoadedWorkflowView({
       );
     },
 
-    onSuccess: () => {
-      // load the workflow again
-      queryClient.invalidateQueries({
-        queryKey: WorkflowUtil.QUERY_KEYS.workflow(urlParams.workflowId),
+    onMutate: async (newWorkflow: FullWorkflow) => {
+      // cancel any outgoing refetches so they don't overwrite our optimistic
+      // update
+      await queryClient.cancelQueries({
+        queryKey: WorkflowUtil.QUERY_KEYS.workflow(newWorkflow.id),
       });
+
+      // Snapshot the previous value
+      const previousWorkflow = workflow;
+
+      // Optimistically update the workflow
+      updateWorkflowInCache(newWorkflow.id, newWorkflow);
+
+      // return a context with the previous and new workflow
+      return { previousWorkflow, newWorkflow };
+    },
+
+    // If the mutation fails, roll back the workflow
+    onError: (_error, newWorkflow, context) => {
+      updateWorkflowInCache(newWorkflow.id, context?.previousWorkflow);
+    },
+
+    onSettled: (newWorkflow: FullWorkflow | undefined) => {
+      if (newWorkflow) {
+        queryClient.invalidateQueries({
+          queryKey: WorkflowUtil.QUERY_KEYS.workflow(newWorkflow.id),
+        });
+      }
     },
   });
 
-  const onWorkflowSchemaChange = React.useCallback(
-    (workflowSchema: WorkflowSchema_Output) => {
-      setWorkflow((prevWorkflow) => {
-        return {
-          ...prevWorkflow,
-          schema: workflowSchema,
-        };
+  const sendSaveWorkflowRequest = useDebouncedCallback(
+    (workflowToSave: FullWorkflow) => {
+      saveWorkflowMutation.mutate(workflowToSave, {
+        onSuccess: () => {
+          notifications.show({
+            color: 'green',
+            title: 'Saved',
+            message: 'Updated workflow',
+          });
+        },
       });
     },
-    [setWorkflow],
+    1000,
   );
 
-  return (
-    <>
-      {/* Header row */}
-      <Group mb="lg">
-        <Title order={1}>{workflow.title}</Title>
-        <Button
-          onClick={() => {
-            saveWorkflowMutation.mutate(workflow, {
-              onSuccess: () => {
-                notifications.show({
-                  color: 'green',
-                  title: 'Saved',
-                  message: 'Updated workflow',
-                });
-              },
-            });
-          }}
+  const [isTestWorkflowModalOpen, testWorkflowModalActions] =
+    useDisclosure(false);
+
+  const onWorkflowSchemaChange = React.useCallback(
+    (workflowSchema: WorkflowSchema_Output) => {
+      if (workflow) {
+        const newWorkflow = { ...workflow, schema: workflowSchema };
+        // Optimistically update the workflow
+        updateWorkflowInCache(newWorkflow.id, newWorkflow);
+        sendSaveWorkflowRequest(newWorkflow);
+      }
+    },
+    [workflow, sendSaveWorkflowRequest, updateWorkflowInCache],
+  );
+
+  if (isLoading) {
+    return <Loader />;
+  }
+
+  if (!isLoading && workflow) {
+    return (
+      <>
+        {/* Header row */}
+        <Group mb="lg" align="flex-end">
+          <Title order={1}>{workflow.title}</Title>
+          <Tooltip label="Not implemented yet" position="bottom" withArrow>
+            <Button disabled>Edit title</Button>
+          </Tooltip>
+          <Tooltip label="Not implemented yet" position="bottom" withArrow>
+            <Button disabled>Publish workflow</Button>
+          </Tooltip>
+          <Button onClick={testWorkflowModalActions.open}>Test workflow</Button>
+        </Group>
+
+        {/* Main content */}
+        <Workspace
+          workflowSchema={workflow.schema}
+          onWorkflowSchemaChange={onWorkflowSchemaChange}
+        />
+
+        <Modal
+          opened={isTestWorkflowModalOpen}
+          onClose={testWorkflowModalActions.close}
+          title="Test workflow"
+          size="auto"
         >
-          Save workflow
-        </Button>
-        <Tooltip label="Not implemented yet" position="bottom" withArrow>
-          <Button disabled>Edit title</Button>
-        </Tooltip>
-        <Tooltip label="Not implemented yet" position="bottom" withArrow>
-          <Button disabled>Publish workflow</Button>
-        </Tooltip>
-        <Button onClick={testWorkflowModalActions.open}>Test workflow</Button>
-      </Group>
+          <TestWorkflowBlock workflow={workflow} />
+        </Modal>
+      </>
+    );
+  }
 
-      {/* Main content */}
-      <Workspace
-        workflowSchema={workflow.schema}
-        onWorkflowSchemaChange={onWorkflowSchemaChange}
-      />
-
-      <Modal
-        opened={isTestWorkflowModalOpen}
-        onClose={testWorkflowModalActions.close}
-        title="Test workflow"
-        size="auto"
-      >
-        <TestWorkflowBlock workflow={workflow} />
-      </Modal>
-    </>
-  );
+  return <Text c="red">There was an error loading the workflow.</Text>;
 }
