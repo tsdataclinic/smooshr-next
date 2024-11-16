@@ -1,7 +1,11 @@
 """This file initializes the SQLAlchemy database engine"""
+
 import json
 import logging
+import sqlite3
+from typing import Any
 
+import sqlalchemy.pool
 from pydantic.json import pydantic_encoder
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
@@ -13,7 +17,7 @@ LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-def json_serializer(*args, **kwargs) -> str:
+def json_serializer(*args: dict[str, Any], **kwargs: dict[str, Any]) -> str:
     """JSON serializer to use in the SQLAlchemy engine"""
     return json.dumps(*args, default=pydantic_encoder, **kwargs)
 
@@ -21,9 +25,13 @@ def json_serializer(*args, **kwargs) -> str:
 # By default sqlite doesn't enforce foreign key constraints
 # ths code ensures that it is enforced for all connections
 @event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
+def set_sqlite_pragma(
+    dbapi_connection: sqlite3.Connection,
+    # pylint: disable=unused-argument
+    connection_record: sqlalchemy.pool._ConnectionRecord,  # pyright: ignore[reportUnusedParameter, reportPrivateUsage, reportPrivateImportUsage]
+):
     cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
+    _ = cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
 
 

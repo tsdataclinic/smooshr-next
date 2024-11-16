@@ -2,6 +2,7 @@ from typing import Any
 
 from frictionless import Resource
 
+from server.models.workflow.api_schemas import ValidationFailure
 from server.models.workflow.workflow_schema import (
     CsvData,
     FieldsetSchema,
@@ -12,18 +13,18 @@ from server.models.workflow.workflow_schema import (
     WorkflowParam,
     WorkflowSchema,
 )
-from server.models.workflow.api_schemas import ValidationFailure
+
 from .exceptions import (
     FieldsetSchemaNotFoundException,
     ParameterDefinitionNotFoundException,
 )
 from .validators import (
-    _get_param_schema_by_id,
+    WorkflowParamValue,
+    get_param_schema_by_id,
+    parse_frictionless,
     validate_fieldset,
     validate_file_type,
     validate_row_count,
-    parse_frictionless,
-    WorkflowParamValue,
 )
 
 
@@ -73,8 +74,9 @@ def _validate_param_values(
 
 def _get_csv_contents_from_resource(file_resource: Resource) -> CsvData:
     """Get the CSV data from the contents of a file."""
-    print(file_resource)
-    all_rows: list[dict[str, Any]] = [row.to_dict() for row in file_resource.read_rows()]  # type: ignore
+    all_rows: list[dict[str, Any]] = [
+        row.to_dict() for row in file_resource.read_rows()
+    ]
     fieldnames = [field.name for field in file_resource.schema.fields]
 
     return CsvData(
@@ -129,11 +131,11 @@ def _validate_csv(
                             operation.fieldset_schema, schema.fieldset_schemas
                         )
                     case ParamReference():
-                        param = _get_param_schema_by_id(
+                        param = get_param_schema_by_id(
                             param_schemas, operation.fieldset_schema.param_id
                         )
                         fieldset_schema_name = param_values[param.name]
-                        if type(fieldset_schema_name) != str:
+                        if not isinstance(fieldset_schema_name, str):
                             return [
                                 ValidationFailure(
                                     message=f"The param value referenced with {param.name} is not a string."

@@ -1,13 +1,13 @@
 """This file holds the Workflow model as represented in the database."""
+
 import uuid
 from datetime import datetime
-from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from server.database import Base
-from server.models import DBUser
+from server.models.user.db_model import DBUser
 from server.pydantic_type import PydanticType
 
 from .workflow_schema import WorkflowSchema, create_empty_workflow_schema
@@ -16,7 +16,7 @@ from .workflow_schema import WorkflowSchema, create_empty_workflow_schema
 class DBWorkflow(Base):
     """Workflow table"""
 
-    __tablename__ = "workflow"
+    __tablename__: str = "workflow"
 
     id: Mapped[str] = mapped_column(
         Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4())
@@ -32,5 +32,5 @@ class DBWorkflow(Base):
     schema: Mapped[WorkflowSchema] = mapped_column(
         PydanticType(WorkflowSchema),
         default=create_empty_workflow_schema,
-        nullable=False
+        nullable=False,
     )

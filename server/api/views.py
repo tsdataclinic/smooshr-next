@@ -1,21 +1,19 @@
 """Entry point for the API server"""
 
-import csv
 import json
 import logging
-import shutil
-import tempfile
+from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Any, Generator
+from typing import Any, ClassVar
 
 import frictionless.exception
-from fastapi import Depends, FastAPI, HTTPException, Security, UploadFile, Form
+from fastapi import Depends, FastAPI, Form, HTTPException, Security, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 from fastapi_azure_auth import B2CMultiTenantAuthorizationCodeBearer
 from fastapi_azure_auth.user import User as AzureUser
-from frictionless import Checklist, Resource, validate
+from frictionless import Resource
 from pydantic import AnyHttpUrl, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.orm import Session
@@ -26,14 +24,14 @@ from server.models.user.db_model import DBUser
 from server.models.workflow.api_schemas import (
     BaseWorkflow,
     FullWorkflow,
-    WorkflowUpdate,
     WorkflowCreate,
     WorkflowRunReport,
+    WorkflowUpdate,
 )
 from server.models.workflow.db_model import DBWorkflow
-from server.models.workflow.workflow_schema import CsvData, WorkflowSchema
-from server.workflow_runner.workflow_runner import process_workflow
+from server.models.workflow.workflow_schema import WorkflowSchema
 from server.workflow_runner.validators import WorkflowParamValue
+from server.workflow_runner.workflow_runner import process_workflow
 
 LOG = logging.getLogger(__name__)
 
@@ -54,7 +52,7 @@ class Settings(BaseSettings):
     AZURE_POLICY_AUTH_NAME: str = Field(default="")
     AZURE_B2C_SCOPES: str = Field(default="")
 
-    model_config: SettingsConfigDict = SettingsConfigDict(  # type: ignore
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file=".env.server", case_sensitive=True
     )
 
@@ -101,7 +99,7 @@ azure_scheme = B2CMultiTenantAuthorizationCodeBearer(
 
 
 @contextmanager
-def _commit_or_rollback(session):
+def _commit_or_rollback(session: Session):
     # Helper function to commit or rollback a session
     try:
         yield
@@ -265,8 +263,8 @@ def run_workflow(
     workflow_id: str,
     file: UploadFile,
     workflow_inputs: str = Form(),
-    session=Depends(get_session),
-    user=Depends(get_current_user),
+    session: Session = Depends(get_session),
+    user: DBUser = Depends(get_current_user),
 ) -> WorkflowRunReport:
     """Runs the workflow associated with id `workflow_id` on the passed in csv,
     and returns any results or errors from the run. The workflow_id must be
@@ -291,11 +289,11 @@ def run_workflow(
         # check than what is performed in `process_workflow` because we are checking
         # for if the file adheres to the csv format, and not just the data within it
         resource.infer(stats=True)
-    except frictionless.exception.FrictionlessException:
+    except frictionless.exception.FrictionlessException as e:
         raise HTTPException(
             status_code=400,
             detail="Could not parse the input file. Please check that it is a valid .csv file!",
-        )
+        ) from e
 
     # get the CSV data from the Frictionless Resource to run our workflow
     filename = file.filename if file.filename else ""
@@ -317,7 +315,9 @@ def run_workflow(
 
 @app.get("/api/workflows/{workflow_id}/run", tags=["workflows"], response_model=None)
 def return_workflow(
-    workflow_id: str, session=Depends(get_session), user=Depends(get_current_user)
+    workflow_id: str,
+    session: Session = Depends(get_session),
+    user: DBUser = Depends(get_current_user),
 ) -> WorkflowSchema:
     """Returns a serialized json representation of the workflow that can be used
     to run the workflow locally. The workflow_id must be associated with a

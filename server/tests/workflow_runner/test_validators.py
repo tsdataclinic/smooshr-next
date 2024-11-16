@@ -1,30 +1,38 @@
 import unittest
 from unittest.mock import MagicMock
 
+from server.models.workflow.api_schemas import ValidationFailure
 from server.models.workflow.workflow_schema import (
-    WorkflowParam,
     BasicFieldDataTypeSchema,
     FieldSchema,
+    FieldsetSchema,
     FileTypeValidation,
     ParamReference,
     RowCountValidation,
-    FieldsetSchema,
     TimestampDataTypeSchema,
     WorkflowParam,
 )
 from server.workflow_runner.validators import (
-    ValidationFailure,
     WorkflowParamValue,
-    _check_csv_columns,
-    _validate_field,
+    check_csv_columns,
+    validate_field,
+    validate_fieldset,
     validate_file_type,
     validate_row_count,
-    validate_fieldset,
 )
 
 
 class TestValidateFile(unittest.TestCase):
+    """
+    Tests for the validate_file_type function
+    """
+
     def test_validate_file_type(self):
+        """
+        Test that the validate_file_type function returns an empty list when the file
+        has the expected extension and a non-empty list when the file does not have
+        the expected extension
+        """
         validation = FileTypeValidation(
             type="fileTypeValidation",
             id="123",
@@ -45,7 +53,6 @@ class TestValidateFile(unittest.TestCase):
 
 
 class TestValidateRowCount(unittest.TestCase):
-
     def test_validate_row_count(self):
         validation = RowCountValidation(
             type="rowCountValidation",
@@ -123,13 +130,18 @@ class TestValidateRowCount(unittest.TestCase):
         self.assertEqual(validate_row_count([{}] * 42, validation), [])
 
 
+DataTypeValidationSchema = BasicFieldDataTypeSchema | TimestampDataTypeSchema
+
+
 def mock_field_schema(
     name: str,
     case_sensitive: bool = True,
     required: bool = True,
-    data_type_validation={"dataType": "any"},
+    data_type_validation: DataTypeValidationSchema = BasicFieldDataTypeSchema(
+        dataType="any"
+    ),
     allow_empty_values: bool = False,
-    allowed_values=None,
+    allowed_values: list[str] | ParamReference | None = None,
 ):
     mock = MagicMock(
         FieldSchema,
@@ -159,10 +171,10 @@ class TestCheckCsvColumns(unittest.TestCase):
         )
 
         self.assertEqual(
-            _check_csv_columns(["name", "age", "city"], fieldset_schema), []
+            check_csv_columns(["name", "age", "city"], fieldset_schema), []
         )
         self.assertEqual(
-            _check_csv_columns(["name", "city"], fieldset_schema),
+            check_csv_columns(["name", "city"], fieldset_schema),
             [
                 ValidationFailure(
                     message="File is missing columns required by the schema: {'age'}",
@@ -171,7 +183,7 @@ class TestCheckCsvColumns(unittest.TestCase):
             ],
         )
         self.assertEqual(
-            _check_csv_columns(["name", "city", "age"], fieldset_schema),
+            check_csv_columns(["name", "city", "age"], fieldset_schema),
             [
                 ValidationFailure(
                     message="Columns in file are not in the same order as in the schema",
@@ -194,10 +206,10 @@ class TestCheckCsvColumns(unittest.TestCase):
         )
 
         self.assertEqual(
-            _check_csv_columns(["name", "age", "city"], fieldset_schema), []
+            check_csv_columns(["name", "age", "city"], fieldset_schema), []
         )
         self.assertEqual(
-            _check_csv_columns(["name", "age", "city", "extra"], fieldset_schema),
+            check_csv_columns(["name", "age", "city", "extra"], fieldset_schema),
             [
                 ValidationFailure(
                     message="File has extra columns not allowed by the schema",
@@ -220,13 +232,13 @@ class TestCheckCsvColumns(unittest.TestCase):
         )
 
         self.assertEqual(
-            _check_csv_columns(["name", "age", "city"], fieldset_schema), []
+            check_csv_columns(["name", "age", "city"], fieldset_schema), []
         )
         self.assertEqual(
-            _check_csv_columns(["name", "age", "city", "extra"], fieldset_schema), []
+            check_csv_columns(["name", "age", "city", "extra"], fieldset_schema), []
         )
         self.assertEqual(
-            _check_csv_columns(["name", "age", "extra", "city"], fieldset_schema),
+            check_csv_columns(["name", "age", "extra", "city"], fieldset_schema),
             [
                 ValidationFailure(
                     message="Extra columns are only allowed after the schema columns",
@@ -245,9 +257,9 @@ class TestValidateField(unittest.TestCase):
             allow_empty_values=False,
             allowed_values=None,
         )
-        self.assertEqual(_validate_field(1, {"Name": "John"}, field, {}, {}), [])
+        self.assertEqual(validate_field(1, {"Name": "John"}, field, {}, {}), [])
         self.assertEqual(
-            _validate_field(1, {"Name": ""}, field, {}, {}),
+            validate_field(1, {"Name": ""}, field, {}, {}),
             [
                 ValidationFailure(
                     row_number=1, message="Empty value for the field 'name'"
@@ -261,18 +273,18 @@ class TestValidateField(unittest.TestCase):
             "name",
             allow_empty_values=True,
         )
-        self.assertEqual(_validate_field(1, {"name": "John"}, field, {}, {}), [])
-        self.assertEqual(_validate_field(1, {"name": ""}, field, {}, {}), [])
-        self.assertEqual(_validate_field(1, {"name": None}, field, {}, {}), [])
+        self.assertEqual(validate_field(1, {"name": "John"}, field, {}, {}), [])
+        self.assertEqual(validate_field(1, {"name": ""}, field, {}, {}), [])
+        self.assertEqual(validate_field(1, {"name": None}, field, {}, {}), [])
 
         # now disallow empty values
         field = mock_field_schema(
             "name",
             allow_empty_values=False,
         )
-        self.assertEqual(_validate_field(1, {"name": "John"}, field, {}, {}), [])
+        self.assertEqual(validate_field(1, {"name": "John"}, field, {}, {}), [])
         self.assertEqual(
-            _validate_field(1, {"name": ""}, field, {}, {}),
+            validate_field(1, {"name": ""}, field, {}, {}),
             [
                 ValidationFailure(
                     row_number=1, message="Empty value for the field 'name'"
@@ -280,7 +292,7 @@ class TestValidateField(unittest.TestCase):
             ],
         )
         self.assertEqual(
-            _validate_field(1, {"name": None}, field, {}, {}),
+            validate_field(1, {"name": None}, field, {}, {}),
             [
                 ValidationFailure(
                     row_number=1, message="Empty value for the field 'name'"
@@ -296,10 +308,10 @@ class TestValidateField(unittest.TestCase):
             allow_empty_values=False,
             allowed_values=["John", "Jane"],
         )
-        self.assertEqual(_validate_field(1, {"name": "John"}, field, {}, {}), [])
-        self.assertEqual(_validate_field(1, {"name": "Jane"}, field, {}, {}), [])
+        self.assertEqual(validate_field(1, {"name": "John"}, field, {}, {}), [])
+        self.assertEqual(validate_field(1, {"name": "Jane"}, field, {}, {}), [])
         self.assertEqual(
-            _validate_field(1, {"name": "Bob"}, field, {}, {}),
+            validate_field(1, {"name": "Bob"}, field, {}, {}),
             [
                 ValidationFailure(
                     row_number=1, message="Value 'Bob' is not allowed for field 'name'"
@@ -327,13 +339,13 @@ class TestValidateField(unittest.TestCase):
         }
         params: dict[str, WorkflowParamValue] = {"allowed_names": ["John", "Jane"]}
         self.assertEqual(
-            _validate_field(1, {"name": "John"}, field, param_schemas, params), []
+            validate_field(1, {"name": "John"}, field, param_schemas, params), []
         )
         self.assertEqual(
-            _validate_field(1, {"name": "Jane"}, field, param_schemas, params), []
+            validate_field(1, {"name": "Jane"}, field, param_schemas, params), []
         )
         self.assertEqual(
-            _validate_field(1, {"name": "Bob"}, field, param_schemas, params),
+            validate_field(1, {"name": "Bob"}, field, param_schemas, params),
             [
                 ValidationFailure(
                     row_number=1, message="Value 'Bob' is not allowed for field 'name'"
@@ -350,10 +362,10 @@ class TestValidateField(unittest.TestCase):
             allowed_values=None,
             data_type_validation=BasicFieldDataTypeSchema(dataType="number"),
         )
-        self.assertEqual(_validate_field(1, {"age": "42"}, field, {}, {}), [])
-        self.assertEqual(_validate_field(1, {"age": "42.0"}, field, {}, {}), [])
+        self.assertEqual(validate_field(1, {"age": "42"}, field, {}, {}), [])
+        self.assertEqual(validate_field(1, {"age": "42.0"}, field, {}, {}), [])
         self.assertEqual(
-            _validate_field(1, {"age": "42.0.0"}, field, {}, {}),
+            validate_field(1, {"age": "42.0.0"}, field, {}, {}),
             [
                 ValidationFailure(
                     row_number=1,
@@ -373,13 +385,16 @@ class TestValidateField(unittest.TestCase):
                 dataType="timestamp", dateTimeFormat="%Y-%m-%d"
             ),
         )
-        self.assertEqual(_validate_field(1, {"date": "2021-01-01"}, field, {}, {}), [])
+        self.assertEqual(validate_field(1, {"date": "2021-01-01"}, field, {}, {}), [])
         self.assertEqual(
-            _validate_field(1, {"date": "2021-01-01 00:00:00.000"}, field, {}, {}),
+            validate_field(1, {"date": "2021-01-01 00:00:00.000"}, field, {}, {}),
             [
                 ValidationFailure(
                     row_number=1,
-                    message="Value '2021-01-01 00:00:00.000' for field 'date' does not match the expected timestamp format %Y-%m-%d",
+                    message=(
+                        "Value '2021-01-01 00:00:00.000' for field 'date' does not match "
+                        "the expected timestamp format %Y-%m-%d"
+                    ),
                 )
             ],
         )

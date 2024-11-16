@@ -1,6 +1,6 @@
 """The models to represent a WorkflowSchema"""
 
-from typing import Literal, Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -100,7 +100,8 @@ class WorkflowParam(BaseModel):
 
     Args:
     - id: str - uuid, a stable id for this param that is not user-editable
-    - name: str - auto-generated name from the `display_name` to be used as the variable name for this param.
+    - name: str - auto-generated name from the `display_name` to be used as the
+      variable name for this param.
     - display_name: str - user-editable display name of this param
     - description: str
     - required: bool

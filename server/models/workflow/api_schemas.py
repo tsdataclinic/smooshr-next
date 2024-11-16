@@ -1,7 +1,7 @@
 """Workflow schemas that are used in the API."""
 
 from datetime import datetime
-from typing import Any
+from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -16,7 +16,7 @@ class BaseWorkflow(BaseModel):
     owner: str
     created_date: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(from_attributes=True)
 
 
 class FullWorkflow(BaseWorkflow):
@@ -33,8 +33,6 @@ class WorkflowCreate(BaseModel):
 
 class WorkflowUpdate(FullWorkflow):
     """Data model to update a Workflow"""
-
-    pass
 
 
 class ValidationFailure(BaseModel):
