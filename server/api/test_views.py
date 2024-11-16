@@ -1,4 +1,4 @@
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name,unused-argument
 # pyright: reportUnusedParameter=none
 
 import uuid

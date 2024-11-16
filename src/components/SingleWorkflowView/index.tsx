@@ -1,19 +1,18 @@
-import * as React from 'react';
+import { Button, Group, Loader, Modal, Title, Tooltip } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as React from 'react';
 import { useParams } from 'wouter';
-import { WorkflowUtil } from '../../util/WorkflowUtil';
-import { processAPIData } from '../../util/apiUtil';
 import {
   FullWorkflow,
   WorkflowSchema_Output,
   WorkflowsService,
 } from '../../client';
-import { Loader, Title, Group, Button, Menu, Modal } from '@mantine/core';
-import { IconDots } from '@tabler/icons-react';
-import { useDisclosure } from '@mantine/hooks';
+import { WorkflowUtil } from '../../util/WorkflowUtil';
+import { processAPIData } from '../../util/apiUtil';
 import { TestWorkflowBlock } from './TestWorkflowBlock';
 import { Workspace } from './Workspace';
-import { notifications } from '@mantine/notifications';
 
 export function SingleWorkflowView(): JSX.Element | null {
   const params = useParams<{ workflowId: string }>();
@@ -89,35 +88,28 @@ function LoadedWorkflowView({
       {/* Header row */}
       <Group mb="lg">
         <Title order={1}>{workflow.title}</Title>
-        <Menu withArrow shadow="md" width={200}>
-          <Menu.Target>
-            <Button unstyled>
-              <IconDots />
-            </Button>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Item
-              onClick={() => {
-                saveWorkflowMutation.mutate(workflow, {
-                  onSuccess: () => {
-                    notifications.show({
-                      color: 'green',
-                      title: 'Saved',
-                      message: 'Updated workflow',
-                    });
-                  },
+        <Button
+          onClick={() => {
+            saveWorkflowMutation.mutate(workflow, {
+              onSuccess: () => {
+                notifications.show({
+                  color: 'green',
+                  title: 'Saved',
+                  message: 'Updated workflow',
                 });
-              }}
-            >
-              Save workflow
-            </Menu.Item>
-            <Menu.Item disabled>Edit title (not implemented)</Menu.Item>
-            <Menu.Item disabled>Publish workflow (not implemented)</Menu.Item>
-            <Menu.Item onClick={testWorkflowModalActions.open}>
-              Test workflow
-            </Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
+              },
+            });
+          }}
+        >
+          Save workflow
+        </Button>
+        <Tooltip label="Not implemented yet" position="bottom" withArrow>
+          <Button disabled>Edit title</Button>
+        </Tooltip>
+        <Tooltip label="Not implemented yet" position="bottom" withArrow>
+          <Button disabled>Publish workflow</Button>
+        </Tooltip>
+        <Button onClick={testWorkflowModalActions.open}>Test workflow</Button>
       </Group>
 
       {/* Main content */}
