@@ -23,9 +23,8 @@ class DbApiKeyProvider(ApiKeyProvider):
 
     def get_user_and_expiration(self, api_key: str) -> Optional[Tuple[str, datetime]]:
         result = self._get_api_key_record(api_key)
-        if result and result.expiration.astimezone(timezone.utc) > datetime.now(timezone.utc):
+        if result and self.is_date_valid(result.expiration):
             return result.user, result.expiration
-        return None
 
     def create_api_key(self, user_id: str, api_key: str, expiration: datetime) -> ApiKey:
         new_key = DBApiKey(user=user_id, api_key=api_key, expiration=expiration)

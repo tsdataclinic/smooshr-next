@@ -1,10 +1,16 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 
 from server.models.apikey.api_schemas import ApiKey
 
 class ApiKeyProvider(ABC):
+    def is_date_valid(self, expiration_date: Optional[datetime]) -> bool:
+        """Returns True if the passed date is in the future, False otherwise."""
+        if expiration_date:
+            return expiration_date.astimezone(timezone.utc) > datetime.now(timezone.utc)
+        return True  # If there is no expiration date, we consider the key to be valid forever.
+
     @abstractmethod
     def get_user_and_expiration(self, api_key: str) -> Optional[Tuple[str, datetime]]:
         """
@@ -51,7 +57,7 @@ class ApiKeyProvider(ABC):
     @abstractmethod
     def get_api_keys(self, user_id: str) -> list[ApiKey]:
         """
-        Retrieve all API keys associated with the given user ID.
+        Retrieve all API keys associated with the given user ID. This includes expired API keys.
 
         Args:
             user_id (str): The ID of the user.

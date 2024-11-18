@@ -14,10 +14,3 @@ class DBApiKey(Base):
     api_key: Mapped[str] = mapped_column(String, nullable=False, primary_key=True)
     expiration: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
-class DBAzureApiKey(Base):
-    """AzureApiKey table. Maps user ids to multiple Azure API key identifiers.
-    The API keys themselves are not stored on the DB, but are stored in Azure Key Vault."""
-    __tablename__ = "azure_api_key"
-
-    user: Mapped[str] = mapped_column(Uuid(as_uuid=False), ForeignKey(DBUser.id), nullable=False)
-    key_vault_identifier: Mapped[str] = mapped_column(String, nullable=False, primary_key=True)

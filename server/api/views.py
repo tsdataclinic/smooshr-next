@@ -20,8 +20,11 @@ from frictionless import Checklist, Resource, validate
 from pydantic import AnyHttpUrl, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.orm import Session
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 from server.api.api_keys.db_api_key_provider import DbApiKeyProvider
+from server.api.api_keys.azure_api_key_provider import AzureApiKeyProvider
 from server.database import SessionLocal
 from server.models.apikey.api_schemas import ApiKey, ApiKeyCreate, ApiKeyDelete
 from server.models.user.api_schemas import User
@@ -56,7 +59,7 @@ class Settings(BaseSettings):
     AZURE_POLICY_AUTH_NAME: str = Field(default="")
     AZURE_B2C_SCOPES: str = Field(default="")
 
-    AZURE_KEY_VAULT_NAME: str = Field(default="")
+    AZURE_KEY_VAULT_URL: str = Field(default="")
 
     model_config: SettingsConfigDict = SettingsConfigDict(
         env_file=".env.server", case_sensitive=True
@@ -72,7 +75,7 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 def generate_api_key() -> str:
     """Generate a random 32 character API key"""
-    return secrets.token_urlsafe(32)
+    return secrets.token_hex(20)
 
 settings = Settings()
 
@@ -109,6 +112,11 @@ azure_scheme = B2CMultiTenantAuthorizationCodeBearer(
     auto_error=False
 )
 
+azure_credential = DefaultAzureCredential()
+azure_kv_client = SecretClient(vault_url=settings.AZURE_KEY_VAULT_URL, credential=azure_credential)
+
+# Change this to switch between Azure and DB key providers
+KEY_PROVIDER_CLASS = AzureApiKeyProvider
 
 @contextmanager
 def _commit_or_rollback(session):
@@ -139,7 +147,6 @@ def get_current_user(
     if azure_user is not None:
         return _get_current_user_from_azure(azure_user, session=session)
     elif api_key is not None:
-        print("finding user from api key")
         return _get_current_user_from_api_key(api_key, session=session)
     else:
         raise HTTPException(
@@ -160,7 +167,7 @@ def _get_current_user_from_api_key(
     session: Session = Depends(get_session),
 ) -> DBUser:
     """This function returns the currently authenticated user given an API key."""
-    api_key_provider = DbApiKeyProvider(session)
+    api_key_provider = KEY_PROVIDER_CLASS(session, azure_kv_client)
     result = api_key_provider.get_user_and_expiration(api_key)
 
     if result is None:
@@ -367,7 +374,7 @@ def create_api_key(
     session: Session = Depends(get_session),
 ) -> ApiKey:
     """Creates an API key for the current user."""
-    api_key_provider = DbApiKeyProvider(session)
+    api_key_provider = KEY_PROVIDER_CLASS(session, azure_kv_client)
     api_key = generate_api_key()
     return api_key_provider.create_api_key(user.id, api_key, api_key_params.expiration)
 
@@ -377,7 +384,7 @@ def get_api_keys(
     session: Session = Depends(get_session),
 ) -> list[ApiKey]:
     """Gets all API keys for the current user."""
-    api_key_provider = DbApiKeyProvider(session)
+    api_key_provider = KEY_PROVIDER_CLASS(session, azure_kv_client)
     return api_key_provider.get_api_keys(user.id)
 
 @app.delete('/api/keys', tags=['api_keys'])
@@ -387,7 +394,7 @@ def delete_api_key(
     session: Session = Depends(get_session),
 ):
     """Deletes an API key for the current user."""
-    api_key_provider = DbApiKeyProvider(session)
+    api_key_provider = KEY_PROVIDER_CLASS(session, azure_kv_client)
     
     if api_key_provider.delete_api_key(user.id, api_key_params.api_key):
         return {"message": "API key deleted"}

@@ -46,7 +46,6 @@ def _validate_param_values(param_values: dict[str, Any], schema: WorkflowSchema)
 
 def _get_csv_contents_from_resource(file_resource: Resource) -> CsvData:
     """Get the CSV data from the contents of a file."""
-    print(file_resource)
     all_rows: list[dict[str, Any]] = [row.to_dict() for row in file_resource.read_rows()] # type: ignore
     fieldnames = [field.name for field in file_resource.schema.fields]
 
