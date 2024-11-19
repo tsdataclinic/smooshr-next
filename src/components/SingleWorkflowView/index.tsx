@@ -1,12 +1,4 @@
-import {
-  Button,
-  Group,
-  Loader,
-  Modal,
-  Text,
-  Title,
-  Tooltip,
-} from '@mantine/core';
+import { Button, Group, Loader, Modal, Text, Tooltip } from '@mantine/core';
 import { useDebouncedCallback, useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -21,6 +13,7 @@ import { WorkflowUtil } from '../../util/WorkflowUtil';
 import { processAPIData } from '../../util/apiUtil';
 import { TestWorkflowBlock } from './TestWorkflowBlock';
 import { Workspace } from './Workspace';
+import { TitleInput } from './Workspace/TitleInput';
 
 export function SingleWorkflowView(): JSX.Element | null {
   const queryClient = useQueryClient();
@@ -110,16 +103,24 @@ export function SingleWorkflowView(): JSX.Element | null {
   const [isTestWorkflowModalOpen, testWorkflowModalActions] =
     useDisclosure(false);
 
+  const onWorkflowChange = React.useCallback(
+    (workflowToSave: FullWorkflow) => {
+      // Optimistically update the workflow
+      updateWorkflowInCache(workflowToSave.id, workflowToSave);
+
+      // Update workflow in the backend
+      sendSaveWorkflowRequest(workflowToSave);
+    },
+    [sendSaveWorkflowRequest, updateWorkflowInCache],
+  );
+
   const onWorkflowSchemaChange = React.useCallback(
     (workflowSchema: WorkflowSchema_Output) => {
       if (workflow) {
-        const newWorkflow = { ...workflow, schema: workflowSchema };
-        // Optimistically update the workflow
-        updateWorkflowInCache(newWorkflow.id, newWorkflow);
-        sendSaveWorkflowRequest(newWorkflow);
+        onWorkflowChange({ ...workflow, schema: workflowSchema });
       }
     },
-    [workflow, sendSaveWorkflowRequest, updateWorkflowInCache],
+    [workflow, onWorkflowChange],
   );
 
   if (isLoading) {
@@ -130,11 +131,16 @@ export function SingleWorkflowView(): JSX.Element | null {
     return (
       <>
         {/* Header row */}
-        <Group mb="lg" align="flex-end">
-          <Title order={1}>{workflow.title}</Title>
-          <Tooltip label="Not implemented yet" position="bottom" withArrow>
-            <Button disabled>Edit title</Button>
-          </Tooltip>
+        <Group mb="lg">
+          <TitleInput
+            defaultTitle={workflow.title}
+            onTitleSave={(newTitle: string) => {
+              onWorkflowChange({
+                ...workflow,
+                title: newTitle,
+              });
+            }}
+          />
           <Tooltip label="Not implemented yet" position="bottom" withArrow>
             <Button disabled>Publish workflow</Button>
           </Tooltip>
