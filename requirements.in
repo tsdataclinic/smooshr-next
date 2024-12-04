@@ -10,3 +10,5 @@ pytest
 pytest-asyncio
 coverage
 black
+azure-keyvault-secrets 
+azure-identity
