@@ -1,7 +1,8 @@
+import * as R from 'remeda';
+import * as React from 'react';
 import { v4 as uuid } from 'uuid';
 import {
   Table,
-  Menu,
   Text,
   TextInput,
   Checkbox,
@@ -10,21 +11,30 @@ import {
   Button,
   ActionIcon,
   Select,
-  ComboboxItem,
 } from '@mantine/core';
 import * as Papa from 'papaparse';
-import { IconSettingsFilled } from '@tabler/icons-react';
+import { IconTrash } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
-import type { FieldsetSchema_Output } from '../../../client';
 import { FieldSchemaRow } from './FieldSchemaRow';
-import { useFieldsetSchemasFormContext } from './FieldsetSchemasContext';
+import {
+  FieldSchema,
+  FieldsetSchema_Output,
+  WorkflowParam,
+} from '../../../client';
+import { useField } from '@mantine/form';
 
 type Props = {
   fieldsetSchema: FieldsetSchema_Output;
   index: number;
+  onFieldsetSchemaChange: (
+    index: number,
+    fieldsetSchema: FieldsetSchema_Output,
+  ) => void;
+  onFieldsetSchemaDelete: (index: number) => void;
+  workflowParams: WorkflowParam[];
 };
 
-const ALLOW_EXTRA_COLUMNS_OPTIONS: ComboboxItem[] = [
+const ALLOW_EXTRA_COLUMNS_OPTIONS = [
   {
     value: 'no',
     label: 'No',
@@ -37,13 +47,43 @@ const ALLOW_EXTRA_COLUMNS_OPTIONS: ComboboxItem[] = [
     value: 'onlyAfterSchemaFields',
     label: 'Only after schema fields',
   },
-];
+] as const;
+
+const ALLOW_EXTRA_COLUMNS_VALUES = ALLOW_EXTRA_COLUMNS_OPTIONS.map(
+  (option) => option.value,
+);
 
 export function FieldsetSchemaBlock({
   fieldsetSchema,
   index,
+  onFieldsetSchemaChange,
+  onFieldsetSchemaDelete,
+  workflowParams,
 }: Props): JSX.Element {
-  const form = useFieldsetSchemasFormContext();
+  const nameField = useField({ initialValue: fieldsetSchema.name });
+  const orderMattersField = useField({
+    initialValue: fieldsetSchema.orderMatters,
+    type: 'checkbox',
+  });
+  const allowExtraColumnsField = useField({
+    initialValue: fieldsetSchema.allowExtraColumns,
+  });
+
+  const onFieldSchemaChange = React.useCallback(
+    (fieldIdx: number, fieldSchema: FieldSchema) => {
+      // update fieldschema according to index
+      const newFieldsetSchema: FieldsetSchema_Output = {
+        ...fieldsetSchema,
+        fields: [
+          ...fieldsetSchema.fields.slice(0, fieldIdx),
+          fieldSchema,
+          ...fieldsetSchema.fields.slice(fieldIdx + 1),
+        ],
+      };
+      onFieldsetSchemaChange(index, newFieldsetSchema);
+    },
+    [fieldsetSchema, index, onFieldsetSchemaChange],
+  );
 
   const openDeleteModal = () =>
     modals.openConfirmModal({
@@ -54,7 +94,7 @@ export function FieldsetSchemaBlock({
       labels: { confirm: 'Delete schema', cancel: 'Cancel' },
       confirmProps: { color: 'red' },
       onConfirm: () => {
-        form.removeListItem('fieldsetSchemas', index);
+        onFieldsetSchemaDelete(index);
       },
     });
 
@@ -64,11 +104,11 @@ export function FieldsetSchemaBlock({
         header: true,
         skipEmptyLines: true,
         complete: (parsedResult): void => {
-          form.setFieldValue(`fieldsetSchemas.${index}`, {
+          const newFieldsetSchema: FieldsetSchema_Output = {
             ...fieldsetSchema,
             name: file.name,
             fields:
-              parsedResult.meta.fields?.map((header) => {
+              parsedResult.meta.fields?.map((header: string) => {
                 return {
                   id: uuid(),
                   name: header,
@@ -81,7 +121,9 @@ export function FieldsetSchemaBlock({
                   allowedValues: [],
                 };
               }) ?? [],
-          });
+          };
+
+          onFieldsetSchemaChange(index, newFieldsetSchema);
         },
       });
     }
@@ -110,8 +152,9 @@ export function FieldsetSchemaBlock({
                 <FieldSchemaRow
                   key={fieldSchema.id}
                   fieldSchema={fieldSchema}
-                  fieldsetIndex={index}
-                  index={i}
+                  fieldIndex={i}
+                  onFieldSchemaChange={onFieldSchemaChange}
+                  workflowParams={workflowParams}
                 />
               );
             })}
@@ -129,27 +172,29 @@ export function FieldsetSchemaBlock({
         className="relative"
         legend={<Text>{fieldsetSchema.name}</Text>}
       >
-        <Menu withArrow shadow="md" width={250} position="left">
-          <Menu.Target>
-            <ActionIcon
-              variant="transparent"
-              className="absolute -top-1 right-1"
-              color="dark"
-              size="sm"
-            >
-              <IconSettingsFilled />
-            </ActionIcon>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Item onClick={openDeleteModal}>Delete schema</Menu.Item>
-          </Menu.Dropdown>
-        </Menu>
+        <ActionIcon
+          aria-label="Delete Column Rule"
+          variant="transparent"
+          className="absolute -top-1 right-1"
+          color="dark"
+          size="sm"
+          onClick={openDeleteModal}
+        >
+          <IconTrash />
+        </ActionIcon>
 
         <div className="space-y-3">
           <TextInput
-            key={form.key(`fieldsetSchemas.${index}.name`)}
-            {...form.getInputProps(`fieldsetSchemas.${index}.name`)}
-            label="Schema Name"
+            {...nameField.getInputProps()}
+            label="Ruleset Name"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const newName = e.currentTarget.value;
+              nameField.getInputProps().onChange(newName);
+              onFieldsetSchemaChange(index, {
+                ...fieldsetSchema,
+                name: newName,
+              });
+            }}
           />
 
           {fieldsetSchema.fields.length === 0 ? (
@@ -160,26 +205,34 @@ export function FieldsetSchemaBlock({
             </FileButton>
           ) : (
             <>
+              {renderHeadersMetadataTable()}
+              <Checkbox
+                {...orderMattersField.getInputProps()}
+                label="Order of columns matters"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const newOrderMatters = e.currentTarget.checked;
+                  orderMattersField.getInputProps().onChange(newOrderMatters);
+                  onFieldsetSchemaChange(index, {
+                    ...fieldsetSchema,
+                    orderMatters: newOrderMatters,
+                  });
+                }}
+              />
               <Select
-                key={form.key(`fieldsetSchemas.${index}.allowExtraColumns`)}
-                {...form.getInputProps(
-                  `fieldsetSchemas.${index}.allowExtraColumns`,
-                )}
+                {...allowExtraColumnsField.getInputProps()}
+                allowDeselect={false}
                 data={ALLOW_EXTRA_COLUMNS_OPTIONS}
                 label="Allow extra columns"
+                onChange={(value: string | null) => {
+                  if (R.isIncludedIn(value, ALLOW_EXTRA_COLUMNS_VALUES)) {
+                    allowExtraColumnsField.getInputProps().onChange(value);
+                    onFieldsetSchemaChange(index, {
+                      ...fieldsetSchema,
+                      allowExtraColumns: value,
+                    });
+                  }
+                }}
               />
-              <Checkbox
-                key={form.key(`fieldsetSchemas.${index}.orderMatters`)}
-                {...form.getInputProps(
-                  `fieldsetSchemas.${index}.orderMatters`,
-                  {
-                    type: 'checkbox',
-                  },
-                )}
-                label="Order of columns matters"
-              />
-
-              {renderHeadersMetadataTable()}
             </>
           )}
         </div>

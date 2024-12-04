@@ -1,6 +1,7 @@
 """Workflow schemas that are used in the API."""
+
 from datetime import datetime
-from typing import Any
+from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -15,7 +16,7 @@ class BaseWorkflow(BaseModel):
     owner: str
     created_date: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(from_attributes=True)
 
 
 class FullWorkflow(BaseWorkflow):
@@ -33,7 +34,6 @@ class WorkflowCreate(BaseModel):
 class WorkflowUpdate(FullWorkflow):
     """Data model to update a Workflow"""
 
-    pass
 
 class ValidationFailure(BaseModel):
     """
@@ -44,8 +44,10 @@ class ValidationFailure(BaseModel):
     - row_number (int | None) -- The row number of the error. Or None if there
         is no row number (e.g. if this is a file type error).
     """
+
     message: str
     row_number: int | None = Field(default=None, serialization_alias="rowNumber")
+
 
 class WorkflowRunReport(BaseModel):
     """Report for a server-side run of a workflow."""
@@ -53,4 +55,6 @@ class WorkflowRunReport(BaseModel):
     row_count: int = Field(serialization_alias="rowCount")
     filename: str
     workflow_id: str = Field(serialization_alias="workflowId")
-    validation_failures: list[ValidationFailure] = Field(serialization_alias="validationFailures")
+    validation_failures: list[ValidationFailure] = Field(
+        serialization_alias="validationFailures"
+    )

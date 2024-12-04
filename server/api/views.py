@@ -1,22 +1,21 @@
 """Entry point for the API server"""
-import csv
+
 import json
 import logging
-import shutil
-import tempfile
+from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Any, Generator, Optional
+from typing import Any, ClassVar, Generator, Optional
 import secrets
 
 from fastapi.security import APIKeyHeader
 import frictionless.exception
-from fastapi import Depends, FastAPI, HTTPException, Security, UploadFile
+from fastapi import Depends, FastAPI, Form, HTTPException, Security, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 from fastapi_azure_auth import B2CMultiTenantAuthorizationCodeBearer
 from fastapi_azure_auth.user import User as AzureUser
-from frictionless import Checklist, Resource, validate
+from frictionless import Resource
 from pydantic import AnyHttpUrl, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.orm import Session
@@ -32,12 +31,13 @@ from server.models.user.db_model import DBUser
 from server.models.workflow.api_schemas import (
     BaseWorkflow,
     FullWorkflow,
-    WorkflowUpdate,
     WorkflowCreate,
     WorkflowRunReport,
+    WorkflowUpdate,
 )
 from server.models.workflow.db_model import DBWorkflow
-from server.models.workflow.workflow_schema import CsvData, WorkflowSchema
+from server.models.workflow.workflow_schema import WorkflowSchema
+from server.workflow_runner.validators import WorkflowParamValue
 from server.workflow_runner.workflow_runner import process_workflow
 
 LOG = logging.getLogger(__name__)
@@ -60,8 +60,8 @@ class Settings(BaseSettings):
     AZURE_B2C_SCOPES: str = Field(default="")
 
     AZURE_KEY_VAULT_URL: str = Field(default="")
-
-    model_config: SettingsConfigDict = SettingsConfigDict(
+      
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file=".env.server", case_sensitive=True
     )
 
@@ -119,7 +119,7 @@ azure_kv_client = SecretClient(vault_url=settings.AZURE_KEY_VAULT_URL, credentia
 KEY_PROVIDER_CLASS = AzureApiKeyProvider
 
 @contextmanager
-def _commit_or_rollback(session):
+def _commit_or_rollback(session: Session):
     # Helper function to commit or rollback a session
     try:
         yield
@@ -243,9 +243,9 @@ def get_self_user(user: DBUser = Depends(get_current_user)) -> User:
 
 @app.get("/api/workflows/{workflow_id}", tags=["workflows"])
 def get_workflow(
-    workflow_id: str, 
+    workflow_id: str,
     session: Session = Depends(get_session),
-    user: DBUser = Depends(get_current_user),  
+    user: DBUser = Depends(get_current_user),
 ) -> FullWorkflow:
     """Get a workflow by ID"""
     db_workflow = fetch_workflow_or_raise(workflow_id, session, user)
@@ -316,16 +316,27 @@ def delete_workflow(
 
     return {"message": "Workflow deleted"}
 
+
 @app.post("/api/workflows/{workflow_id}/run", status_code=200, tags=["workflows"])
 def run_workflow(
     workflow_id: str,
     file: UploadFile,
-    session=Depends(get_session),
-    user=Depends(get_current_user),
+    workflow_inputs: str = Form(),
+    session: Session = Depends(get_session),
+    user: DBUser = Depends(get_current_user),
 ) -> WorkflowRunReport:
     """Runs the workflow associated with id `workflow_id` on the passed in csv,
     and returns any results or errors from the run. The workflow_id must be
-    associated with a workflow the calling user has access to."""
+    associated with a workflow the calling user has access to.
+
+    Args:
+        workflow_id (str): The id of the workflow to run.
+        file (UploadFile): The csv file to run the workflow on.
+        workflow_inputs (str): The inputs to pass to the workflow. This is a
+            stringified JSON object.
+    """
+    # deserialize the stringified JSON object into a dictionary
+    workflow_param_values: dict[str, WorkflowParamValue] = json.loads(workflow_inputs)
 
     db_workflow = fetch_workflow_or_raise(workflow_id, session, user)
 
@@ -337,20 +348,25 @@ def run_workflow(
         # check than what is performed in `process_workflow` because we are checking
         # for if the file adheres to the csv format, and not just the data within it
         resource.infer(stats=True)
-    except frictionless.exception.FrictionlessException:
+    except frictionless.exception.FrictionlessException as e:
         raise HTTPException(
             status_code=400,
             detail="Could not parse the input file. Please check that it is a valid .csv file!",
-        )
+        ) from e
 
     # get the CSV data from the Frictionless Resource to run our workflow
-    filename = file.filename if file.filename else ''
+    filename = file.filename if file.filename else ""
     # run our workflow
-    validation_results = process_workflow(filename, resource, {}, db_workflow.schema)
+    validation_results = process_workflow(
+        file_name=filename,
+        file_contents=resource,
+        param_values=workflow_param_values,
+        schema=db_workflow.schema,
+    )
 
     return WorkflowRunReport(
-        row_count=resource.rows,
-        filename=file.filename if file.filename else '',
+        row_count=resource.rows if resource.rows else 0,
+        filename=file.filename if file.filename else "",
         workflow_id=workflow_id,
         validation_failures=validation_results,
     )
@@ -358,7 +374,9 @@ def run_workflow(
 
 @app.get("/api/workflows/{workflow_id}/run", tags=["workflows"], response_model=None)
 def return_workflow(
-    workflow_id: str, session=Depends(get_session), user=Depends(get_current_user)
+    workflow_id: str,
+    session: Session = Depends(get_session),
+    user: DBUser = Depends(get_current_user),
 ) -> WorkflowSchema:
     """Returns a serialized json representation of the workflow that can be used
     to run the workflow locally. The workflow_id must be associated with a

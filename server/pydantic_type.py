@@ -1,14 +1,17 @@
 """This file defines a new PydanticType, which is a custom SQLAlchemy type
 to store Pydantic models in JSON columns."""
 
+from typing import Any, override
+
 from fastapi.encoders import jsonable_encoder
-from pydantic import parse_obj_as
+from pydantic import TypeAdapter
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.engine import Dialect
 from sqlalchemy.types import JSON, TypeDecorator
 
 
-class PydanticType(TypeDecorator):
+# pylint: disable=abstract-method
+class PydanticType(TypeDecorator):  # pyright: ignore[reportMissingTypeArgument]
     """SQLAlchemy type to store Pydantic models as JSON objects.
 
     It accepts a Pydantic model and converts it to a dict on save. The
@@ -20,20 +23,23 @@ class PydanticType(TypeDecorator):
         https://gist.github.com/imankulov/4051b7805ad737ace7d8de3d3f934d6b
     """
 
-    impl = JSON
+    impl = JSON  # pyright: ignore[reportUnannotatedClassAttribute]
 
-    def __init__(self, pydantic_type):
+    def __init__(self, pydantic_type: Any):
         super().__init__()
-        self.pydantic_type = pydantic_type
+        self.pydantic_type: Any = pydantic_type
 
+    @override
     def load_dialect_impl(self, dialect: Dialect):
         """Use JSONB for PostgresSQL. Use JSON for other dbs, like SQLite"""
         return dialect.type_descriptor(
             JSONB() if dialect.name == "postgresql" else JSON()
         )
 
-    def process_bind_param(self, value, dialect: Dialect):
+    @override
+    def process_bind_param(self, value: Any, dialect: Dialect):
         return jsonable_encoder(value) if value else None
 
-    def process_result_value(self, value, dialect: Dialect):
-        return parse_obj_as(self.pydantic_type, value) if value else None
+    @override
+    def process_result_value(self, value: Any, dialect: Dialect):
+        return TypeAdapter(self.pydantic_type).validate_python(value) if value else None

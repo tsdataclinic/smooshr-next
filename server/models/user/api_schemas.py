@@ -1,5 +1,7 @@
 """User schemas that are used in the API."""
+
 from datetime import datetime
+from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict
 
@@ -14,4 +16,4 @@ class User(BaseModel):
     given_name: str
     created_date: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(from_attributes=True)

@@ -1,104 +1,73 @@
-import { TextInput, Button, Select } from '@mantine/core';
+import { TextInput, Button, Stack, Box } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import {
-  FieldsetSchemaValidation,
   FieldsetSchema_Output,
-  FullWorkflow,
-  WorkflowsService,
+  FieldsetSchemaValidation,
+  WorkflowParam,
 } from '../../../../client';
-import { v4 as uuid } from 'uuid';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { WorkflowUtil } from '../../../../util/WorkflowUtil';
-import { processAPIData } from '../../../../util/apiUtil';
-import { notifications } from '@mantine/notifications';
+import { FieldsetSchemaSelect } from './FieldsetSchemaSelect';
 
 type Props = {
-  workflow: FullWorkflow;
+  mode: 'add' | 'update';
+  onAddOperation: (operation: FieldsetSchemaValidation) => void;
+  onUpdateOperation: (operation: FieldsetSchemaValidation) => void;
+  onClose: () => void;
+  defaultOperation: FieldsetSchemaValidation;
+  fieldsetSchemas: FieldsetSchema_Output[];
+  workflowParams: WorkflowParam[];
 };
 
 export function FieldsetSchemaValidationEditor({
-  workflow,
+  mode,
+  onClose,
+  onAddOperation,
+  onUpdateOperation,
+  defaultOperation,
+  fieldsetSchemas,
+  workflowParams,
 }: Props): JSX.Element {
-  const queryClient = useQueryClient();
-  const saveValidationMutation = useMutation({
-    mutationFn: async (validationConfig: FieldsetSchemaValidation) => {
-      const workflowToSave = workflow.schema.operations.find(
-        (op) => op.id === validationConfig.id,
-      )
-        ? WorkflowUtil.updateOperation(workflow, validationConfig)
-        : WorkflowUtil.insertOperation(workflow, validationConfig);
-
-      const savedWorkflow = await processAPIData(
-        WorkflowsService.updateWorkflow({
-          path: {
-            workflow_id: workflowToSave.id,
-          },
-          body: workflowToSave,
-        }),
-      );
-      return savedWorkflow;
-    },
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: WorkflowUtil.QUERY_KEYS.workflow(workflow.id),
-      });
-    },
-  });
-
   const fieldsetSchemaValidationForm = useForm<FieldsetSchemaValidation>({
     mode: 'uncontrolled',
-    initialValues: {
-      type: 'fieldsetSchemaValidation',
-      id: uuid(),
-      title: 'Validate column schemas',
-      description: '',
-      fieldsetSchema: '',
-    },
+    initialValues: defaultOperation,
   });
-
-  const fieldsetSchemaOptions = workflow.schema.fieldsetSchemas.map(
-    (fieldSchema: FieldsetSchema_Output) => {
-      return { value: fieldSchema.id, label: fieldSchema.name };
-    },
-  );
 
   return (
     <form
       onSubmit={fieldsetSchemaValidationForm.onSubmit(
-        (validationConfig: FieldsetSchemaValidation) => {
-          saveValidationMutation.mutate(validationConfig, {
-            onSuccess: () => {
-              notifications.show({
-                title: 'Saved',
-                message: 'Updated validations',
-              });
-            },
-          });
+        (operationConfig: FieldsetSchemaValidation) => {
+          if (mode === 'add') {
+            onAddOperation(operationConfig);
+          } else {
+            onUpdateOperation(operationConfig);
+          }
+          onClose();
         },
       )}
-      className="space-y-2"
     >
-      <TextInput
-        required
-        key={fieldsetSchemaValidationForm.key('title')}
-        {...fieldsetSchemaValidationForm.getInputProps('title')}
-        label="Custom Title"
-      />
-      <TextInput
-        key={fieldsetSchemaValidationForm.key('description')}
-        {...fieldsetSchemaValidationForm.getInputProps('description')}
-        label="Description"
-      />
-      <Select
-        required
-        key={fieldsetSchemaValidationForm.key('fieldsetSchema')}
-        {...fieldsetSchemaValidationForm.getInputProps('fieldsetSchema')}
-        label="Column Schema"
-        data={fieldsetSchemaOptions}
-        placeholder="Select a column schema to use"
-      />
-      <Button type="submit">Save</Button>
+      <Stack>
+        <TextInput
+          required
+          key={fieldsetSchemaValidationForm.key('title')}
+          {...fieldsetSchemaValidationForm.getInputProps('title')}
+          label="Custom Title"
+        />
+        <TextInput
+          key={fieldsetSchemaValidationForm.key('description')}
+          {...fieldsetSchemaValidationForm.getInputProps('description')}
+          label="Description"
+        />
+
+        <FieldsetSchemaSelect
+          key={fieldsetSchemaValidationForm.key('fieldsetSchema')}
+          {...fieldsetSchemaValidationForm.getInputProps('fieldsetSchema')}
+          fieldsetSchemas={fieldsetSchemas}
+          workflowParams={workflowParams}
+        />
+
+        <Box>
+          <Button type="submit">{mode === 'add' ? 'Add' : 'Update'}</Button>
+        </Box>
+      </Stack>
     </form>
   );
 }

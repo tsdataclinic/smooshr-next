@@ -1,27 +1,31 @@
-import * as React from 'react';
-import pluralize from 'pluralize';
 import {
   ActionIcon,
-  Text,
-  Table,
-  TextInput,
   Checkbox,
-  Select,
   ComboboxItem,
+  Group,
+  Select,
+  Table,
+  Text,
+  TextInput,
 } from '@mantine/core';
+import { useField } from '@mantine/form';
+import { useDisclosure } from '@mantine/hooks';
+import { modals } from '@mantine/modals';
 import { IconCheck, IconEdit } from '@tabler/icons-react';
-import { ParamReference, FieldSchema } from '../../../client';
+import pluralize from 'pluralize';
+import * as React from 'react';
+import { FieldSchema, ParamReference, WorkflowParam } from '../../../client';
 import {
-  useDebouncedCallback,
-  useDisclosure,
-  useFocusTrap,
-} from '@mantine/hooks';
-import { useFieldsetSchemasFormContext } from './FieldsetSchemasContext';
+  AllowedValues,
+  AllowedValuesModalContent,
+  AllowedValuesModalContentRef,
+} from './AllowedValuesModalContent';
 
 type Props = {
+  fieldIndex: number;
   fieldSchema: FieldSchema;
-  fieldsetIndex: number;
-  index: number;
+  onFieldSchemaChange: (index: number, fieldSchema: FieldSchema) => void;
+  workflowParams: WorkflowParam[];
 };
 
 const DATA_TYPE_OPTIONS: ComboboxItem[] = [
@@ -49,10 +53,11 @@ function booleanToString(val: boolean): string {
 
 function allowedValueListToString(
   allowedValues: string[] | ParamReference | null,
+  workflowParams: WorkflowParam[],
 ): string {
   const EMPTY = '--';
 
-  if (allowedValues === null) {
+  if (allowedValues === null || allowedValues === undefined) {
     return EMPTY;
   }
 
@@ -62,55 +67,113 @@ function allowedValueListToString(
       : pluralize('values', allowedValues.length, true);
   }
 
-  return allowedValues.paramName;
+  const param = workflowParams.find((p) => p.id === allowedValues.paramId);
+  if (param === undefined) {
+    return 'ERROR: Param not found';
+  }
+  return param.displayName;
 }
 
 export function FieldSchemaRow({
   fieldSchema,
-  fieldsetIndex,
-  index,
+  fieldIndex,
+  onFieldSchemaChange,
+  workflowParams,
 }: Props): JSX.Element {
-  const focusTrapRef = useFocusTrap();
-  const form = useFieldsetSchemasFormContext();
   const [isEditModeOn, editModeActions] = useDisclosure(false);
-  const [colName, setColName] = React.useState(fieldSchema.name);
+  const nameField = useField({ initialValue: fieldSchema.name });
+  const isRequiredField = useField({
+    initialValue: fieldSchema.required,
+    type: 'checkbox',
+  });
+  const dataTypeField = useField({
+    initialValue: fieldSchema.dataTypeValidation.dataType,
+  });
+  const isCaseSensitiveField = useField({
+    initialValue: fieldSchema.caseSensitive,
+    type: 'checkbox',
+  });
+  const allowEmptyValuesField = useField({
+    initialValue: fieldSchema.allowEmptyValues,
+    type: 'checkbox',
+  });
 
-  const formKeyBase = `fieldsetSchemas.${fieldsetIndex}.fields.${index}`;
+  const allowedValuesModalRef =
+    React.useRef<AllowedValuesModalContentRef | null>(null);
+  const [currentAllowedValues, setCurrentAllowedValues] =
+    React.useState<AllowedValues>(fieldSchema.allowedValues);
 
-  const onNameChange = useDebouncedCallback((newColName) => {
-    form.setFieldValue(`${formKeyBase}.name`, newColName);
-  }, 200);
+  const openAllowedValuesModal = () => {
+    modals.openConfirmModal({
+      title: 'Allowed values',
+      children: (
+        <AllowedValuesModalContent
+          ref={allowedValuesModalRef}
+          defaultAllowedValues={currentAllowedValues}
+          workflowParams={workflowParams}
+        />
+      ),
+      labels: { confirm: 'Save', cancel: 'Cancel' },
+      confirmProps: { color: 'blue' },
+      onConfirm: () => {
+        setCurrentAllowedValues(
+          allowedValuesModalRef.current?.getAllowedValues() ?? null,
+        );
+      },
+      onCancel: () => {
+        setCurrentAllowedValues(fieldSchema.allowedValues);
+      },
+      onKeyDown: (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          event.stopPropagation();
+          modals.closeAll();
+        }
+      },
+      trapFocus: true,
+    });
+  };
+
+  const onSaveFieldSchema = () => {
+    editModeActions.close();
+
+    // update the field schema
+    const dataType = dataTypeField.getValue();
+    const newFieldSchema: FieldSchema = {
+      ...fieldSchema,
+      allowedValues: currentAllowedValues ?? null,
+      name: nameField.getValue(),
+      required: isRequiredField.getValue(),
+      dataTypeValidation:
+        dataType === 'timestamp'
+          ? {
+              dataType,
+              dateTimeFormat: 'YYYY-MM-DD HH:mm:ss',
+            }
+          : { dataType },
+      caseSensitive: isCaseSensitiveField.getValue(),
+      allowEmptyValues: allowEmptyValuesField.getValue(),
+    };
+
+    console.log('new field schema', newFieldSchema);
+
+    onFieldSchemaChange(fieldIndex, newFieldSchema);
+  };
 
   const nameColumn = isEditModeOn ? (
-    <TextInput
-      key={form.key(`${formKeyBase}.name`)}
-      {...form.getInputProps(`${formKeyBase}.name`)}
-      value={colName}
-      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-        const newColName = event.currentTarget.value;
-        setColName(newColName);
-        onNameChange(newColName);
-      }}
-    />
+    <TextInput {...nameField.getInputProps()} />
   ) : (
     <Text size="sm">{fieldSchema.name}</Text>
   );
 
   const isRequiredColumn = isEditModeOn ? (
-    <Checkbox
-      key={form.key(`${formKeyBase}.required`)}
-      {...form.getInputProps(`${formKeyBase}.required`, { type: 'checkbox' })}
-    />
+    <Checkbox {...isRequiredField.getInputProps()} />
   ) : (
     <Text size="sm">{booleanToString(fieldSchema.required)}</Text>
   );
 
   const dataTypeColumn = isEditModeOn ? (
-    <Select
-      key={form.key(`${formKeyBase}.dataTypeValidation.dataType`)}
-      data={DATA_TYPE_OPTIONS}
-      {...form.getInputProps(`${formKeyBase}.dataTypeValidation.dataType`)}
-    />
+    <Select {...dataTypeField.getInputProps()} data={DATA_TYPE_OPTIONS} />
   ) : (
     <Text tt="capitalize" size="sm">
       {fieldSchema.dataTypeValidation.dataType}
@@ -118,40 +181,53 @@ export function FieldSchemaRow({
   );
 
   const isCaseSensitiveColumn = isEditModeOn ? (
-    <Checkbox
-      key={form.key(`${formKeyBase}.caseSensitive`)}
-      {...form.getInputProps(`${formKeyBase}.caseSensitive`, {
-        type: 'checkbox',
-      })}
-    />
+    <Checkbox {...isCaseSensitiveField.getInputProps()} />
   ) : (
     <Text size="sm">{booleanToString(fieldSchema.caseSensitive)}</Text>
   );
 
   const allowEmptyValuesColumn = isEditModeOn ? (
-    <Checkbox
-      key={form.key(`${formKeyBase}.allowEmptyValues`)}
-      {...form.getInputProps(`${formKeyBase}.allowEmptyValues`, {
-        type: 'checkbox',
-      })}
-    />
+    <Checkbox {...allowEmptyValuesField.getInputProps()} />
   ) : (
     <Text size="sm">{booleanToString(fieldSchema.allowEmptyValues)}</Text>
   );
 
+  const allowedValuesColumn = isEditModeOn ? (
+    <Text size="sm">
+      <Group>
+        {allowedValueListToString(currentAllowedValues, workflowParams)}
+        {isEditModeOn ? (
+          <ActionIcon
+            aria-label="Edit allowed values"
+            variant="transparent"
+            color="dark"
+            size="sm"
+          >
+            <IconEdit
+              onClick={() => {
+                openAllowedValuesModal();
+              }}
+            />
+          </ActionIcon>
+        ) : (
+          ''
+        )}
+      </Group>
+    </Text>
+  ) : (
+    <Text size="sm">
+      {allowedValueListToString(fieldSchema.allowedValues, workflowParams)}
+    </Text>
+  );
+
   return (
-    <Table.Tr key={fieldSchema.name} ref={focusTrapRef}>
+    <Table.Tr key={fieldSchema.name}>
       <Table.Td>{nameColumn}</Table.Td>
       <Table.Td>{isRequiredColumn}</Table.Td>
       <Table.Td>{dataTypeColumn}</Table.Td>
       <Table.Td>{isCaseSensitiveColumn}</Table.Td>
       <Table.Td>{allowEmptyValuesColumn}</Table.Td>
-
-      <Table.Td>
-        <Text size="sm">
-          {allowedValueListToString(fieldSchema.allowedValues)}
-        </Text>
-      </Table.Td>
+      <Table.Td>{allowedValuesColumn}</Table.Td>
 
       <Table.Td>
         <ActionIcon
@@ -160,7 +236,7 @@ export function FieldSchemaRow({
           size="sm"
           onClick={() => {
             if (isEditModeOn) {
-              editModeActions.close();
+              onSaveFieldSchema();
             } else {
               editModeActions.open();
             }

@@ -1,0 +1,13 @@
+{
+  "include": ["server"],
+  "exclude": ["**/node_modules", "**/__pycache__", "**/.pyenv"],
+  "reportAny": "none",
+  "reportCallInDefaultInitializer": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportUnknownArgumentType": "none",
+  "reportUnknownParameterType": "none",
+  "reportUnknownMemberType": "none",
+  "reportUnknownVariableType": "none",
+  "reportUntypedBaseClass": "none",
+  "reportUninitializedInstanceVariable": "none"
+}

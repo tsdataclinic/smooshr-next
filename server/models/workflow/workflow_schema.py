@@ -1,5 +1,6 @@
 """The models to represent a WorkflowSchema"""
-from typing import Literal, Any
+
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -14,11 +15,13 @@ class CsvData(BaseModel):
 class ParamReference(BaseModel):
     """A simple object that references a param name"""
 
-    param_name: str = Field(alias="paramName")
+    param_id: str = Field(alias="paramId")
+
 
 class BaseOperation(BaseModel):
     title: str
     description: str | None
+
 
 class FieldsetSchemaValidation(BaseOperation):
     """A validation operation to validate the dataset columns and their values"""
@@ -70,7 +73,9 @@ class FieldSchema(BaseModel):
     name: str
     case_sensitive: bool = Field(alias="caseSensitive")
     required: bool
-    data_type_validation: BasicFieldDataTypeSchema | TimestampDataTypeSchema = Field(alias="dataTypeValidation")
+    data_type_validation: BasicFieldDataTypeSchema | TimestampDataTypeSchema = Field(
+        alias="dataTypeValidation"
+    )
     allow_empty_values: bool = Field(alias="allowEmptyValues")
     allowed_values: list[str] | ParamReference | None = Field(alias="allowedValues")
 
@@ -82,16 +87,27 @@ class FieldsetSchema(BaseModel):
 
     id: str  # uuid
     name: str  # name of this fieldset, e.g. "demographic data columns"
-    order_matters: bool = Field(alias="orderMatters") # enforces column order
+    order_matters: bool = Field(alias="orderMatters")  # enforces column order
     fields: list[FieldSchema]
-    allow_extra_columns: Literal["no", "anywhere", "onlyAfterSchemaFields"] = Field(alias="allowExtraColumns")
+    allow_extra_columns: Literal["no", "anywhere", "onlyAfterSchemaFields"] = Field(
+        alias="allowExtraColumns"
+    )
 
 
 class WorkflowParam(BaseModel):
     """The schema representing an argument (an input) for the Workflow that
     is passed in when a Workflow is kicked off.
+
+    Args:
+    - id: str - uuid, a stable id for this param that is not user-editable
+    - name: str - auto-generated name from the `display_name` to be used as the
+      variable name for this param.
+    - display_name: str - user-editable display name of this param
+    - description: str
+    - required: bool
     """
 
+    id: str
     name: str
     display_name: str = Field(alias="displayName")
     description: str

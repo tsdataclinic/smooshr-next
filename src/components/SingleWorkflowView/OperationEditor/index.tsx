@@ -1,30 +1,63 @@
-import type {
-  FullWorkflow,
-  WorkflowSchema_Output,
-} from '../../../client/types.gen';
 import { Text } from '@mantine/core';
 import { FieldsetSchemaValidationEditor } from './FieldsetSchemaValidationEditor';
-import { ArrayElementType } from '../../../util/types';
 import { match } from 'ts-pattern';
-
-type OperationType = ArrayElementType<
-  WorkflowSchema_Output['operations']
->['type'];
+import { Operation } from './types';
+import {
+  FieldsetSchema_Output,
+  FieldsetSchemaValidation,
+  FileTypeValidation,
+  WorkflowParam,
+} from '../../../client';
+import { FileTypeValidationEditor } from './FileTypeValidationEditor';
 
 type Props = {
-  operationType: OperationType;
-  workflow: FullWorkflow;
+  mode: 'add' | 'update';
+  onAddOperation: (operation: Operation) => void;
+  onUpdateOperation: (operation: Operation) => void;
+  onClose: () => void;
+  fieldsetSchemas: FieldsetSchema_Output[];
+  workflowParams: WorkflowParam[];
+  defaultOperation: Operation;
 };
 
 export function OperationEditor({
-  operationType,
-  workflow,
+  mode,
+  onClose,
+  onAddOperation,
+  onUpdateOperation,
+  fieldsetSchemas,
+  workflowParams,
+  defaultOperation,
 }: Props): JSX.Element {
-  return match(operationType)
-    .with('fieldsetSchemaValidation', () => {
-      return <FieldsetSchemaValidationEditor workflow={workflow} />;
+  return match(defaultOperation)
+    .with(
+      { type: 'fieldsetSchemaValidation' },
+      (operation: FieldsetSchemaValidation) => {
+        return (
+          <FieldsetSchemaValidationEditor
+            mode={mode}
+            onClose={onClose}
+            onAddOperation={onAddOperation}
+            onUpdateOperation={onUpdateOperation}
+            defaultOperation={operation}
+            fieldsetSchemas={fieldsetSchemas}
+            workflowParams={workflowParams}
+          />
+        );
+      },
+    )
+    .with({ type: 'fileTypeValidation' }, (operation: FileTypeValidation) => {
+      return (
+        <FileTypeValidationEditor
+          mode={mode}
+          onClose={onClose}
+          onAddOperation={onAddOperation}
+          onUpdateOperation={onUpdateOperation}
+          defaultOperation={operation}
+        />
+      );
     })
-    .with('rowCountValidation', 'fileTypeValidation', () => {
+    .with({ type: 'rowCountValidation' }, () => {
       return <Text>This validation type has not been implemented yet.</Text>;
     })
     .exhaustive();

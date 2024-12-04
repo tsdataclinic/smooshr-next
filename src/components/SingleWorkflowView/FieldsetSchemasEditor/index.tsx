@@ -1,16 +1,9 @@
-import { Text, Button } from '@mantine/core';
+import * as React from 'react';
+import { Text, Button, Stack } from '@mantine/core';
 import { v4 as uuid } from 'uuid';
-import type { FullWorkflow, FieldsetSchema_Output } from '../../../client';
-import { WorkflowsService } from '../../../client';
+import type { FieldsetSchema_Output } from '../../../client';
+import type { WorkflowParam } from '../../../client'; // assuming WorkflowParam is defined in the same file as FieldsetSchema_Output
 import { FieldsetSchemaBlock } from './FieldsetSchemaBlock';
-import { WorkflowUtil } from '../../../util/WorkflowUtil';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { processAPIData } from '../../../util/apiUtil';
-import { notifications } from '@mantine/notifications';
-import {
-  useFieldsetSchemasForm,
-  FieldsetSchemasFormProvider,
-} from './FieldsetSchemasContext';
 
 function makeEmptyFieldsetSchema(idx: number): FieldsetSchema_Output {
   return {
@@ -23,96 +16,69 @@ function makeEmptyFieldsetSchema(idx: number): FieldsetSchema_Output {
 }
 
 type Props = {
-  workflow: FullWorkflow;
-  defaultFieldsetSchemas: readonly FieldsetSchema_Output[];
+  fieldsetSchemas: FieldsetSchema_Output[];
+  onFieldsetSchemasChange: (fieldsetSchemas: FieldsetSchema_Output[]) => void;
+  workflowParams: WorkflowParam[];
 };
 
 export function FieldsetSchemasEditor({
-  workflow,
-  defaultFieldsetSchemas,
+  fieldsetSchemas,
+  onFieldsetSchemasChange,
+  workflowParams,
 }: Props): JSX.Element {
-  const form = useFieldsetSchemasForm({
-    mode: 'controlled',
-    initialValues: {
-      fieldsetSchemas: defaultFieldsetSchemas as FieldsetSchema_Output[],
+  const onFieldsetSchemaChange = React.useCallback(
+    (index: number, fieldsetSchema: FieldsetSchema_Output) => {
+      onFieldsetSchemasChange([
+        ...fieldsetSchemas.slice(0, index),
+        fieldsetSchema,
+        ...fieldsetSchemas.slice(index + 1),
+      ]);
     },
-  });
+    [fieldsetSchemas, onFieldsetSchemasChange],
+  );
 
-  const queryClient = useQueryClient();
-  const saveFieldsetMutation = useMutation({
-    mutationFn: async (fieldsetSchemas: readonly FieldsetSchema_Output[]) => {
-      const workflowToSave = WorkflowUtil.updateFieldsetSchemas(
-        workflow,
-        fieldsetSchemas,
-      );
-      const savedWorkflow = await processAPIData(
-        WorkflowsService.updateWorkflow({
-          path: {
-            workflow_id: workflowToSave.id,
-          },
-          body: workflowToSave,
-        }),
-      );
-      return savedWorkflow;
+  const onFieldsetSchemaDelete = React.useCallback(
+    (index: number) => {
+      onFieldsetSchemasChange(fieldsetSchemas.filter((_, i) => i !== index));
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: WorkflowUtil.QUERY_KEYS.workflow(workflow.id),
-      });
-    },
-  });
-
-  const { fieldsetSchemas } = form.getValues();
+    [fieldsetSchemas, onFieldsetSchemasChange],
+  );
 
   return (
-    <FieldsetSchemasFormProvider form={form}>
-      <form
-        className="space-y-3"
-        onSubmit={form.onSubmit((formValues) => {
-          saveFieldsetMutation.mutate(formValues.fieldsetSchemas, {
-            onSuccess: () => {
-              notifications.show({
-                title: 'Saved',
-                message: 'Updated column schemas',
-              });
-            },
-          });
-        })}
-      >
+    <form>
+      <Stack>
+        <Button
+          style={{ alignSelf: 'flex-start' }}
+          variant="outline"
+          onClick={() => {
+            onFieldsetSchemasChange(
+              fieldsetSchemas.concat([
+                makeEmptyFieldsetSchema(fieldsetSchemas.length + 1),
+              ]),
+            );
+          }}
+        >
+          Add new ruleset
+        </Button>
         <div className="space-y-2">
           {fieldsetSchemas.length === 0 ? (
             <Text>No schemas created yet</Text>
           ) : (
-            fieldsetSchemas.map((schema, i) => {
+            fieldsetSchemas.map((fieldsetSchema, i) => {
               return (
                 <FieldsetSchemaBlock
-                  key={schema.id}
+                  key={fieldsetSchema.id}
                   index={i}
-                  fieldsetSchema={fieldsetSchemas[i]}
+                  fieldsetSchema={fieldsetSchema}
+                  onFieldsetSchemaChange={onFieldsetSchemaChange}
+                  onFieldsetSchemaDelete={onFieldsetSchemaDelete}
+                  workflowParams={workflowParams}
                 />
               );
             })
           )}
         </div>
-
-        <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={() => {
-              form.insertListItem(
-                'fieldsetSchemas',
-                makeEmptyFieldsetSchema(fieldsetSchemas.length + 1),
-              );
-            }}
-          >
-            Add new schema
-          </Button>
-
-          <Button type="submit" disabled={fieldsetSchemas.length === 0}>
-            Save
-          </Button>
-        </div>
-      </form>
-    </FieldsetSchemasFormProvider>
+      </Stack>
+    </form>
   );
 }
