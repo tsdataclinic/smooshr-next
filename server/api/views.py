@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from typing import Any, ClassVar, Generator, Optional
 import secrets
+from functools import cache
 
 from fastapi.security import APIKeyHeader
 import frictionless.exception
@@ -112,8 +113,12 @@ azure_scheme = B2CMultiTenantAuthorizationCodeBearer(
     auto_error=False
 )
 
-azure_credential = DefaultAzureCredential()
-azure_kv_client = SecretClient(vault_url=settings.AZURE_KEY_VAULT_URL, credential=azure_credential)
+@cache
+def get_kv_client():
+    azure_credential = DefaultAzureCredential()
+    azure_kv_client = SecretClient(vault_url=settings.AZURE_KEY_VAULT_URL, credential=azure_credential)
+
+    return azure_kv_client
 
 # Change this to switch between Azure and DB key providers
 KEY_PROVIDER_CLASS = AzureApiKeyProvider
