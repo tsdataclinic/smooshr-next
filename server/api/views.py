@@ -172,7 +172,7 @@ def _get_current_user_from_api_key(
     session: Session = Depends(get_session),
 ) -> DBUser:
     """This function returns the currently authenticated user given an API key."""
-    api_key_provider = KEY_PROVIDER_CLASS(session, azure_kv_client)
+    api_key_provider = KEY_PROVIDER_CLASS(session, get_kv_client())
     result = api_key_provider.get_user_and_expiration(api_key)
 
     if result is None:
@@ -397,7 +397,7 @@ def create_api_key(
     session: Session = Depends(get_session),
 ) -> ApiKey:
     """Creates an API key for the current user."""
-    api_key_provider = KEY_PROVIDER_CLASS(session, azure_kv_client)
+    api_key_provider = KEY_PROVIDER_CLASS(session, get_kv_client())
     api_key = generate_api_key()
     return api_key_provider.create_api_key(user.id, api_key, api_key_params.expiration)
 
@@ -407,7 +407,7 @@ def get_api_keys(
     session: Session = Depends(get_session),
 ) -> list[ApiKey]:
     """Gets all API keys for the current user."""
-    api_key_provider = KEY_PROVIDER_CLASS(session, azure_kv_client)
+    api_key_provider = KEY_PROVIDER_CLASS(session, get_kv_client())
     return api_key_provider.get_api_keys(user.id)
 
 @app.delete('/api/keys', tags=['api_keys'])
@@ -417,7 +417,7 @@ def delete_api_key(
     session: Session = Depends(get_session),
 ):
     """Deletes an API key for the current user."""
-    api_key_provider = KEY_PROVIDER_CLASS(session, azure_kv_client)
+    api_key_provider = KEY_PROVIDER_CLASS(session, get_kv_client())
     
     if api_key_provider.delete_api_key(user.id, api_key_params.api_key):
         return {"message": "API key deleted"}
