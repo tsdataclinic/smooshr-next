@@ -5,8 +5,11 @@ import logging
 from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Generator, Optional
+import secrets
+from functools import cache
 
+from fastapi.security import APIKeyHeader
 import frictionless.exception
 from fastapi import Depends, FastAPI, Form, HTTPException, Security, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,8 +20,13 @@ from frictionless import Resource
 from pydantic import AnyHttpUrl, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.orm import Session
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
+from server.api.api_keys.db_api_key_provider import DbApiKeyProvider
+from server.api.api_keys.azure_api_key_provider import AzureApiKeyProvider
 from server.database import SessionLocal
+from server.models.apikey.api_schemas import ApiKey, ApiKeyCreate, ApiKeyDelete
 from server.models.user.api_schemas import User
 from server.models.user.db_model import DBUser
 from server.models.workflow.api_schemas import (
@@ -52,6 +60,8 @@ class Settings(BaseSettings):
     AZURE_POLICY_AUTH_NAME: str = Field(default="")
     AZURE_B2C_SCOPES: str = Field(default="")
 
+    AZURE_KEY_VAULT_URL: str = Field(default="")
+      
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file=".env.server", case_sensitive=True
     )
@@ -64,6 +74,9 @@ def custom_generate_unique_id(route: APIRoute) -> str:
     """
     return f"{route.name}"
 
+def generate_api_key() -> str:
+    """Generate a random 32 character API key"""
+    return secrets.token_hex(20)
 
 settings = Settings()
 
@@ -80,6 +93,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+api_key_scheme = APIKeyHeader(name="X-API-Key", auto_error=False)
+
 azure_scheme = B2CMultiTenantAuthorizationCodeBearer(
     app_client_id=settings.AZURE_APP_CLIENT_ID,
     scopes={
@@ -95,8 +110,18 @@ azure_scheme = B2CMultiTenantAuthorizationCodeBearer(
         f".onmicrosoft.com/{settings.AZURE_POLICY_AUTH_NAME}/oauth2/v2.0/token"
     ),
     validate_iss=False,
+    auto_error=False
 )
 
+@cache
+def get_kv_client():
+    azure_credential = DefaultAzureCredential()
+    azure_kv_client = SecretClient(vault_url=settings.AZURE_KEY_VAULT_URL, credential=azure_credential)
+
+    return azure_kv_client
+
+# Change this to switch between Azure and DB key providers
+KEY_PROVIDER_CLASS = AzureApiKeyProvider
 
 @contextmanager
 def _commit_or_rollback(session: Session):
@@ -117,12 +142,54 @@ def get_session() -> Generator[Session, Any, None]:
     finally:
         session.close()
 
-
 def get_current_user(
+    azure_user: Optional[AzureUser] = Depends(azure_scheme),
+    api_key: Optional[str] = Depends(api_key_scheme),
+    session: Session = Depends(get_session),
+) -> DBUser:
+    """This function authenticates and returns the currently signed in user. This function
+    supports both Azure and API key authentication."""
+    if azure_user is not None:
+        return _get_current_user_from_azure(azure_user, session=session)
+    elif api_key is not None:
+        return _get_current_user_from_api_key(api_key, session=session)
+    else:
+        raise HTTPException(
+            status_code=401, detail="Not authenticated."
+        )
+
+def get_current_user_no_api_key(
     azure_user: AzureUser = Depends(azure_scheme),
     session: Session = Depends(get_session),
 ) -> DBUser:
-    """This function returns the currently authenticated user."""
+    """This function authenticates and returns the currently signed in user. This function
+    supports only Azure authentication, and should be used for private API endpoints that are
+    only accessible via the Smooshr2 frontend."""
+    return get_current_user(azure_user, api_key=None, session=session)
+
+def _get_current_user_from_api_key(
+    api_key: str = Depends(api_key_scheme),
+    session: Session = Depends(get_session),
+) -> DBUser:
+    """This function returns the currently authenticated user given an API key."""
+    api_key_provider = KEY_PROVIDER_CLASS(session, azure_kv_client)
+    result = api_key_provider.get_user_and_expiration(api_key)
+
+    if result is None:
+        raise HTTPException(
+            status_code=401, detail="Invalid or expired API key."
+        )
+
+    user_id, _ = result
+    db_user = session.get(DBUser, user_id)
+
+    return db_user 
+
+def _get_current_user_from_azure(
+    azure_user: AzureUser = Depends(azure_scheme),
+    session: Session = Depends(get_session),
+) -> DBUser:
+    """This function returns the currently authenticated user given an AzureUser."""
     # check if the azure user exists in our database already
     user_id: str = azure_user.claims.get("oid", "")
 
@@ -144,7 +211,6 @@ def get_current_user(
     session.commit()
     session.refresh(new_db_user)
     return new_db_user
-
 
 def fetch_workflow_or_raise(
     workflow_id: str, session: Session, user: DBUser
@@ -187,8 +253,6 @@ def get_workflow(
     user: DBUser = Depends(get_current_user),
 ) -> FullWorkflow:
     """Get a workflow by ID"""
-    # TODO - This should be updated to only return workflows for
-    #        the current user once authentication is implemented.
     db_workflow = fetch_workflow_or_raise(workflow_id, session, user)
     return FullWorkflow.model_validate(db_workflow)
 
@@ -325,3 +389,39 @@ def return_workflow(
 
     workflow = fetch_workflow_or_raise(workflow_id, session, user)
     return workflow.schema
+
+@app.post("/api/keys", tags=["api_keys"])
+def create_api_key(
+    api_key_params: ApiKeyCreate,
+    user: DBUser = Depends(get_current_user_no_api_key),
+    session: Session = Depends(get_session),
+) -> ApiKey:
+    """Creates an API key for the current user."""
+    api_key_provider = KEY_PROVIDER_CLASS(session, azure_kv_client)
+    api_key = generate_api_key()
+    return api_key_provider.create_api_key(user.id, api_key, api_key_params.expiration)
+
+@app.get('/api/keys', tags=['api_keys'])
+def get_api_keys(
+    user: DBUser = Depends(get_current_user_no_api_key),
+    session: Session = Depends(get_session),
+) -> list[ApiKey]:
+    """Gets all API keys for the current user."""
+    api_key_provider = KEY_PROVIDER_CLASS(session, azure_kv_client)
+    return api_key_provider.get_api_keys(user.id)
+
+@app.delete('/api/keys', tags=['api_keys'])
+def delete_api_key(
+    api_key_params: ApiKeyDelete,
+    user: DBUser = Depends(get_current_user_no_api_key),
+    session: Session = Depends(get_session),
+):
+    """Deletes an API key for the current user."""
+    api_key_provider = KEY_PROVIDER_CLASS(session, azure_kv_client)
+    
+    if api_key_provider.delete_api_key(user.id, api_key_params.api_key):
+        return {"message": "API key deleted"}
+    else:
+        raise HTTPException(
+            status_code=404, detail="API key not found."
+        )

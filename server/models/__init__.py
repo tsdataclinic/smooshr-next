@@ -6,3 +6,6 @@ auto-generate the database migration scripts.
 
 from .user.db_model import DBUser
 from .workflow.db_model import DBWorkflow
+from .apikey.db_model import DBApiKey
+
+

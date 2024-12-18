@@ -74,9 +74,11 @@ def _validate_param_values(
 
 def _get_csv_contents_from_resource(file_resource: Resource) -> CsvData:
     """Get the CSV data from the contents of a file."""
+
     all_rows: list[dict[str, Any]] = [
         row.to_dict() for row in file_resource.read_rows()
     ]
+
     fieldnames = [field.name for field in file_resource.schema.fields]
 
     return CsvData(
