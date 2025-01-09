@@ -1,3 +1,5 @@
+**This project and corresponding website are no longer maintained by Two Sigma. We continue to encourage independent development.**
+
 # Smooshr 2.0
 
 **This repo is still a work in progress and not ready for public collaboration.**
